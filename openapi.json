@@ -1,0 +1,515 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "OrbitalAstro API",
+    "description": "API pour accéder aux données astrologiques via Swiss Ephemeris. Cette API permet d'obtenir les positions planétaires, les maisons astrologiques et les aspects entre les planètes.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://orbitalastro-606wd6ee6-jo-divers-projects.vercel.app",
+      "description": "Serveur Vercel de production - OrbitalAstro API"
+    },
+    {
+      "url": "http://localhost:8000",
+      "description": "Serveur local de développement"
+    }
+  ],
+  "paths": {
+    "/": {
+      "get": {
+        "operationId": "getRoot",
+        "summary": "Informations sur l'API",
+        "description": "Retourne les informations générales sur l'API et la liste des endpoints disponibles",
+        "responses": {
+          "200": {
+            "description": "Informations sur l'API",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "string"
+                    },
+                    "endpoints": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/planets": {
+      "get": {
+        "operationId": "getPlanets",
+        "summary": "Obtenir les positions des planètes",
+        "description": "Récupère les positions des planètes pour une date et heure donnée. Les planètes disponibles sont: Sun, Moon, Mercury, Venus, Mars, Jupiter, Saturn, Uranus, Neptune, Pluto.",
+        "parameters": [
+          {
+            "name": "date",
+            "in": "query",
+            "required": true,
+            "description": "Date au format YYYY-MM-DD",
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "example": "2024-01-15"
+            }
+          },
+          {
+            "name": "time",
+            "in": "query",
+            "required": false,
+            "description": "Heure au format HH:MM:SS",
+            "schema": {
+              "type": "string",
+              "default": "12:00:00",
+              "example": "14:30:00"
+            }
+          },
+          {
+            "name": "planets",
+            "in": "query",
+            "required": false,
+            "description": "Liste de planètes séparées par des virgules (ex: Sun,Moon,Venus). Si non spécifié, toutes les planètes sont retournées.",
+            "schema": {
+              "type": "string",
+              "example": "Sun,Moon,Venus"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste des positions planétaires",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PlanetPosition"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Erreur dans les paramètres de la requête",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/houses": {
+      "get": {
+        "operationId": "getHouses",
+        "summary": "Obtenir les maisons astrologiques",
+        "description": "Récupère les maisons astrologiques pour une date, heure et localisation donnée. Les systèmes de maisons disponibles incluent Placidus (P), Koch (K), Regiomontanus (R), etc.",
+        "parameters": [
+          {
+            "name": "date",
+            "in": "query",
+            "required": true,
+            "description": "Date au format YYYY-MM-DD",
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "example": "2024-01-15"
+            }
+          },
+          {
+            "name": "time",
+            "in": "query",
+            "required": false,
+            "description": "Heure au format HH:MM:SS",
+            "schema": {
+              "type": "string",
+              "default": "12:00:00",
+              "example": "14:30:00"
+            }
+          },
+          {
+            "name": "latitude",
+            "in": "query",
+            "required": true,
+            "description": "Latitude en degrés (-90 à 90)",
+            "schema": {
+              "type": "number",
+              "minimum": -90,
+              "maximum": 90,
+              "example": 48.8566
+            }
+          },
+          {
+            "name": "longitude",
+            "in": "query",
+            "required": true,
+            "description": "Longitude en degrés (-180 à 180)",
+            "schema": {
+              "type": "number",
+              "minimum": -180,
+              "maximum": 180,
+              "example": 2.3522
+            }
+          },
+          {
+            "name": "system",
+            "in": "query",
+            "required": false,
+            "description": "Système de maisons (P=Placidus, K=Koch, R=Regiomontanus, C=Campanus, E=Equal)",
+            "schema": {
+              "type": "string",
+              "default": "P",
+              "enum": ["P", "K", "R", "C", "E"],
+              "example": "P"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste des maisons astrologiques (1 à 12)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/House"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Erreur dans les paramètres de la requête",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/aspects": {
+      "get": {
+        "operationId": "getAspects",
+        "summary": "Obtenir les aspects astrologiques",
+        "description": "Récupère les aspects astrologiques entre les planètes. Les aspects calculés incluent: Conjunction (0°), Sextile (60°), Square (90°), Trine (120°), Opposition (180°).",
+        "parameters": [
+          {
+            "name": "date",
+            "in": "query",
+            "required": true,
+            "description": "Date au format YYYY-MM-DD",
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "example": "2024-01-15"
+            }
+          },
+          {
+            "name": "time",
+            "in": "query",
+            "required": false,
+            "description": "Heure au format HH:MM:SS",
+            "schema": {
+              "type": "string",
+              "default": "12:00:00",
+              "example": "14:30:00"
+            }
+          },
+          {
+            "name": "orb_tolerance",
+            "in": "query",
+            "required": false,
+            "description": "Tolérance d'orbe (multiplicateur des orbes par défaut)",
+            "schema": {
+              "type": "number",
+              "default": 1.0,
+              "minimum": 0.1,
+              "maximum": 5.0,
+              "example": 1.5
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste des aspects astrologiques",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Aspect"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Erreur dans les paramètres de la requête",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/all": {
+      "get": {
+        "operationId": "getAllData",
+        "summary": "Obtenir toutes les données astrologiques",
+        "description": "Récupère toutes les données astrologiques en une seule requête: positions planétaires, maisons astrologiques (si latitude/longitude fournies), et aspects entre planètes.",
+        "parameters": [
+          {
+            "name": "date",
+            "in": "query",
+            "required": true,
+            "description": "Date au format YYYY-MM-DD",
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "example": "2024-01-15"
+            }
+          },
+          {
+            "name": "time",
+            "in": "query",
+            "required": false,
+            "description": "Heure au format HH:MM:SS",
+            "schema": {
+              "type": "string",
+              "default": "12:00:00",
+              "example": "14:30:00"
+            }
+          },
+          {
+            "name": "latitude",
+            "in": "query",
+            "required": false,
+            "description": "Latitude en degrés pour calculer les maisons (-90 à 90)",
+            "schema": {
+              "type": "number",
+              "minimum": -90,
+              "maximum": 90,
+              "example": 48.8566
+            }
+          },
+          {
+            "name": "longitude",
+            "in": "query",
+            "required": false,
+            "description": "Longitude en degrés pour calculer les maisons (-180 à 180)",
+            "schema": {
+              "type": "number",
+              "minimum": -180,
+              "maximum": 180,
+              "example": 2.3522
+            }
+          },
+          {
+            "name": "system",
+            "in": "query",
+            "required": false,
+            "description": "Système de maisons (P=Placidus, K=Koch, R=Regiomontanus, etc.)",
+            "schema": {
+              "type": "string",
+              "default": "P",
+              "example": "P"
+            }
+          },
+          {
+            "name": "orb_tolerance",
+            "in": "query",
+            "required": false,
+            "description": "Tolérance d'orbe pour les aspects",
+            "schema": {
+              "type": "number",
+              "default": 1.0,
+              "minimum": 0.1,
+              "maximum": 5.0,
+              "example": 1.0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Toutes les données astrologiques",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AstrologicalData"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Erreur dans les paramètres de la requête",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "PlanetPosition": {
+        "type": "object",
+        "required": ["planet", "longitude", "latitude", "distance", "speed_longitude"],
+        "properties": {
+          "planet": {
+            "type": "string",
+            "description": "Nom de la planète",
+            "enum": ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"],
+            "example": "Sun"
+          },
+          "longitude": {
+            "type": "number",
+            "description": "Longitude écliptique en degrés (0-360)",
+            "example": 294.5
+          },
+          "latitude": {
+            "type": "number",
+            "description": "Latitude écliptique en degrés",
+            "example": 0.0
+          },
+          "distance": {
+            "type": "number",
+            "description": "Distance en UA (unités astronomiques)",
+            "example": 0.983
+          },
+          "speed_longitude": {
+            "type": "number",
+            "description": "Vitesse de la longitude en degrés/jour",
+            "example": 1.02
+          }
+        }
+      },
+      "House": {
+        "type": "object",
+        "required": ["house_number", "longitude"],
+        "properties": {
+          "house_number": {
+            "type": "integer",
+            "description": "Numéro de la maison (1 à 12)",
+            "minimum": 1,
+            "maximum": 12,
+            "example": 1
+          },
+          "longitude": {
+            "type": "number",
+            "description": "Longitude écliptique du cuspide de la maison en degrés (0-360)",
+            "example": 145.23
+          }
+        }
+      },
+      "Aspect": {
+        "type": "object",
+        "required": ["planet1", "planet2", "aspect_name", "orb"],
+        "properties": {
+          "planet1": {
+            "type": "string",
+            "description": "Première planète de l'aspect",
+            "enum": ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"],
+            "example": "Sun"
+          },
+          "planet2": {
+            "type": "string",
+            "description": "Deuxième planète de l'aspect",
+            "enum": ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"],
+            "example": "Moon"
+          },
+          "aspect_name": {
+            "type": "string",
+            "description": "Nom de l'aspect",
+            "enum": ["Conjunction", "Sextile", "Square", "Trine", "Opposition"],
+            "example": "Trine"
+          },
+          "orb": {
+            "type": "number",
+            "description": "Orbe de l'aspect en degrés (écart à l'aspect exact)",
+            "example": 2.5
+          }
+        }
+      },
+      "AstrologicalData": {
+        "type": "object",
+        "required": ["date", "time", "julian_day", "planets", "houses", "aspects"],
+        "properties": {
+          "date": {
+            "type": "string",
+            "description": "Date utilisée pour les calculs (format YYYY-MM-DD)",
+            "example": "2024-01-15"
+          },
+          "time": {
+            "type": "string",
+            "description": "Heure utilisée pour les calculs (format HH:MM:SS)",
+            "example": "14:30:00"
+          },
+          "julian_day": {
+            "type": "number",
+            "description": "Jour julien utilisé pour les calculs",
+            "example": 2460326.104
+          },
+          "planets": {
+            "type": "array",
+            "description": "Liste des positions planétaires",
+            "items": {
+              "$ref": "#/components/schemas/PlanetPosition"
+            }
+          },
+          "houses": {
+            "type": "array",
+            "description": "Liste des maisons astrologiques (vide si latitude/longitude non fournies)",
+            "items": {
+              "$ref": "#/components/schemas/House"
+            }
+          },
+          "aspects": {
+            "type": "array",
+            "description": "Liste des aspects astrologiques entre les planètes",
+            "items": {
+              "$ref": "#/components/schemas/Aspect"
+            }
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "detail": {
+            "type": "string",
+            "description": "Message d'erreur détaillé",
+            "example": "Format de date/heure invalide"
+          }
+        }
+      }
+    }
+  }
+}
+
+

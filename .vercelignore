@@ -1,0 +1,22 @@
+# Fichiers à ignorer lors du déploiement Vercel
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+venv/
+env/
+.venv/
+*.egg-info/
+.git/
+.gitignore
+.vscode/
+.idea/
+*.swp
+*.swo
+README.md
+SCHEMA_GPT.md
+LICENSE
+
+
+
