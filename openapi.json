@@ -9,10 +9,6 @@
     {
       "url": "https://orbitalastro-606wd6ee6-jo-divers-projects.vercel.app",
       "description": "Serveur Vercel de production - OrbitalAstro API"
-    },
-    {
-      "url": "http://localhost:8000",
-      "description": "Serveur local de développement"
     }
   ],
   "paths": {
@@ -52,6 +48,24 @@
         "summary": "Obtenir les positions des planètes",
         "description": "Récupère les positions des planètes pour une date et heure donnée. Les planètes disponibles sont: Sun, Moon, Mercury, Venus, Mars, Jupiter, Saturn, Uranus, Neptune, Pluto.",
         "parameters": [
+          {
+            "name": "x-vercel-set-bypass-cookie",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "boolean",
+              "example": true
+            }
+          },
+          {
+            "name": "x-vercel-protection-bypass",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "8tPx2wLmV7H9rQ4sK1dJ0aYbU3zN5eTf"
+            }
+          },
           {
             "name": "date",
             "in": "query",
@@ -118,6 +132,24 @@
         "summary": "Obtenir les maisons astrologiques",
         "description": "Récupère les maisons astrologiques pour une date, heure et localisation donnée. Les systèmes de maisons disponibles incluent Placidus (P), Koch (K), Regiomontanus (R), etc.",
         "parameters": [
+          {
+            "name": "x-vercel-set-bypass-cookie",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "boolean",
+              "example": true
+            }
+          },
+          {
+            "name": "x-vercel-protection-bypass",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "8tPx2wLmV7H9rQ4sK1dJ0aYbU3zN5eTf"
+            }
+          },
           {
             "name": "date",
             "in": "query",
@@ -211,6 +243,24 @@
         "description": "Récupère les aspects astrologiques entre les planètes. Les aspects calculés incluent: Conjunction (0°), Sextile (60°), Square (90°), Trine (120°), Opposition (180°).",
         "parameters": [
           {
+            "name": "x-vercel-set-bypass-cookie",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "boolean",
+              "example": true
+            }
+          },
+          {
+            "name": "x-vercel-protection-bypass",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "8tPx2wLmV7H9rQ4sK1dJ0aYbU3zN5eTf"
+            }
+          },
+          {
             "name": "date",
             "in": "query",
             "required": true,
@@ -279,6 +329,24 @@
         "summary": "Obtenir toutes les données astrologiques",
         "description": "Récupère toutes les données astrologiques en une seule requête: positions planétaires, maisons astrologiques (si latitude/longitude fournies), et aspects entre planètes.",
         "parameters": [
+          {
+            "name": "x-vercel-set-bypass-cookie",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "boolean",
+              "example": true
+            }
+          },
+          {
+            "name": "x-vercel-protection-bypass",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "8tPx2wLmV7H9rQ4sK1dJ0aYbU3zN5eTf"
+            }
+          },
           {
             "name": "date",
             "in": "query",
@@ -511,5 +579,3 @@
     }
   }
 }
-
-
