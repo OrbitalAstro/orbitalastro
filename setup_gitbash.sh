@@ -13,6 +13,3 @@ echo "To make this permanent, add these lines to ~/.bashrc:"
 echo ""
 echo "export PATH=\"/c/Program Files/nodejs:\$PATH\""
 echo "export PATH=\"\$HOME/AppData/Roaming/npm:\$PATH\""
-
-
-
