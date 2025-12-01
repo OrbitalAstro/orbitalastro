@@ -14,3 +14,5 @@ echo ""
 echo "export PATH=\"/c/Program Files/nodejs:\$PATH\""
 echo "export PATH=\"\$HOME/AppData/Roaming/npm:\$PATH\""
 
+
+

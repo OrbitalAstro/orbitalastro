@@ -1,1 +1,16 @@
-{"projectId":"prj_gbs8r4dSCMd9ljI1wWA14Ui8xEq6","orgId":"team_w13zRMKarqnIn6wogvoxkPhV","projectName":"orbitalastro-api"}
+{
+  "projectId": "prj_gbs8r4dSCMd9ljI1wWA14Ui8xEq6",
+  "orgId": "team_w13zRMKarqnIn6wogvoxkPhV",
+  "projectName": "orbitalastro-api",
+  "settings": {
+    "createdAt": 1763332089565,
+    "framework": null,
+    "devCommand": null,
+    "installCommand": null,
+    "buildCommand": null,
+    "outputDirectory": null,
+    "rootDirectory": null,
+    "directoryListing": false,
+    "nodeVersion": "22.x"
+  }
+}

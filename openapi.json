@@ -17,6 +17,26 @@
         "operationId": "getRoot",
         "summary": "Informations sur l'API",
         "description": "Retourne les informations générales sur l'API et la liste des endpoints disponibles",
+        "parameters": [
+          {
+            "name": "x-vercel-set-bypass-cookie",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "example": true
+            }
+          },
+          {
+            "name": "x-vercel-protection-bypass",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "example": "8tPx2wLmV7H9rQ4sK1dJ0aYbU3zN5eTf"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Informations sur l'API",
@@ -51,7 +71,7 @@
           {
             "name": "x-vercel-set-bypass-cookie",
             "in": "query",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "boolean",
               "example": true
@@ -60,7 +80,7 @@
           {
             "name": "x-vercel-protection-bypass",
             "in": "query",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "string",
               "example": "8tPx2wLmV7H9rQ4sK1dJ0aYbU3zN5eTf"
@@ -135,7 +155,7 @@
           {
             "name": "x-vercel-set-bypass-cookie",
             "in": "query",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "boolean",
               "example": true
@@ -144,7 +164,7 @@
           {
             "name": "x-vercel-protection-bypass",
             "in": "query",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "string",
               "example": "8tPx2wLmV7H9rQ4sK1dJ0aYbU3zN5eTf"
@@ -245,7 +265,7 @@
           {
             "name": "x-vercel-set-bypass-cookie",
             "in": "query",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "boolean",
               "example": true
@@ -254,7 +274,7 @@
           {
             "name": "x-vercel-protection-bypass",
             "in": "query",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "string",
               "example": "8tPx2wLmV7H9rQ4sK1dJ0aYbU3zN5eTf"
@@ -332,7 +352,7 @@
           {
             "name": "x-vercel-set-bypass-cookie",
             "in": "query",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "boolean",
               "example": true
@@ -341,7 +361,7 @@
           {
             "name": "x-vercel-protection-bypass",
             "in": "query",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "string",
               "example": "8tPx2wLmV7H9rQ4sK1dJ0aYbU3zN5eTf"
