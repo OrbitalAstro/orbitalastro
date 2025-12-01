@@ -3,7 +3,7 @@
   "info": {
     "title": "OrbitalAstro API",
     "description": "API pour accéder aux données astrologiques via Swiss Ephemeris. Cette API permet d'obtenir les positions planétaires, les maisons astrologiques et les aspects entre les planètes.",
-    "version": "1.0.0"
+    "version": "1.0.1"
   },
   "servers": [
     {
