@@ -1,0 +1,27 @@
+name: Deploy to Vercel
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Vercel Deployment
+        env:
+          VERCEL_DEPLOY_HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK }}
+        run: |
+          if [ -z "$VERCEL_DEPLOY_HOOK" ]; then
+            echo "⚠️  VERCEL_DEPLOY_HOOK secret not set. Please add it in GitHub Settings > Secrets."
+            echo "   Go to: https://github.com/OrbitalAstro/orbitalastro/settings/secrets/actions"
+            exit 1
+          fi
+          echo "🚀 Triggering Vercel deployment..."
+          curl -X POST "$VERCEL_DEPLOY_HOOK" \
+            -H "Content-Type: application/json" \
+            -d '{}' \
+            -w "\nStatus: %{http_code}\n"
+          echo "✅ Deployment triggered!"
+
