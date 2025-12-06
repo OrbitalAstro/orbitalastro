@@ -122,12 +122,15 @@ async def get_houses(
 
     hsys = system.encode("ascii")
 
-    try:
+        try:
         cusps, ascmc = swe.houses(jul_day_utc, latitude, longitude, hsys)
         if cusps is None or len(cusps) < 13:
-            raise HTTPException(status_code=500, detail="Erreur: le calcul des maisons n'a pas retourné de résultats valides")
+            raise ValueError("Aucune cuspide valide retournée")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erreur lors du calcul des maisons: {str(e)}")
+        # 🔍 Log clair et retour complet de l’erreur
+        print("ERREUR SWISSEPH:", e)
+        raise HTTPException(status_code=500, detail=f"Erreur lors du calcul des maisons: {repr(e)}")
+
 
     houses_list = [{"house_number": i, "longitude": cusps[i]} for i in range(1, 13)]
     return houses_list
