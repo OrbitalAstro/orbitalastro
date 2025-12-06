@@ -10,7 +10,7 @@ import math
 app = FastAPI(
     title="OrbitalAstro API",
     description="API pour accéder aux données astrologiques via Swiss Ephemeris",
-    version="1.0.0"
+    version="1.0.1"
 )
 
 # Configuration CORS
@@ -22,17 +22,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Configuration de Swiss Ephemeris
-# Définir le chemin vers les fichiers d'éphémérides si nécessaire
-# swe.set_ephe_path('/path/to/ephe')
-
+# Fonction pour convertir une date et une heure en jour julien
 def get_julian_day(date_str: str, time_str: str = "12:00:00") -> float:
-    """Convertit date et heure en jour julien"""
     try:
         dt = datetime.strptime(f"{date_str} {time_str}", "%Y-%m-%d %H:%M:%S")
-        # Utilisation de swe.julday avec calcul précis de l'heure UTC
         utc = dt.hour + dt.minute/60.0 + dt.second/3600.0
-        # swe.julday(year, month, day, hour, calflag) où calflag = swe.GREG_CAL pour calendrier grégorien
         jul_day = swe.julday(dt.year, dt.month, dt.day, utc, swe.GREG_CAL)
         return jul_day
     except ValueError as e:
@@ -40,6 +34,7 @@ def get_julian_day(date_str: str, time_str: str = "12:00:00") -> float:
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Erreur lors de la conversion de la date: {str(e)}")
 
+# Liste des planètes
 PLANETS = {
     "Sun": swe.SUN,
     "Moon": swe.MOON,
@@ -57,7 +52,7 @@ PLANETS = {
 async def root():
     return {
         "message": "Bienvenue sur l'API OrbitalAstro",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "endpoints": {
             "planets": "/planets",
             "houses": "/houses",
@@ -77,13 +72,9 @@ async def get_planets(
     
     if planets:
         requested_planets = [p.strip() for p in planets.split(",")]
-        # Validation des noms de planètes
         invalid_planets = [p for p in requested_planets if p not in PLANETS]
         if invalid_planets:
-            raise HTTPException(
-                status_code=400, 
-                detail=f"Planètes invalides: {', '.join(invalid_planets)}. Planètes disponibles: {', '.join(PLANETS.keys())}"
-            )
+            raise HTTPException(status_code=400, detail=f"Planètes invalides: {', '.join(invalid_planets)}")
         target_planets = {name: pid for name, pid in PLANETS.items() if name in requested_planets}
     else:
         target_planets = PLANETS
@@ -91,14 +82,9 @@ async def get_planets(
     results = []
     for name, pid in target_planets.items():
         try:
-            # calcul avec indicateur de vitesse (flag FLG_SPEED)
             xx, ret = swe.calc_ut(jul_day, pid, swe.FLG_SPEED)
             if ret < 0:
-                # Erreur dans le calcul
-                raise HTTPException(
-                    status_code=500, 
-                    detail=f"Erreur lors du calcul de la position de {name}. Code d'erreur: {ret}"
-                )
+                raise HTTPException(status_code=500, detail=f"Erreur lors du calcul de {name}. Code: {ret}")
             results.append({
                 "planet": name,
                 "longitude": xx[0],
@@ -107,11 +93,7 @@ async def get_planets(
                 "speed_longitude": xx[3]
             })
         except Exception as e:
-            raise HTTPException(
-                status_code=500, 
-                detail=f"Erreur lors du calcul de la position de {name}: {str(e)}"
-            )
-        
+            raise HTTPException(status_code=500, detail=f"Erreur lors du calcul de {name}: {str(e)}")
     return results
 
 @app.get("/houses")
@@ -123,41 +105,31 @@ async def get_houses(
     system: str = "P"
 ):
     """Récupère les maisons astrologiques"""
-    # Validation des coordonnées géographiques
     if latitude < -90 or latitude > 90:
         raise HTTPException(status_code=400, detail="Latitude doit être entre -90 et 90 degrés")
     if longitude < -180 or longitude > 180:
         raise HTTPException(status_code=400, detail="Longitude doit être entre -180 et 180 degrés")
-    
+
     jul_day = get_julian_day(date, time)
-    
-    # Validation du système de maisons
+
+    # 🌍 Conversion locale → UTC approximative
+    utc_offset = longitude / 15.0 * -1  # 15° = 1 heure
+    jul_day_utc = jul_day - (utc_offset / 24.0)
+
     valid_systems = ["P", "K", "R", "C", "E", "W", "X", "H", "T", "B", "V", "A", "M", "N", "O", "F", "G", "I", "J", "L", "S", "U", "Y", "Z"]
     if system not in valid_systems:
-        raise HTTPException(status_code=400, detail=f"Système de maisons invalide. Systèmes valides: {', '.join(valid_systems)}")
-    
-    # hsys: P=Placidus, K=Koch, R=Regiomontanus, etc.
-    # Swiss Ephemeris attend un caractère unique encodé en bytes
-    hsys = system.encode('ascii')
-    
+        raise HTTPException(status_code=400, detail=f"Système invalide. Valides: {', '.join(valid_systems)}")
+
+    hsys = system.encode("ascii")
+
     try:
-        cusps, ascmc = swe.houses(jul_day, latitude, longitude, hsys)
+        cusps, ascmc = swe.houses(jul_day_utc, latitude, longitude, hsys)
         if cusps is None or len(cusps) < 13:
             raise HTTPException(status_code=500, detail="Erreur: le calcul des maisons n'a pas retourné de résultats valides")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erreur lors du calcul des maisons: {str(e)}")
-    
-    houses_list = []
-    # cusps contient 13 éléments: cusps[0] est toujours 0, cusps[1] à cusps[12] sont les cuspides des maisons 1 à 12
-    for i in range(1, 13):
-        if i < len(cusps):
-            houses_list.append({
-                "house_number": i,
-                "longitude": cusps[i]
-            })
-        else:
-            raise HTTPException(status_code=500, detail=f"Erreur: cuspide de la maison {i} manquante")
-        
+
+    houses_list = [{"house_number": i, "longitude": cusps[i]} for i in range(1, 13)]
     return houses_list
 
 @app.get("/aspects")
@@ -167,18 +139,14 @@ async def get_aspects(
     orb_tolerance: float = 1.0
 ):
     """Récupère les aspects entre planètes"""
-    # Validation de la tolérance d'orbe
     if orb_tolerance < 0.1 or orb_tolerance > 5.0:
         raise HTTPException(status_code=400, detail="orb_tolerance doit être entre 0.1 et 5.0")
     
-    # Récupérer d'abord les positions
     planet_positions = await get_planets(date, time)
-    
     if len(planet_positions) < 2:
         return []
     
     aspects_list = []
-    # Définition simple des aspects (angle, orbe de base)
     ASPECT_defs = {
         "Conjunction": (0, 8.0),
         "Sextile": (60, 6.0),
@@ -186,28 +154,18 @@ async def get_aspects(
         "Trine": (120, 7.0),
         "Opposition": (180, 8.0)
     }
-    
-    # Utiliser un set pour éviter les doublons
     seen_aspects = set()
-    
     for i in range(len(planet_positions)):
         p1 = planet_positions[i]
         for j in range(i + 1, len(planet_positions)):
             p2 = planet_positions[j]
-            
-            # Calcul de la différence d'angle (le plus court chemin sur le cercle)
             diff = abs(p1["longitude"] - p2["longitude"])
             if diff > 180:
                 diff = 360 - diff
-            
-            # Vérifier chaque aspect possible
             for asp_name, (angle, base_orb) in ASPECT_defs.items():
                 orb = base_orb * orb_tolerance
                 angle_diff = abs(diff - angle)
-                
-                # Vérifier si l'aspect est dans l'orbe
                 if angle_diff <= orb:
-                    # Créer une clé unique pour éviter les doublons
                     aspect_key = tuple(sorted([p1["planet"], p2["planet"]]) + [asp_name])
                     if aspect_key not in seen_aspects:
                         seen_aspects.add(aspect_key)
@@ -217,9 +175,7 @@ async def get_aspects(
                             "aspect_name": asp_name,
                             "orb": round(angle_diff, 2)
                         })
-                        # Un seul aspect par paire de planètes (le plus proche)
                         break
-                    
     return aspects_list
 
 @app.get("/all")
@@ -231,32 +187,27 @@ async def get_all_data(
     system: str = "P",
     orb_tolerance: float = 1.0
 ):
-    """Récupère toutes les données"""
-    # Validation: si latitude ou longitude est fourni, les deux doivent l'être
+    """Récupère toutes les données astrologiques"""
     if (latitude is not None and longitude is None) or (latitude is None and longitude is not None):
-        raise HTTPException(
-            status_code=400, 
-            detail="Si vous fournissez latitude ou longitude, vous devez fournir les deux pour calculer les maisons"
-        )
+        raise HTTPException(status_code=400, detail="Si vous fournissez latitude ou longitude, fournissez les deux.")
     
     jul_day = get_julian_day(date, time)
-    
     try:
         planets_data = await get_planets(date, time)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erreur lors de la récupération des planètes: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Erreur planètes: {str(e)}")
     
     houses_data = []
     if latitude is not None and longitude is not None:
         try:
             houses_data = await get_houses(date, latitude, longitude, time, system)
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Erreur lors de la récupération des maisons: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Erreur maisons: {str(e)}")
         
     try:
         aspects_data = await get_aspects(date, time, orb_tolerance)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erreur lors de la récupération des aspects: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Erreur aspects: {str(e)}")
     
     return {
         "date": date,
