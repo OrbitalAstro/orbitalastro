@@ -120,9 +120,9 @@ async def get_houses(
     if system not in valid_systems:
         raise HTTPException(status_code=400, detail=f"Système invalide. Valides: {', '.join(valid_systems)}")
 
-    hsys = system.encode("ascii")
+        hsys = system.encode("ascii")
 
-        try:
+    try:
         cusps, ascmc = swe.houses(jul_day_utc, latitude, longitude, hsys)
         if cusps is None or len(cusps) < 13:
             raise ValueError("Aucune cuspide valide retournée")
@@ -130,7 +130,6 @@ async def get_houses(
         # 🔍 Log clair et retour complet de l’erreur
         print("ERREUR SWISSEPH:", e)
         raise HTTPException(status_code=500, detail=f"Erreur lors du calcul des maisons: {repr(e)}")
-
 
     houses_list = [{"house_number": i, "longitude": cusps[i]} for i in range(1, 13)]
     return houses_list
