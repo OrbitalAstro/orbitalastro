@@ -17,11 +17,10 @@ RUN apt-get update && \
         git && \
     rm -rf /var/lib/apt/lists/*
 
-# Met à jour pip et installe pyswisseph depuis GitHub
+# Met à jour pip
 RUN python -m pip install --no-cache-dir --upgrade pip setuptools wheel
-RUN python -m pip install --no-cache-dir git+https://github.com/astrorigin/pyswisseph.git@2.10.3.2
 
-# Installe les dépendances de ton projet
+# Installe les dépendances de ton projet (pyswisseph sera installé depuis PyPI)
 RUN python -m pip install --no-cache-dir -r requirements.txt
 
 # Expose le port utilisé par Render
