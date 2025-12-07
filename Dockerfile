@@ -4,20 +4,31 @@ FROM python:3.11-slim
 # Crée et positionne le répertoire de travail
 WORKDIR /app
 
-# Copie tous les fichiers du projet dans le conteneur
+# Copie les fichiers du projet
 COPY . /app
 
-# Installe les dépendances système nécessaires à pyswisseph
-RUN apt-get update && apt-get install -y build-essential libssl-dev libffi-dev && rm -rf /var/lib/apt/lists/*
+# Installe les dépendances système nécessaires à la compilation de pyswisseph
+# (build tools + libswisseph)
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        build-essential \
+        libswisseph-dev \
+        libffi-dev \
+        libssl-dev \
+        curl && \
+    rm -rf /var/lib/apt/lists/*
 
 # Met à jour pip et installe les dépendances Python
 RUN python -m pip install --no-cache-dir --upgrade pip setuptools wheel
+
+# ⚠️ Assure-toi que pyswisseph est bien listé dans requirements.txt
 RUN python -m pip install --no-cache-dir -r requirements.txt
 
-# Expose le port que Render utilise
+# Expose le port utilisé par Render
 EXPOSE 10000
 
+# Vérifie la santé du service
 HEALTHCHECK CMD curl --fail http://localhost:10000/ || exit 1
 
-# Démarre ton app
+# Lance le serveur Uvicorn
 CMD ["uvicorn", "api.index:app", "--host", "0.0.0.0", "--port", "10000"]
