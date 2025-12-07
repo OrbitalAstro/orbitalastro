@@ -17,5 +17,7 @@ RUN python -m pip install --no-cache-dir -r requirements.txt
 # Expose le port que Render utilise
 EXPOSE 10000
 
+HEALTHCHECK CMD curl --fail http://localhost:10000/ || exit 1
+
 # Démarre ton app
 CMD ["uvicorn", "api.index:app", "--host", "0.0.0.0", "--port", "10000"]
