@@ -41,9 +41,16 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 # Copie le reste du projet
 COPY . .
 
-# Vérifie pyswisseph et le path Python (pour debug)
-RUN python -m pip show pyswisseph && \
-    python -c "import pyswisseph; print('✓ pyswisseph OK dans Render')"
+# Force Python à trouver la lib compilée
+ENV PYTHONPATH=/usr/local/lib/python3.11/site-packages
+ENV LD_LIBRARY_PATH=/usr/local/lib/python3.11/site-packages:$LD_LIBRARY_PATH
+ENV PATH="/usr/local/bin:$PATH"
+
+# Vérifie pyswisseph (debug non bloquant)
+RUN python -m pip show pyswisseph || echo "pyswisseph introuvable" && \
+    python -c "import importlib.util, sys; spec = importlib.util.find_spec('pyswisseph'); print('Chemin:', spec.origin if spec else '❌ non trouvé'); print('sys.path:', sys.path)"
+
+
 
 # Expose le port (Render)
 EXPOSE 10000
