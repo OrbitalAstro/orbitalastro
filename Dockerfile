@@ -34,29 +34,21 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Copie les dépendances préinstallées depuis l’étape précédente
-COPY --from=builder /usr/local/lib/python3.11 /usr/local/lib/python3.11
-COPY --from=builder /usr/local/bin /usr/local/bin
+# Copie toutes les dépendances installées depuis le builder
+COPY --from=builder /usr/local /usr/local
 
-# Copie le reste du projet
+# Copie le code de ton projet
 COPY . .
 
-# Force Python à trouver la lib compilée
+# Force Python à chercher les libs dans le bon répertoire
 ENV PYTHONPATH=/usr/local/lib/python3.11/site-packages
 ENV LD_LIBRARY_PATH=/usr/local/lib/python3.11/site-packages:$LD_LIBRARY_PATH
 ENV PATH="/usr/local/bin:$PATH"
 
-# Vérifie pyswisseph (debug non bloquant)
-RUN python -m pip show pyswisseph || echo "pyswisseph introuvable" && \
-    python -c "import importlib.util, sys; spec = importlib.util.find_spec('pyswisseph'); print('Chemin:', spec.origin if spec else '❌ non trouvé'); print('sys.path:', sys.path)"
+# Vérifie que pyswisseph est accessible
+RUN python -c "import pyswisseph; print('✓ pyswisseph présent dans l’image finale')"
 
-
-
-# Expose le port (Render)
 EXPOSE 10000
-
-# Healthcheck
 HEALTHCHECK CMD curl --fail http://localhost:10000/ || exit 1
 
-# Commande de démarrage
 CMD ["uvicorn", "api.index:app", "--host", "0.0.0.0", "--port", "10000"]
