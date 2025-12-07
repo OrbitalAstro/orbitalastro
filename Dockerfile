@@ -16,8 +16,9 @@ RUN apt-get update && \
         curl && \
     rm -rf /var/lib/apt/lists/*
 
-# Met à jour pip et installe les dépendances Python
+# Met à jour pip et installe d'abord pyswisseph manuellement
 RUN python -m pip install --no-cache-dir --upgrade pip setuptools wheel
+RUN python -m pip install --no-cache-dir pyswisseph==2.10.3.2
 RUN python -m pip install --no-cache-dir -r requirements.txt
 
 # Expose le port utilisé par Render
