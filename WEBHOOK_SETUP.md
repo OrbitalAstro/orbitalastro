@@ -51,3 +51,4 @@ Après avoir créé le webhook :
 ## Note
 Normalement, Vercel crée automatiquement le webhook lors de la connexion. Si vous devez le créer manuellement, cela peut indiquer un problème avec l'application Vercel sur GitHub. Vous pouvez aussi essayer de réinstaller l'application Vercel sur GitHub.
 
+

@@ -46,3 +46,4 @@ Les webhooks GitHub ne sont pas configurés ou l'application Vercel n'a pas les 
 ## 📝 Note sur l'Email
 L'email Git (`jodivers@outlook.com`) doit être associé à votre compte GitHub pour que les déploiements automatiques fonctionnent correctement.
 
+

@@ -33,3 +33,4 @@ Après avoir ajouté le secret et poussé :
 ## 📝 Note
 Cette méthode utilise GitHub Actions comme intermédiaire entre GitHub et Vercel, ce qui est plus fiable que les webhooks directs.
 
+
