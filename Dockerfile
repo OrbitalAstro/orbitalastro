@@ -1,35 +1,55 @@
-# Utilise une image Python stable compatible avec pyswisseph
-FROM python:3.11-slim
+# ---- Étape 1 : base Python avec cache pip ----
+FROM python:3.11-slim AS base
 
-# Crée et positionne le répertoire de travail
 WORKDIR /app
 
-# Copie tous les fichiers du projet
-COPY . /app
+# Garde un cache pip local (pour builds plus rapides)
+ENV PIP_NO_CACHE_DIR=false
+ENV PIP_DISABLE_PIP_VERSION_CHECK=1
+ENV PYTHONUNBUFFERED=1
 
-# Installe les dépendances système nécessaires à la compilation de modules Python
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-        build-essential \
-        libffi-dev \
-        libssl-dev \
-        curl \
-        git && \
-    rm -rf /var/lib/apt/lists/*
+# Installe dépendances système nécessaires à pyswisseph
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libffi-dev \
+    libssl-dev \
+    libxml2-dev \
+    libxslt1-dev \
+    curl \
+    git \
+    && rm -rf /var/lib/apt/lists/*
 
-# Met à jour pip
-RUN python -m pip install --no-cache-dir --upgrade pip setuptools wheel
+# ---- Étape 2 : installation des dépendances Python ----
+FROM base AS builder
 
-# Installe pyswisseph depuis GitHub puis les autres dépendances dans le même RUN
-RUN python -m pip install --no-cache-dir git+https://github.com/astrorigin/pyswisseph.git && \
-    python -m pip install --no-cache-dir -r requirements.txt && \
-    python -c "import pyswisseph; print('✓ pyswisseph installed successfully')"
+COPY requirements.txt ./
 
-# Expose le port utilisé par Render
+# ✅ Installe pyswisseph en version compilée (binaire si dispo)
+RUN python -m pip install --upgrade pip setuptools wheel && \
+    python -m pip install pyswisseph==2.10.3.2 --prefer-binary && \
+    python -m pip install -r requirements.txt
+
+# ---- Étape 3 : image finale légère ----
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Copie les dépendances préinstallées depuis l’étape précédente
+COPY --from=builder /usr/local/lib/python3.11 /usr/local/lib/python3.11
+COPY --from=builder /usr/local/bin /usr/local/bin
+
+# Copie le reste du projet
+COPY . .
+
+# Vérifie pyswisseph et le path Python (pour debug)
+RUN python -m pip show pyswisseph && \
+    python -c "import pyswisseph; print('✓ pyswisseph OK dans Render')"
+
+# Expose le port (Render)
 EXPOSE 10000
 
-# Vérifie la santé du service
+# Healthcheck
 HEALTHCHECK CMD curl --fail http://localhost:10000/ || exit 1
 
-# Démarre ton app
+# Commande de démarrage
 CMD ["uvicorn", "api.index:app", "--host", "0.0.0.0", "--port", "10000"]
