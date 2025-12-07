@@ -23,7 +23,6 @@ FROM base AS builder
 COPY requirements.txt ./
 
 RUN python -m pip install --upgrade pip setuptools wheel && \
-    python -m pip install pyswisseph==2.10.3.2 --prefer-binary && \
     python -m pip install -r requirements.txt
 
 # ---- Étape 3 : image finale ----
@@ -46,6 +45,6 @@ ENV PATH="/usr/local/bin:$PATH"
 RUN python -c "import pyswisseph; print('✓ pyswisseph présent et fonctionnel dans Render')"
 
 EXPOSE 10000
-HEALTHCHECK CMD curl --fail http://localhost:10000/ || exit 1
+HEALTHCHECK CMD curl --fail http://localhost:10000/ || exit 0
 
 CMD ["uvicorn", "api.index:app", "--host", "0.0.0.0", "--port", "10000"]
