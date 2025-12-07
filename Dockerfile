@@ -18,7 +18,7 @@ RUN python -m pip install --upgrade pip setuptools wheel \
 COPY . .
 
 # Vérifie pyswisseph
-RUN python -c "import sys, import importlib.util; print('sys.path=', sys.path); spec = importlib.util.find_spec('pyswisseph'); print('pyswisseph trouvé à:', spec.origin if spec else '❌ non trouvé')"
+RUN python -c "import sys, importlib.util; print('sys.path=', sys.path); spec = importlib.util.find_spec('pyswisseph'); print('pyswisseph trouvé à:', spec.origin if spec else '❌ non trouvé')"
 
 EXPOSE 10000
 HEALTHCHECK CMD curl --fail http://localhost:10000/ || exit 0
