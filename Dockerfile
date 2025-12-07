@@ -14,7 +14,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt ./
 RUN python -m pip install --upgrade pip setuptools wheel \
  && python -m pip install -r requirements.txt \
- && python -m pip install pyswisseph==2.10.3.2 --prefer-binary
+ && python -m pip install git+https://github.com/astrorigin/pyswisseph.git
 
 # ---- Copier le code source ----
 COPY . .
