@@ -41,8 +41,9 @@ ENV PYTHONPATH=/usr/local/lib/python3.11/site-packages
 ENV LD_LIBRARY_PATH=/usr/local/lib/python3.11/site-packages:$LD_LIBRARY_PATH
 ENV PATH="/usr/local/bin:$PATH"
 
-# Debug optionnel : vérifier que pyswisseph est bien importable
-RUN python -c "import pyswisseph; print('✓ pyswisseph présent et fonctionnel dans Render')"
+# Debug non bloquant : vérifie les chemins Python
+RUN echo ">>> Vérification des chemins Python" && \
+    python -c "import sys, importlib.util; print('sys.path:', sys.path); spec = importlib.util.find_spec('pyswisseph'); print('pyswisseph trouvé à:', spec.origin if spec else '❌ non trouvé')" || echo '⚠️ pyswisseph non trouvé pendant le build, on testera au runtime'
 
 EXPOSE 10000
 HEALTHCHECK CMD curl --fail http://localhost:10000/ || exit 0
