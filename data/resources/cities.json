@@ -1,0 +1,135 @@
+[
+  {
+    "name": "Paris",
+    "aliases": ["Ville Lumiere"],
+    "latitude": 48.8566,
+    "longitude": 2.3522,
+    "timezone": "Europe/Paris"
+  },
+  {
+    "name": "New York",
+    "aliases": ["New York City", "NYC"],
+    "latitude": 40.7128,
+    "longitude": -74.0060,
+    "timezone": "America/New_York"
+  },
+  {
+    "name": "Los Angeles",
+    "aliases": ["LA"],
+    "latitude": 34.0522,
+    "longitude": -118.2437,
+    "timezone": "America/Los_Angeles"
+  },
+  {
+    "name": "London",
+    "aliases": ["Londres"],
+    "latitude": 51.5074,
+    "longitude": -0.1278,
+    "timezone": "Europe/London"
+  },
+  {
+    "name": "Tokyo",
+    "aliases": ["Tokyo Metropolis"],
+    "latitude": 35.6895,
+    "longitude": 139.6917,
+    "timezone": "Asia/Tokyo"
+  },
+  {
+    "name": "Sydney",
+    "aliases": ["Sydney Australia"],
+    "latitude": -33.8688,
+    "longitude": 151.2093,
+    "timezone": "Australia/Sydney"
+  },
+  {
+    "name": "Buenos Aires",
+    "aliases": ["Bs As"],
+    "latitude": -34.6037,
+    "longitude": -58.3816,
+    "timezone": "America/Argentina/Buenos_Aires"
+  },
+  {
+    "name": "Cape Town",
+    "aliases": ["Cape Town South Africa"],
+    "latitude": -33.9249,
+    "longitude": 18.4241,
+    "timezone": "Africa/Johannesburg"
+  },
+  {
+    "name": "Rio de Janeiro",
+    "aliases": ["Rio"],
+    "latitude": -22.9068,
+    "longitude": -43.1729,
+    "timezone": "America/Sao_Paulo"
+  },
+  {
+    "name": "Mexico City",
+    "aliases": ["CDMX"],
+    "latitude": 19.4326,
+    "longitude": -99.1332,
+    "timezone": "America/Mexico_City"
+  },
+  {
+    "name": "Berlin",
+    "aliases": ["Berlin Germany"],
+    "latitude": 52.5200,
+    "longitude": 13.4050,
+    "timezone": "Europe/Berlin"
+  },
+  {
+    "name": "Moscow",
+    "aliases": ["Moskva"],
+    "latitude": 55.7558,
+    "longitude": 37.6173,
+    "timezone": "Europe/Moscow"
+  },
+  {
+    "name": "Toronto",
+    "aliases": ["Toronto Canada"],
+    "latitude": 43.6532,
+    "longitude": -79.3832,
+    "timezone": "America/Toronto"
+  },
+  {
+    "name": "Dubai",
+    "aliases": ["Dubai UAE"],
+    "latitude": 25.2048,
+    "longitude": 55.2708,
+    "timezone": "Asia/Dubai"
+  },
+  {
+    "name": "Delhi",
+    "aliases": ["New Delhi"],
+    "latitude": 28.6139,
+    "longitude": 77.2090,
+    "timezone": "Asia/Kolkata"
+  },
+  {
+    "name": "Singapore",
+    "aliases": ["Singapore City"],
+    "latitude": 1.3521,
+    "longitude": 103.8198,
+    "timezone": "Asia/Singapore"
+  },
+  {
+    "name": "Rome",
+    "aliases": ["Roma"],
+    "latitude": 41.9028,
+    "longitude": 12.4964,
+    "timezone": "Europe/Rome"
+  },
+  {
+    "name": "Anchorage",
+    "aliases": ["Anchorage Alaska"],
+    "latitude": 61.2181,
+    "longitude": -149.9003,
+    "timezone": "America/Anchorage"
+  },
+  {
+    "name": "Honolulu",
+    "aliases": ["Honolulu Hawaii"],
+    "latitude": 21.3069,
+    "longitude": -157.8583,
+    "timezone": "Pacific/Honolulu"
+  }
+]
