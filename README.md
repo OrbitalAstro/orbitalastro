@@ -1,6 +1,6 @@
 # OrbitalAstro API
 
-API REST pour accéder aux données astrologiques via Swiss Ephemeris. Cette API permet à votre GPT personnalisé d'importer facilement les données astrologiques pour des analyses et des calculs.
+API REST pour accéder aux données astrologiques via Flatlib. Cette API permet à votre GPT personnalisé d'importer facilement les données astrologiques pour des analyses et des calculs.
 
 ## 🚀 Installation
 
@@ -8,7 +8,6 @@ API REST pour accéder aux données astrologiques via Swiss Ephemeris. Cette API
 
 - Python 3.8+
 - Git
-- Microsoft Visual C++ Build Tools (pour pyswisseph)
 
 ### Installation des dépendances
 

@@ -54,10 +54,7 @@ Le fichier `vercel.json` configure :
 - Timeout maximum : 60 secondes (plan gratuit) ou 300 secondes (plan Pro)
 - Taille maximale du package : 50 MB (gratuit) ou 250 MB (Pro)
 
-**Important** : `pyswisseph` nécessite des fichiers d'éphémérides. Pour Vercel :
-1. Les fichiers d'éphémérides ne sont pas inclus par défaut
-2. Vous devrez peut-être configurer `swe.set_ephe_path()` pour pointer vers un chemin disponible
-3. Ou utiliser un chemin CDN pour les fichiers d'éphémérides
+**Important** : `flatlib` ne nécessite pas de compilation native ni de fichiers externes. Si un build échoue, vérifiez que Vercel déploie bien la dernière révision contenant `flatlib` dans `requirements.txt`.
 
 ## Variables d'environnement
 
@@ -90,12 +87,11 @@ Si vous rencontrez des erreurs :
 
 1. Vérifier les logs : `vercel logs`
 2. Vérifier que toutes les dépendances sont dans `requirements.txt`
-3. Vérifier que `pyswisseph` compile correctement (peut nécessiter des outils de build)
-4. Pour `pyswisseph`, Vercel peut nécessiter une configuration spéciale car c'est une bibliothèque native
+3. Confirmer que l'instance déployée pointe sur la branche/commit attendu (sinon relancer le déploiement)
 
 ## Alternative : Utiliser un conteneur Docker sur Vercel
 
-Si vous rencontrez des problèmes avec `pyswisseph`, vous pouvez utiliser Vercel avec Docker :
+Si vous voulez contrôler finement l'environnement, vous pouvez utiliser Vercel avec Docker :
 - Créer un `Dockerfile`
 - Utiliser Vercel avec le runtime Docker (nécessite un plan Pro)
 
