@@ -119,9 +119,29 @@ export default function RectificationPage() {
       return
     }
 
-    const validEvents = events.filter(e => e.type && e.datetime_local)
+    // Validate events - must have type and complete datetime (YYYY-MM-DDTHH:MM format)
+    const validEvents = events.filter(e => {
+      if (!e.type || !e.datetime_local) return false
+      // Check if datetime_local is in valid format (YYYY-MM-DDTHH:MM or YYYY-MM-DDTHH:MM:SS)
+      const datetimePattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/
+      return datetimePattern.test(e.datetime_local)
+    })
+    
     if (validEvents.length === 0) {
-      toast.error(lang === 'fr' ? 'Veuillez ajouter au moins un événement' : lang === 'es' ? 'Por favor agrega al menos un evento' : 'Please add at least one event')
+      const invalidCount = events.filter(e => e.type || e.datetime_local).length
+      if (invalidCount > 0) {
+        toast.error(lang === 'fr' 
+          ? 'Veuillez compléter tous les champs des événements (type, date et heure complètes)'
+          : lang === 'es'
+          ? 'Por favor completa todos los campos de los eventos (tipo, fecha y hora completas)'
+          : 'Please complete all event fields (type, full date and time)')
+      } else {
+        toast.error(lang === 'fr' 
+          ? 'Veuillez ajouter au moins un événement valide'
+          : lang === 'es'
+          ? 'Por favor agrega al menos un evento válido'
+          : 'Please add at least one valid event')
+      }
       return
     }
 
@@ -260,6 +280,7 @@ export default function RectificationPage() {
                         value={event.datetime_local}
                         onChange={(e) => updateEvent(index, 'datetime_local', e.target.value)}
                         className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        suppressHydrationWarning
                       />
                     </div>
                     <div className="flex items-end gap-2">

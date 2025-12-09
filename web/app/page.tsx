@@ -5,12 +5,11 @@
 import { useState, useEffect } from 'react'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import {
-  Sparkles, BarChart3, BookOpen, Settings as SettingsIcon, Calendar, Star,
+  Sparkles, BarChart3, BookOpen, Calendar, Star,
   ArrowRight, Eye, Scroll, Wand2, Zap, Heart
 } from 'lucide-react'
 import Link from 'next/link'
 import Logo from '@/components/Logo'
-import MobileMenu from '@/components/MobileMenu'
 import { useTranslation } from '@/lib/useTranslation'
 
 // -------------------------------------------------------------
@@ -29,44 +28,18 @@ export default function LandingPage() {
       {/* Starfield */}
       <Starfield />
 
-      {/* Navigation Bar */}
-      <nav className="fixed top-0 w-full z-50 border-b border-white/10 backdrop-blur-md bg-black/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-20">
-            
-            {/* Logo */}
-            <Logo variant="horizontal" size="md" />
-
-            {/* Right Nav */}
-            <div className="flex items-center space-x-6">
-              <Link href="/about" className="hidden md:block text-white/70 hover:text-white transition">
-                {t.nav.about}
-              </Link>
-              <Link href="/chat" className="hidden md:block text-white/70 hover:text-white transition">
-                {t.nav.chat}
-              </Link>
-              <Link href="/dashboard" className="hidden md:block text-white/70 hover:text-white transition">
-                {t.nav.enter}
-              </Link>
-              <Link href="/settings" className="hidden md:block text-white/70 hover:text-white transition">
-                <SettingsIcon className="h-5 w-5" />
-              </Link>
-
-              <Link href="/dashboard">
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="px-6 py-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg font-semibold"
-                >
-                  {t.nav.beginJourney}
-                </motion.button>
-              </Link>
-              <MobileMenu />
-            </div>
-
-          </div>
-        </div>
-      </nav>
+      {/* Hero CTA Button - Navigation is now in layout */}
+      <div className="fixed top-20 right-4 z-40 lg:hidden">
+        <Link href="/dashboard">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="px-6 py-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg font-semibold shadow-lg"
+          >
+            {t.nav.beginJourney}
+          </motion.button>
+        </Link>
+      </div>
 
       {/* HERO SECTION */}
       <section className="relative min-h-screen flex items-center justify-center px-4">

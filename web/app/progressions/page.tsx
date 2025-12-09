@@ -79,7 +79,8 @@ export default function ProgressionsPage() {
     try {
       const birthDate = latestChart.birthData.birth_date
       const birthTime = latestChart.birthData.birth_time || '12:00'
-      const birthDatetime = `${birthDate}T${birthTime}:00`
+      // Ensure timezone is included (UTC)
+      const birthDatetime = `${birthDate}T${birthTime}:00Z`
 
       const response = await apiClient.progressions.calculate({
         birth_datetime: birthDatetime,
@@ -170,13 +171,22 @@ export default function ProgressionsPage() {
                 {lang === 'fr' ? 'Résultats des Progressions' : lang === 'es' ? 'Resultados de Progresiones' : 'Progression Results'}
               </h2>
               <div className="prose prose-invert max-w-none">
-                <p className="text-white/80 mb-4">
-                  <strong>{lang === 'fr' ? 'Date Progressée:' : lang === 'es' ? 'Fecha Progresada:' : 'Progressed Date:'}</strong>{' '}
-                  {new Date(progressedChart.progressed_datetime_utc).toLocaleDateString()}
-                </p>
-                <p className="text-white/80 mb-4">
-                  <strong>{lang === 'fr' ? 'Âge:' : lang === 'es' ? 'Edad:' : 'Age:'}</strong> {progressedChart.age_years} {lang === 'fr' ? 'ans' : lang === 'es' ? 'años' : 'years'}
-                </p>
+                <div className="bg-white/5 rounded-lg p-4 mb-4 border border-white/10">
+                  <p className="text-white/80 mb-2">
+                    <strong>{lang === 'fr' ? 'Date Progressée:' : lang === 'es' ? 'Fecha Progresada:' : 'Progressed Date:'}</strong>{' '}
+                    {new Date(progressedChart.progressed_datetime_utc).toLocaleDateString()}
+                  </p>
+                  <p className="text-white/80 mb-2">
+                    <strong>{lang === 'fr' ? 'Âge:' : lang === 'es' ? 'Edad:' : 'Age:'}</strong> {progressedChart.age_years.toFixed(2)} {lang === 'fr' ? 'ans' : lang === 'es' ? 'años' : 'years'}
+                  </p>
+                  <p className="text-sm text-white/60 mt-3 italic">
+                    {lang === 'fr' 
+                      ? '💫 En progressions secondaires, 1 jour après la naissance = 1 an de vie. Cette date symbolique représente où en sont vos planètes progressées à cet âge.'
+                      : lang === 'es'
+                      ? '💫 En progresiones secundarias, 1 día después del nacimiento = 1 año de vida. Esta fecha simbólica representa dónde están tus planetas progresadas a esta edad.'
+                      : '💫 In secondary progressions, 1 day after birth = 1 year of life. This symbolic date represents where your progressed planets are at this age.'}
+                  </p>
+                </div>
                 {progressedChart.narrative_seed && (
                   <div className="mt-6">
                     <h3 className="text-xl font-semibold text-white mb-2">

@@ -4,6 +4,7 @@ import './globals.css'
 import { Providers } from './providers'
 import Toaster from '@/components/Toaster'
 import QuickActions from '@/components/QuickActions'
+import Navigation from '@/components/Navigation'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 
 const inter = Inter({ 
@@ -39,7 +40,10 @@ export default function RootLayout({
       <body className={`${inter.variable} font-body`} suppressHydrationWarning>
         <ErrorBoundary>
           <Providers>
-            {children}
+            <Navigation />
+            <main className="pt-16">
+              {children}
+            </main>
             <Toaster />
             <QuickActions />
           </Providers>

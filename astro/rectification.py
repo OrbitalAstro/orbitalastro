@@ -142,14 +142,24 @@ def rectify_birth_time(
     latitude = data["latitude_deg"]
     longitude = data["longitude_deg"]
 
-    events = [
-        RectifyEvent(
-            type=event["type"],
-            datetime_local=datetime.fromisoformat(event["datetime_local"]).replace(tzinfo=tz),
-            weight=event.get("weight", 1.0),
-        )
-        for event in data.get("events", [])
-    ]
+    events = []
+    for event in data.get("events", []):
+        try:
+            event_dt = datetime.fromisoformat(event["datetime_local"])
+            # If datetime already has timezone, convert to local timezone
+            # Otherwise, assume it's already in local timezone
+            if event_dt.tzinfo is None:
+                event_dt = event_dt.replace(tzinfo=tz)
+            else:
+                # Convert from existing timezone to local timezone
+                event_dt = event_dt.astimezone(tz)
+            events.append(RectifyEvent(
+                type=event["type"],
+                datetime_local=event_dt,
+                weight=event.get("weight", 1.0),
+            ))
+        except (ValueError, KeyError) as e:
+            raise ValueError(f"Invalid event datetime '{event.get('datetime_local', '')}': {e}")
 
     event_positions: Dict[str, Dict[str, float]] = {}
     for event in events:

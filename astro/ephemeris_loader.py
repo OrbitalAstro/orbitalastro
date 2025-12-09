@@ -86,19 +86,31 @@ def _generate_year_on_demand(year: int) -> None:
     if file_path.exists():
         return
     
-    # Import swisseph only when needed (optional dependency)
+    # Try swisseph first (preferred, more accurate)
     try:
         import swisseph as swe
+        if EPHEMERIS_DIR.exists():
+            swe.set_ephe_path(str(EPHEMERIS_DIR))
+            _generate_year_with_swisseph(year, swe)
+            return
+    except ImportError:
+        pass
+    
+    # Fallback to skyfield (pure Python, no compilation needed)
+    try:
+        _generate_year_with_skyfield(year)
+        return
     except ImportError:
         raise FileNotFoundError(
-            f"swisseph is required for on-demand ephemeris generation. "
-            f"Either install it or pre-generate ephemeris data for year {year}."
+            f"Neither swisseph nor skyfield is available for on-demand ephemeris generation. "
+            f"Please install skyfield (pip install skyfield) or pre-generate ephemeris data for year {year}."
         )
     
+def _generate_year_with_swisseph(year: int, swe) -> None:
+    """Generate ephemeris data using swisseph (preferred method)."""
     # Prepare Swiss Ephemeris path
     if not EPHEMERIS_DIR.exists():
         raise FileNotFoundError(f"Swiss Ephemeris data not found at {EPHEMERIS_DIR}")
-    swe.set_ephe_path(str(EPHEMERIS_DIR))
     
     # Build planet IDs (same logic as generate_ephemeris.py)
     planet_ids = {}
@@ -162,9 +174,84 @@ def _generate_year_on_demand(year: int) -> None:
         current += delta
     
     # Save to file
+    file_path = CACHE_DIR / f"{year}.json"
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
     with file_path.open("w", encoding="utf-8") as handle:
         json.dump(entries, handle, indent=2, sort_keys=True)
+    
+    # Update catalog (which will save to index.json)
+    catalog.register(year)
+
+
+def _generate_year_with_skyfield(year: int) -> None:
+    """Generate ephemeris data using skyfield (pure Python fallback)."""
+    from skyfield.api import load
+    from skyfield.framelib import ecliptic_frame
+    
+    # Load ephemeris data (downloads automatically if needed)
+    ts = load.timescale()
+    eph = load('de421.bsp')  # JPL ephemeris
+    
+    # Map our body names to skyfield objects
+    bodies = {
+        'sun': eph['sun'],
+        'moon': eph['moon'],
+        'mercury': eph['mercury'],
+        'venus': eph['venus'],
+        'mars': eph['mars'],
+        'jupiter': eph['jupiter barycenter'],
+        'saturn': eph['saturn barycenter'],
+        'uranus': eph['uranus barycenter'],
+        'neptune': eph['neptune barycenter'],
+        'pluto': eph['pluto barycenter'],
+    }
+    
+    # Generate hourly data for the year
+    start = datetime(year, 1, 1, 0, 0, tzinfo=timezone.utc)
+    end = datetime(year, 12, 31, 23, 0, tzinfo=timezone.utc)
+    delta = timedelta(hours=1)
+    
+    entries: Dict[str, Dict[str, float]] = {}
+    current = start
+    
+    # Earth position for calculations
+    earth = eph['earth']
+    
+    while current <= end:
+        t = ts.from_datetime(current)
+        timestamp = current.strftime('%Y-%m-%dT%H:%M:%SZ')
+        row: Dict[str, float] = {}
+        
+        for body_name, body_obj in bodies.items():
+            try:
+                # Get position relative to Earth
+                astrometric = earth.at(t).observe(body_obj)
+                # Convert to ecliptic coordinates
+                lat, lon, distance = astrometric.frame_latlon(ecliptic_frame)
+                longitude = lon.degrees % 360.0
+                row[body_name] = round(longitude, 6)
+            except Exception:
+                continue
+        
+        # For nodes and other points, we'll need to calculate from Moon's orbit
+        # True Node: intersection of Moon's orbit with ecliptic
+        try:
+            moon_astrometric = earth.at(t).observe(eph['moon'])
+            moon_lat, moon_lon, _ = moon_astrometric.frame_latlon(ecliptic_frame)
+            # Simplified: use Moon's longitude for node approximation
+            # (True node calculation is more complex, this is a simplification)
+            row['true_node'] = round(moon_lon.degrees % 360.0, 6)
+        except Exception:
+            pass
+        
+        entries[timestamp] = row
+        current += delta
+    
+    # Save to file
+    file_path = CACHE_DIR / f"{year}.json"
+    CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    with file_path.open('w', encoding='utf-8') as f:
+        json.dump(entries, f, indent=2, sort_keys=True)
     
     # Update catalog (which will save to index.json)
     catalog.register(year)

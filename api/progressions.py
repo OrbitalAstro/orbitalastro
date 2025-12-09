@@ -46,18 +46,33 @@ class ProgressionResponse(BaseModel):
 async def calculate_progressions(request: ProgressionRequest):
     """Compute progressed chart for a given date."""
     try:
-        birth_datetime = datetime.fromisoformat(request.birth_datetime.replace("Z", "+00:00"))
+        # Parse birth_datetime - handle with or without timezone
+        birth_datetime_str = request.birth_datetime
+        if "Z" in birth_datetime_str:
+            birth_datetime_str = birth_datetime_str.replace("Z", "+00:00")
+        elif "+" not in birth_datetime_str and birth_datetime_str.count(":") >= 2:
+            # If no timezone, assume UTC
+            birth_datetime_str = birth_datetime_str + "+00:00"
+        birth_datetime = datetime.fromisoformat(birth_datetime_str)
+        if birth_datetime.tzinfo is None:
+            # If still no timezone, assume UTC
+            from datetime import timezone
+            birth_datetime = birth_datetime.replace(tzinfo=timezone.utc)
+        
         progressed_date = date.fromisoformat(request.progressed_date)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=f"Invalid date format: {e}")
 
-    progressed_data = compute_progressed_chart(
-        birth_datetime,
-        progressed_date,
-        request.latitude,
-        request.longitude,
-        request.house_system or "placidus",
-    )
+    try:
+        progressed_data = compute_progressed_chart(
+            birth_datetime,
+            progressed_date,
+            request.latitude,
+            request.longitude,
+            request.house_system or "placidus",
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error computing progressions: {str(e)}")
 
     # Compute aspects if requested
     aspects_list = None
