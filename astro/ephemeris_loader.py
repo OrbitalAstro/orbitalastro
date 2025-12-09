@@ -9,8 +9,6 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Dict, List, Tuple
 
-import swisseph as swe
-
 from astro.ephemeris_catalog import catalog
 from astro.interpolate import interpolate_longitude_deg
 from astro.telemetry import telemetry
@@ -87,6 +85,15 @@ def _generate_year_on_demand(year: int) -> None:
     file_path = CACHE_DIR / f"{year}.json"
     if file_path.exists():
         return
+    
+    # Import swisseph only when needed (optional dependency)
+    try:
+        import swisseph as swe
+    except ImportError:
+        raise FileNotFoundError(
+            f"swisseph is required for on-demand ephemeris generation. "
+            f"Either install it or pre-generate ephemeris data for year {year}."
+        )
     
     # Prepare Swiss Ephemeris path
     if not EPHEMERIS_DIR.exists():

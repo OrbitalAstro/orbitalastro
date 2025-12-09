@@ -36,7 +36,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} font-body`}>
+      <body className={`${inter.variable} font-body`} suppressHydrationWarning>
         <ErrorBoundary>
           <Providers>
             {children}

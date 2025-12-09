@@ -106,3 +106,4 @@ export default function SynastryChart({ chart1, chart2 }: SynastryChartProps) {
 
 
 
+

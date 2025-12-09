@@ -68,7 +68,10 @@ export default function Dialogues() {
       setDialogue(dialogueText)
     } catch (error: any) {
       console.error('Error generating dialogue:', error)
-      alert(`Erreur lors de la génération du dialogue: ${error.message}`)
+      const errorMsg = error.message?.includes('Rate limit') 
+        ? t.dialogues.rateLimitError || 'Limite de requêtes atteinte. Veuillez attendre quelques instants et réessayer.'
+        : `Erreur lors de la génération du dialogue: ${error.message}`
+      alert(errorMsg)
     } finally {
       setLoading(false)
     }
@@ -104,6 +107,7 @@ export default function Dialogues() {
                 onChange={(e) => setBirthData({ ...birthData, firstName: e.target.value })}
                 placeholder={t.dialogues.firstNamePlaceholder}
                 className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                suppressHydrationWarning
               />
             </div>
             <div>
@@ -115,6 +119,7 @@ export default function Dialogues() {
                 value={birthData.birth_date}
                 onChange={(e) => setBirthData({ ...birthData, birth_date: e.target.value })}
                 className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                suppressHydrationWarning
               />
             </div>
             <div>
@@ -126,6 +131,7 @@ export default function Dialogues() {
                 value={birthData.birth_time}
                 onChange={(e) => setBirthData({ ...birthData, birth_time: e.target.value })}
                 className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                suppressHydrationWarning
               />
             </div>
             <div className="md:col-span-2">
@@ -177,7 +183,7 @@ export default function Dialogues() {
               animate={{ opacity: 1, y: 0 }}
               className="bg-white/5 rounded-xl p-6 border border-white/10"
             >
-              <div className="prose prose-invert max-w-none">
+              <div className="prose prose-invert max-w-none max-h-[70vh] overflow-y-auto pr-4 custom-scrollbar">
                 <ReactMarkdown>{dialogue}</ReactMarkdown>
               </div>
             </motion.div>
