@@ -45,3 +45,6 @@ def build_aspect_module(natal: Dict, aspects: List[Dict], config: Dict = None) -
 
     return f"{intro}\n" + "\n".join(f"- {desc}" for desc in aspect_descriptions)
 
+
+
+

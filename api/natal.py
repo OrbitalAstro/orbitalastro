@@ -10,6 +10,7 @@ from typing import Dict, List, Optional
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, field_validator
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
@@ -139,11 +140,29 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:3000",
+        "http://localhost:3001",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:3001",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Exception handler to ensure CORS headers are added to all error responses
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    logger.exception("Unhandled exception", exc_info=exc)
+    return JSONResponse(
+        status_code=500,
+        content={"detail": str(exc)},
+        headers={
+            "Access-Control-Allow-Origin": "http://localhost:3000",
+            "Access-Control-Allow-Credentials": "true",
+        }
+    )
 
 
 @app.middleware("http")
@@ -153,10 +172,16 @@ async def telemetry_middleware(request: Request, call_next):
     try:
         response = await call_next(request)
         return response
+    except HTTPException as exc:
+        telemetry.record_error()
+        logger.exception("Request failed", exc_info=exc)
+        # Re-raise HTTPException so FastAPI can handle it with CORS headers
+        raise
     except Exception as exc:
         telemetry.record_error()
         logger.exception("Request failed", exc_info=exc)
-        raise
+        # Convert to HTTPException so CORS middleware can add headers
+        raise HTTPException(status_code=500, detail=str(exc))
     finally:
         telemetry.record_latency(time.perf_counter() - start)
 
@@ -189,6 +214,10 @@ def _resolve_city(request: NatalRequest) -> Optional[Dict]:
         return None
     city = lookup_city(request.birth_city)
     if city is None:
+        # If specific coordinates are provided, we can skip the strict city lookup
+        if request.latitude is not None and request.longitude is not None:
+            return None
+
         raise HTTPException(
             status_code=404,
             detail=f"Unknown city '{request.birth_city}'. Available: {list_supported_cities()}",
@@ -315,6 +344,7 @@ async def natal_chart(request: NatalRequest):
     lst_hours = chart["lst_hours"]
     mean_eps = chart["mean_obliquity"]
     utc_dt = chart["utc_dt"]
+    jd = chart["jd"]
 
     planets: Dict[str, PlanetInfo] = {}
     for body in BODY_ORDER:

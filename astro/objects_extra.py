@@ -157,3 +157,6 @@ def compute_arabic_parts(
     
     return parts
 
+
+
+

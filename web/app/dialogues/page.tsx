@@ -7,12 +7,19 @@ import { useSettingsStore } from '@/lib/store'
 import { apiClient } from '@/lib/api'
 import { useQuery } from '@tanstack/react-query'
 import ReactMarkdown from 'react-markdown'
+import LocationInput from '@/components/LocationInput'
+import BackButton from '@/components/BackButton'
+import { generateDialogue } from '@/lib/gemini'
+import { useTranslation } from '@/lib/useTranslation'
 
 export default function Dialogues() {
   const settings = useSettingsStore()
+  const t = useTranslation()
   const [birthData, setBirthData] = useState({
     birth_date: '',
     birth_time: '12:00',
+    birth_place: '',
+    firstName: '',
     latitude: settings.defaultLatitude || 0,
     longitude: settings.defaultLongitude || 0,
     timezone: settings.defaultTimezone,
@@ -21,51 +28,47 @@ export default function Dialogues() {
   const [dialogue, setDialogue] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
-  const generateDialogue = async () => {
+  const handleGenerateDialogue = async () => {
+    if (!settings.geminiApiKey?.trim()) {
+      alert(t.dialogues.apiKeyRequired)
+      return
+    }
+
     setLoading(true)
     try {
       // Get natal chart first
       const chartResponse = await apiClient.natal.calculate({
-        ...birthData,
+        birth_date: birthData.birth_date,
+        birth_time: birthData.birth_time,
+        birth_place: birthData.birth_place,
+        latitude: birthData.latitude,
+        longitude: birthData.longitude,
+        timezone: birthData.timezone,
+        birth_city: birthData.birth_place || undefined,
         house_system: settings.houseSystem,
         include_aspects: true,
+        include_extra_objects: settings.includeExtraObjects,
       })
       
       const chart = chartResponse.data
       
-      // Generate pre-incarnation dialogue
-      // In a real implementation, this would call your LLM API
-      const dialogueText = `# Pre-Incarnation Dialogue
-
-## Act I: The Chamber of Arrival
-
-*The scene opens in a vast, star-filled chamber. The Sun and Moon stand as luminous figures.*
-
-**Sun**: Welcome, soul. You are about to embark on a journey into the realm of ${chart.planets?.sun?.sign || 'mystery'}.
-
-**Moon**: Your emotional nature will be shaped by ${chart.planets?.moon?.sign || 'the cosmos'}, in the ${chart.planets?.moon?.house || 'first'} house of your being.
-
-**Ascendant** (as Threshold Guardian): I am the mask you will wear, the ${chart.planets ? Object.values(chart.planets)[0]?.sign : 'first'} face you show to the world.
-
-## Act II: The Council of Themes
-
-*Chiron enters, limping but radiant.*
-
-**Chiron**: I bring you the wound that will become your greatest gift. In ${chart.planets?.chiron?.sign || 'mystery'}, you will learn to heal others through your own pain.
-
-*The planets gather, each speaking their piece...*
-
-## Act III-V: The Descent
-
-*The dialogue continues, weaving together all the planetary themes into a mythopoetic narrative of your cosmic origins.*
-
----
-
-*This is a generated pre-incarnation dialogue. For a full personalized version, integrate with your LLM service.*`
+      // Generate pre-incarnation dialogue using Gemini
+      const dialogueText = await generateDialogue(
+        settings.geminiApiKey,
+        chart,
+        {
+          birth_date: birthData.birth_date,
+          birth_time: birthData.birth_time,
+          birth_place: birthData.birth_place,
+          firstName: birthData.firstName,
+        },
+        settings.language || 'fr'
+      )
       
       setDialogue(dialogueText)
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error generating dialogue:', error)
+      alert(`Erreur lors de la génération du dialogue: ${error.message}`)
     } finally {
       setLoading(false)
     }
@@ -74,6 +77,7 @@ export default function Dialogues() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <BackButton href="/" />
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -81,19 +85,30 @@ export default function Dialogues() {
         >
           <h1 className="text-3xl font-bold text-white mb-8 flex items-center">
             <MessageSquare className="h-8 w-8 mr-3 text-yellow-400" />
-            Pre-Incarnation Dialogue
+            {t.dialogues.title}
           </h1>
 
           <p className="text-white/70 mb-6">
-            Generate a mythopoetic dialogue exploring your cosmic origins and the themes 
-            that will shape your earthly journey.
+            {t.dialogues.description}
           </p>
 
           {/* Input Form */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <div>
               <label className="block text-sm font-medium text-white/80 mb-2">
-                Birth Date
+                {t.dialogues.firstName}
+              </label>
+              <input
+                type="text"
+                value={birthData.firstName}
+                onChange={(e) => setBirthData({ ...birthData, firstName: e.target.value })}
+                placeholder={t.dialogues.firstNamePlaceholder}
+                className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-white/80 mb-2">
+                {t.dialogues.birthDate}
               </label>
               <input
                 type="date"
@@ -104,7 +119,7 @@ export default function Dialogues() {
             </div>
             <div>
               <label className="block text-sm font-medium text-white/80 mb-2">
-                Birth Time
+                {t.dialogues.birthTime}
               </label>
               <input
                 type="time"
@@ -113,44 +128,45 @@ export default function Dialogues() {
                 className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-white/80 mb-2">
-                Latitude
-              </label>
-              <input
-                type="number"
-                value={birthData.latitude}
-                onChange={(e) => setBirthData({ ...birthData, latitude: parseFloat(e.target.value) })}
-                step="0.0001"
-                className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-white/80 mb-2">
-                Longitude
-              </label>
-              <input
-                type="number"
-                value={birthData.longitude}
-                onChange={(e) => setBirthData({ ...birthData, longitude: parseFloat(e.target.value) })}
-                step="0.0001"
-                className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500"
+            <div className="md:col-span-2">
+              <LocationInput
+                label={t.dialogues.birthPlace}
+                value={birthData.birth_place}
+                onChange={(value) => setBirthData({ ...birthData, birth_place: value })}
+                onLocationSelect={(location) => {
+                  setBirthData({
+                    ...birthData,
+                    birth_place: location.name,
+                    latitude: location.latitude,
+                    longitude: location.longitude,
+                    timezone: location.timezone || settings.defaultTimezone || '',
+                  })
+                }}
+                placeholder="Recherchez une ville ou un lieu (ex: 'Hôpital Sainte-Croix Drummondville')..."
               />
             </div>
           </div>
 
+          {!settings.geminiApiKey?.trim() && (
+            <div className="mb-6 p-4 bg-yellow-500/20 border border-yellow-500/50 rounded-lg">
+              <p className="text-sm text-yellow-400">
+                {t.dialogues.apiKeyRequired}
+              </p>
+            </div>
+          )}
+
           <button
-            onClick={generateDialogue}
-            disabled={loading || !birthData.birth_date}
+            onClick={handleGenerateDialogue}
+            disabled={loading || !birthData.birth_date || !settings.geminiApiKey?.trim()}
             className="w-full px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:shadow-lg transition disabled:opacity-50 mb-8 flex items-center justify-center"
           >
             {loading ? (
               <>
                 <Sparkles className="h-5 w-5 mr-2 animate-spin" />
-                Generating Dialogue...
+                {t.dialogues.generating}
               </>
             ) : (
-              'Generate Pre-Incarnation Dialogue'
+              t.dialogues.generate
             )}
           </button>
 

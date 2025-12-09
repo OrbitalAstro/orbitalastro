@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { BookOpen, Sparkles, Moon, Sun } from 'lucide-react'
 import { useSettingsStore } from '@/lib/store'
+import { getHouseName } from '@/lib/houseNames'
 
 interface InterpretationPanelProps {
   chart: any
@@ -75,7 +76,9 @@ export default function InterpretationPanel({ chart }: InterpretationPanelProps)
               <div key={name} className="bg-white/5 rounded-lg p-3">
                 <div className="flex justify-between items-center">
                   <span className="font-semibold capitalize">{name}</span>
-                  <span className="text-sm">{planet.sign} • House {planet.house}</span>
+                  <span className="text-sm">
+                    {planet.sign} • {getHouseName(planet.house, settings.language || 'en')}
+                  </span>
                 </div>
                 <div className="text-sm text-white/60 mt-1">
                   {planet.longitude.toFixed(2)}°
@@ -86,13 +89,25 @@ export default function InterpretationPanel({ chart }: InterpretationPanelProps)
         )}
 
         {activeTab === 'houses' && (
-          <div className="grid grid-cols-2 gap-2">
-            {Object.entries(chart.houses || {}).map(([num, cusp]: [string, any]) => (
-              <div key={num} className="bg-white/5 rounded-lg p-2 text-sm">
-                <span className="font-semibold">House {num}</span>
-                <div className="text-white/60">{cusp.toFixed(2)}°</div>
+          <div>
+            {chart.house_system && (
+              <div className="mb-4 pb-4 border-b border-white/20">
+                <span className="text-sm text-white/60">
+                  {settings.language === 'fr' ? 'Système de maisons:' : settings.language === 'es' ? 'Sistema de casas:' : 'House System:'}{' '}
+                </span>
+                <span className="text-sm font-semibold text-white capitalize">
+                  {chart.house_system.replace('_', ' ')}
+                </span>
               </div>
-            ))}
+            )}
+            <div className="grid grid-cols-2 gap-2">
+              {Object.entries(chart.houses || {}).map(([num, cusp]: [string, any]) => (
+                <div key={num} className="bg-white/5 rounded-lg p-2 text-sm">
+                  <span className="font-semibold">{getHouseName(num, settings.language || 'en')}</span>
+                  <div className="text-white/60">{cusp.toFixed(2)}°</div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 

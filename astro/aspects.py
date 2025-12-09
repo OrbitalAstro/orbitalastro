@@ -311,29 +311,6 @@ def detect_patterns(aspects: List[Aspect], positions: Optional[Dict[str, float]]
                                 "sextile": [other1, other2],
                             }
                         )
-    for i, q1 in enumerate(quincunx_aspects):
-        for q2 in quincunx_aspects[i + 1 :]:
-            # Check if they share a body
-            shared = None
-            if q1.body1 == q2.body1 or q1.body1 == q2.body2:
-                shared = q1.body1
-            elif q1.body2 == q2.body1 or q1.body2 == q2.body2:
-                shared = q1.body2
-
-            if shared:
-                other1 = q1.body2 if q1.body1 == shared else q1.body1
-                other2 = q2.body2 if q2.body1 == shared else q2.body1
-                # Check if other two bodies are in sextile
-                sext_key = tuple(sorted([other1, other2]))
-                if sext_key in aspect_map and aspect_map[sext_key].aspect == "sextile":
-                    patterns["yods"].append(
-                        {
-                            "apex": shared,
-                            "base": [other1, other2],
-                            "quincunxes": [[shared, other1], [shared, other2]],
-                            "sextile": [other1, other2],
-                        }
-                    )
 
     # Grand Cross: four squares/oppositions forming a cross
     # This is a simplified detection - looks for two oppositions that are square to each other

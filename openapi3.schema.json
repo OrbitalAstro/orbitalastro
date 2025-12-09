@@ -1,0 +1,1295 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "OrbitalAstro API",
+    "description": "Professional-grade astrological calculations API using Swiss Ephemeris. Provides natal charts, transits, progressions, solar returns, birth-time rectification, and chart visualizations.",
+    "version": "2.0.0",
+    "contact": {
+      "name": "OrbitalAstro",
+      "url": "https://orbitalastro.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://orbitalastro-606wd6ee6-jo-divers-projects.vercel.app",
+      "description": "Production server - Vercel deployment"
+    }
+  ],
+  "paths": {
+    "/": {
+      "get": {
+        "operationId": "getRoot",
+        "summary": "API Information",
+        "description": "Returns general API information and available endpoints",
+        "responses": {
+          "200": {
+            "description": "API information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "OrbitalAstro API"
+                    },
+                    "version": {
+                      "type": "string",
+                      "example": "2.0.0"
+                    },
+                    "endpoints": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cities": {
+      "get": {
+        "operationId": "getCities",
+        "summary": "List Supported Cities",
+        "description": "Returns a list of supported cities with their coordinates and timezone information",
+        "responses": {
+          "200": {
+            "description": "List of supported cities",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/City"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/metrics": {
+      "get": {
+        "operationId": "getMetrics",
+        "summary": "API Metrics",
+        "description": "Returns telemetry and performance metrics for the API",
+        "responses": {
+          "200": {
+            "description": "API metrics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Metrics"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/natal": {
+      "post": {
+        "operationId": "calculateNatalChart",
+        "summary": "Calculate Natal Chart",
+        "description": "Compute a complete natal chart with planetary positions, houses, aspects, and optional narrative interpretation",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NatalRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Natal chart calculation result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NatalResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/transits": {
+      "post": {
+        "operationId": "calculateTransits",
+        "summary": "Calculate Planetary Transits",
+        "description": "Compute transits of planets to natal positions for a specific date, with optional transit chart calculation and narrative",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransitRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Transit calculation result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransitResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/progressions": {
+      "post": {
+        "operationId": "calculateProgressions",
+        "summary": "Calculate Secondary Progressions",
+        "description": "Compute secondary progressed chart for a given date, showing how the natal chart evolves over time",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProgressionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Progression calculation result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProgressionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/solar-return": {
+      "post": {
+        "operationId": "calculateSolarReturn",
+        "summary": "Calculate Solar Return Chart",
+        "description": "Find and compute the solar return chart for a given year, showing the astrological themes for that year",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SolarReturnRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Solar return calculation result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SolarReturnResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/rectify-birth-time": {
+      "post": {
+        "operationId": "rectifyBirthTime",
+        "summary": "Rectify Birth Time",
+        "description": "Use life events to determine the most likely accurate birth time within a time window",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RectificationRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Rectification result with candidate birth times",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RectificationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/chart-svg": {
+      "get": {
+        "operationId": "getChartSVG",
+        "summary": "Generate SVG Chart (GET)",
+        "description": "Generate an SVG chart wheel from query parameters",
+        "parameters": [
+          {
+            "name": "natal_chart",
+            "in": "query",
+            "required": true,
+            "description": "JSON string of natal chart data",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "aspects",
+            "in": "query",
+            "required": false,
+            "description": "JSON string of aspects array",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "style",
+            "in": "query",
+            "required": false,
+            "description": "Chart style",
+            "schema": {
+              "type": "string",
+              "enum": ["traditional", "modern"],
+              "default": "traditional"
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "description": "Chart size in pixels",
+            "schema": {
+              "type": "integer",
+              "default": 600,
+              "minimum": 200,
+              "maximum": 2000
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "SVG chart",
+            "content": {
+              "image/svg+xml": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "postChartSVG",
+        "summary": "Generate SVG Chart (POST)",
+        "description": "Generate an SVG chart wheel from POST request body",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChartSVGRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "SVG chart",
+            "content": {
+              "image/svg+xml": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "NarrativeConfig": {
+        "type": "object",
+        "properties": {
+          "tone": {
+            "type": "string",
+            "enum": ["mythic", "psychological", "coaching", "cinematic", "soft_therapeutic"],
+            "default": "mythic",
+            "description": "Narrative tone style"
+          },
+          "depth": {
+            "type": "string",
+            "enum": ["short", "standard", "comprehensive"],
+            "default": "standard",
+            "description": "Narrative depth level"
+          },
+          "focus": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["career", "relationships", "family", "spirituality", "creativity", "healing"]
+            },
+            "description": "Focus areas for interpretation"
+          }
+        }
+      },
+      "NatalRequest": {
+        "type": "object",
+        "required": ["birth_date", "birth_time"],
+        "properties": {
+          "birth_date": {
+            "type": "string",
+            "format": "date",
+            "description": "Birth date in ISO format (YYYY-MM-DD)",
+            "example": "1990-07-15"
+          },
+          "birth_time": {
+            "type": "string",
+            "description": "Birth time in local time (HH:MM or HH:MM:SS)",
+            "example": "14:30:00"
+          },
+          "latitude": {
+            "type": "number",
+            "minimum": -90,
+            "maximum": 90,
+            "description": "Birth latitude in degrees",
+            "example": 45.5017
+          },
+          "longitude": {
+            "type": "number",
+            "minimum": -180,
+            "maximum": 180,
+            "description": "Birth longitude in degrees",
+            "example": -73.5673
+          },
+          "timezone": {
+            "type": "string",
+            "description": "IANA timezone name (e.g., America/New_York)",
+            "example": "America/Montreal"
+          },
+          "timezone_offset_minutes": {
+            "type": "integer",
+            "description": "UTC offset in minutes (east positive) - fallback if timezone not available",
+            "example": -300
+          },
+          "birth_city": {
+            "type": "string",
+            "description": "City name or alias (alternative to lat/long)",
+            "example": "Montreal"
+          },
+          "house_system": {
+            "type": "string",
+            "enum": ["placidus", "whole_sign", "equal", "koch", "porphyry", "regiomontanus", "campanus", "alcabitius", "meridian", "topocentric"],
+            "default": "placidus",
+            "description": "House system to use"
+          },
+          "include_extra_objects": {
+            "type": "boolean",
+            "default": false,
+            "description": "Include extra objects (Lilith, asteroids, etc.)"
+          },
+          "use_topocentric_moon": {
+            "type": "boolean",
+            "default": false,
+            "description": "Use topocentric Moon parallax correction"
+          },
+          "include_aspects": {
+            "type": "boolean",
+            "default": true,
+            "description": "Include aspect calculations"
+          },
+          "narrative": {
+            "$ref": "#/components/schemas/NarrativeConfig"
+          }
+        }
+      },
+      "PlanetInfo": {
+        "type": "object",
+        "required": ["longitude", "sign", "house"],
+        "properties": {
+          "longitude": {
+            "type": "number",
+            "description": "Planetary longitude in degrees (0-360)",
+            "example": 257.365
+          },
+          "sign": {
+            "type": "string",
+            "description": "Zodiac sign",
+            "example": "Sagittarius"
+          },
+          "house": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 12,
+            "description": "House number (1-12)",
+            "example": 9
+          }
+        }
+      },
+      "AspectInfo": {
+        "type": "object",
+        "required": ["body1", "body2", "aspect", "orb_deg", "applying", "exact"],
+        "properties": {
+          "body1": {
+            "type": "string",
+            "description": "First body in aspect",
+            "example": "sun"
+          },
+          "body2": {
+            "type": "string",
+            "description": "Second body in aspect",
+            "example": "moon"
+          },
+          "aspect": {
+            "type": "string",
+            "enum": ["conjunction", "sextile", "square", "trine", "opposition"],
+            "description": "Aspect type",
+            "example": "trine"
+          },
+          "orb_deg": {
+            "type": "number",
+            "description": "Orb in degrees",
+            "example": 2.5
+          },
+          "applying": {
+            "type": "boolean",
+            "description": "Whether aspect is applying",
+            "example": false
+          },
+          "exact": {
+            "type": "boolean",
+            "description": "Whether aspect is exact",
+            "example": false
+          }
+        }
+      },
+      "NatalResponse": {
+        "type": "object",
+        "required": ["input", "julian_day", "gmst_hours", "lst_hours", "lst_radians", "mean_obliquity_radians", "ascendant", "midheaven", "houses", "house_system", "planets"],
+        "properties": {
+          "input": {
+            "type": "object",
+            "description": "Echo of input parameters"
+          },
+          "julian_day": {
+            "type": "number",
+            "description": "Julian day number",
+            "example": 2448109.604
+          },
+          "gmst_hours": {
+            "type": "number",
+            "description": "Greenwich Mean Sidereal Time in hours"
+          },
+          "lst_hours": {
+            "type": "number",
+            "description": "Local Sidereal Time in hours"
+          },
+          "lst_radians": {
+            "type": "number",
+            "description": "Local Sidereal Time in radians"
+          },
+          "mean_obliquity_radians": {
+            "type": "number",
+            "description": "Mean obliquity of the ecliptic in radians"
+          },
+          "ascendant": {
+            "type": "number",
+            "description": "Ascendant longitude in degrees",
+            "example": 71.613
+          },
+          "midheaven": {
+            "type": "number",
+            "description": "Midheaven longitude in degrees",
+            "example": 6.006
+          },
+          "houses": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number"
+            },
+            "description": "House cusps (1-12) in degrees",
+            "example": {
+              "1": 71.613,
+              "2": 69.678,
+              "3": 133.648
+            }
+          },
+          "house_system": {
+            "type": "string",
+            "description": "House system used",
+            "example": "placidus"
+          },
+          "planets": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/PlanetInfo"
+            },
+            "description": "Planetary positions"
+          },
+          "aspects": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AspectInfo"
+            },
+            "description": "List of aspects between planets"
+          },
+          "patterns": {
+            "type": "object",
+            "description": "Aspect patterns detected (grand trines, T-squares, etc.)"
+          },
+          "extra_objects": {
+            "type": "object",
+            "description": "Extra objects (Lilith, asteroids, etc.) if requested"
+          },
+          "narrative_seed": {
+            "type": "string",
+            "description": "Narrative interpretation seed text if narrative config provided"
+          }
+        }
+      },
+      "TransitRequest": {
+        "type": "object",
+        "required": ["natal_positions", "target_date"],
+        "properties": {
+          "natal_positions": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number"
+            },
+            "description": "Natal planetary positions (body name -> longitude in degrees)",
+            "example": {
+              "sun": 257.365,
+              "moon": 135.263,
+              "mercury": 236.809
+            }
+          },
+          "natal_asc": {
+            "type": "number",
+            "description": "Natal ascendant longitude in degrees",
+            "example": 71.613
+          },
+          "natal_mc": {
+            "type": "number",
+            "description": "Natal midheaven longitude in degrees",
+            "example": 6.006
+          },
+          "target_date": {
+            "type": "string",
+            "format": "date",
+            "description": "Target date for transits (ISO format YYYY-MM-DD)",
+            "example": "2024-12-25"
+          },
+          "latitude": {
+            "type": "number",
+            "minimum": -90,
+            "maximum": 90,
+            "description": "Latitude for transit chart calculation (optional)",
+            "example": 45.5017
+          },
+          "longitude": {
+            "type": "number",
+            "minimum": -180,
+            "maximum": 180,
+            "description": "Longitude for transit chart calculation (optional)",
+            "example": -73.5673
+          },
+          "house_system": {
+            "type": "string",
+            "enum": ["placidus", "whole_sign", "equal", "koch", "porphyry", "regiomontanus", "campanus", "alcabitius", "meridian", "topocentric"],
+            "default": "placidus",
+            "description": "House system for transit chart"
+          },
+          "include_angles": {
+            "type": "boolean",
+            "default": true,
+            "description": "Include transits to angles (ASC, MC, IC, DSC)"
+          },
+          "include_patterns": {
+            "type": "boolean",
+            "default": false,
+            "description": "Include aspect patterns in transit chart"
+          },
+          "narrative": {
+            "$ref": "#/components/schemas/NarrativeConfig"
+          }
+        }
+      },
+      "TransitResponse": {
+        "type": "object",
+        "required": ["target_date", "transits"],
+        "properties": {
+          "target_date": {
+            "type": "string",
+            "description": "Target date used for calculations"
+          },
+          "transits": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "transiting_body": {
+                  "type": "string",
+                  "example": "jupiter"
+                },
+                "natal_body": {
+                  "type": "string",
+                  "example": "sun"
+                },
+                "aspect": {
+                  "type": "string",
+                  "enum": ["conjunction", "sextile", "square", "trine", "opposition"],
+                  "example": "trine"
+                },
+                "orb_deg": {
+                  "type": "number",
+                  "example": 1.2
+                },
+                "applying": {
+                  "type": "boolean",
+                  "example": true
+                },
+                "exact": {
+                  "type": "boolean",
+                  "example": false
+                }
+              }
+            },
+            "description": "List of transiting aspects"
+          },
+          "transits_to_angles": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            },
+            "description": "Transits to natal angles (ASC, MC, IC, DSC)"
+          },
+          "planets": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number"
+            },
+            "description": "Transit chart planetary positions (if lat/long provided)"
+          },
+          "ascendant": {
+            "type": "number",
+            "description": "Transit chart ascendant (if lat/long provided)"
+          },
+          "midheaven": {
+            "type": "number",
+            "description": "Transit chart midheaven (if lat/long provided)"
+          },
+          "houses": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number"
+            },
+            "description": "Transit chart houses (if lat/long provided)"
+          },
+          "house_system": {
+            "type": "string",
+            "description": "House system used for transit chart"
+          },
+          "patterns": {
+            "type": "object",
+            "description": "Aspect patterns in transit chart (if requested)"
+          },
+          "narrative_seed": {
+            "type": "string",
+            "description": "Narrative interpretation seed (if narrative config provided)"
+          }
+        }
+      },
+      "ProgressionRequest": {
+        "type": "object",
+        "required": ["birth_datetime", "progressed_date", "latitude", "longitude"],
+        "properties": {
+          "birth_datetime": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Birth datetime in UTC (ISO format)",
+            "example": "1990-07-15T14:30:00Z"
+          },
+          "progressed_date": {
+            "type": "string",
+            "format": "date",
+            "description": "Date for progression calculation (ISO format YYYY-MM-DD)",
+            "example": "2024-12-25"
+          },
+          "latitude": {
+            "type": "number",
+            "minimum": -90,
+            "maximum": 90,
+            "description": "Birth latitude in degrees",
+            "example": 45.5017
+          },
+          "longitude": {
+            "type": "number",
+            "minimum": -180,
+            "maximum": 180,
+            "description": "Birth longitude in degrees",
+            "example": -73.5673
+          },
+          "house_system": {
+            "type": "string",
+            "enum": ["placidus", "whole_sign", "equal", "koch", "porphyry", "regiomontanus", "campanus", "alcabitius", "meridian", "topocentric"],
+            "default": "placidus",
+            "description": "House system"
+          },
+          "include_aspects": {
+            "type": "boolean",
+            "default": true,
+            "description": "Include progressed-to-natal aspects"
+          },
+          "include_patterns": {
+            "type": "boolean",
+            "default": false,
+            "description": "Include aspect patterns"
+          },
+          "narrative": {
+            "$ref": "#/components/schemas/NarrativeConfig"
+          }
+        }
+      },
+      "ProgressionResponse": {
+        "type": "object",
+        "required": ["progressed_datetime_utc", "age_years", "planets", "ascendant", "midheaven", "houses", "house_system"],
+        "properties": {
+          "progressed_datetime_utc": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Progressed datetime in UTC"
+          },
+          "age_years": {
+            "type": "number",
+            "description": "Age in years at progressed date",
+            "example": 34.5
+          },
+          "planets": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number"
+            },
+            "description": "Progressed planetary positions (longitude in degrees)"
+          },
+          "ascendant": {
+            "type": "number",
+            "description": "Progressed ascendant longitude in degrees"
+          },
+          "midheaven": {
+            "type": "number",
+            "description": "Progressed midheaven longitude in degrees"
+          },
+          "houses": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number"
+            },
+            "description": "Progressed house cusps (1-12) in degrees"
+          },
+          "house_system": {
+            "type": "string",
+            "description": "House system used"
+          },
+          "progressed_to_natal_aspects": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            },
+            "description": "Aspects between progressed and natal positions (if requested)"
+          },
+          "patterns": {
+            "type": "object",
+            "description": "Aspect patterns (if requested)"
+          },
+          "narrative_seed": {
+            "type": "string",
+            "description": "Narrative interpretation seed (if narrative config provided)"
+          }
+        }
+      },
+      "SolarReturnRequest": {
+        "type": "object",
+        "required": ["birth_date", "natal_sun_longitude", "target_year", "latitude", "longitude"],
+        "properties": {
+          "birth_date": {
+            "type": "string",
+            "format": "date",
+            "description": "Birth date (ISO format YYYY-MM-DD)",
+            "example": "1990-07-15"
+          },
+          "natal_sun_longitude": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 360,
+            "description": "Natal Sun longitude in degrees",
+            "example": 257.365
+          },
+          "target_year": {
+            "type": "integer",
+            "description": "Year for solar return",
+            "example": 2024
+          },
+          "latitude": {
+            "type": "number",
+            "minimum": -90,
+            "maximum": 90,
+            "description": "Latitude for return chart",
+            "example": 45.5017
+          },
+          "longitude": {
+            "type": "number",
+            "minimum": -180,
+            "maximum": 180,
+            "description": "Longitude for return chart",
+            "example": -73.5673
+          },
+          "house_system": {
+            "type": "string",
+            "enum": ["placidus", "whole_sign", "equal", "koch", "porphyry", "regiomontanus", "campanus", "alcabitius", "meridian", "topocentric"],
+            "default": "placidus",
+            "description": "House system"
+          },
+          "include_aspects": {
+            "type": "boolean",
+            "default": true,
+            "description": "Include aspects in return chart"
+          },
+          "include_patterns": {
+            "type": "boolean",
+            "default": false,
+            "description": "Include aspect patterns"
+          },
+          "narrative": {
+            "$ref": "#/components/schemas/NarrativeConfig"
+          }
+        }
+      },
+      "SolarReturnResponse": {
+        "type": "object",
+        "required": ["return_datetime_utc", "planets", "ascendant", "midheaven", "houses", "house_system", "sun_exactness_deg", "natal_sun_longitude", "return_sun_longitude"],
+        "properties": {
+          "return_datetime_utc": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Solar return datetime in UTC"
+          },
+          "planets": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number"
+            },
+            "description": "Solar return planetary positions (longitude in degrees)"
+          },
+          "ascendant": {
+            "type": "number",
+            "description": "Solar return ascendant longitude in degrees"
+          },
+          "midheaven": {
+            "type": "number",
+            "description": "Solar return midheaven longitude in degrees"
+          },
+          "houses": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number"
+            },
+            "description": "Solar return house cusps (1-12) in degrees"
+          },
+          "house_system": {
+            "type": "string",
+            "description": "House system used"
+          },
+          "sun_exactness_deg": {
+            "type": "number",
+            "description": "Difference between natal and return Sun longitude in degrees",
+            "example": 0.001
+          },
+          "natal_sun_longitude": {
+            "type": "number",
+            "description": "Natal Sun longitude in degrees"
+          },
+          "return_sun_longitude": {
+            "type": "number",
+            "description": "Solar return Sun longitude in degrees"
+          },
+          "aspects": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            },
+            "description": "Aspects in return chart (if requested)"
+          },
+          "patterns": {
+            "type": "object",
+            "description": "Aspect patterns (if requested)"
+          },
+          "narrative_seed": {
+            "type": "string",
+            "description": "Narrative interpretation seed (if narrative config provided)"
+          }
+        }
+      },
+      "RectificationEventModel": {
+        "type": "object",
+        "required": ["type", "datetime_local"],
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Event type (e.g., career_change, marriage, relocation, major_illness)",
+            "example": "marriage"
+          },
+          "datetime_local": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Event datetime in local time (ISO format)",
+            "example": "2015-06-20T14:30:00"
+          },
+          "weight": {
+            "type": "number",
+            "default": 1.0,
+            "minimum": 0.1,
+            "maximum": 10.0,
+            "description": "Event weight for scoring (higher = more important)",
+            "example": 2.0
+          }
+        }
+      },
+      "RectificationRequest": {
+        "type": "object",
+        "required": ["birth_date", "approx_time", "timezone", "latitude_deg", "longitude_deg", "events"],
+        "properties": {
+          "birth_date": {
+            "type": "string",
+            "format": "date",
+            "description": "Birth date (ISO format YYYY-MM-DD)",
+            "example": "1990-07-15"
+          },
+          "approx_time": {
+            "type": "string",
+            "description": "Approximate birth time (HH:MM or HH:MM:SS)",
+            "example": "14:30:00"
+          },
+          "timezone": {
+            "type": "string",
+            "description": "IANA timezone name",
+            "example": "America/Montreal"
+          },
+          "latitude_deg": {
+            "type": "number",
+            "minimum": -90,
+            "maximum": 90,
+            "description": "Birth latitude in degrees",
+            "example": 45.5017
+          },
+          "longitude_deg": {
+            "type": "number",
+            "minimum": -180,
+            "maximum": 180,
+            "description": "Birth longitude in degrees",
+            "example": -73.5673
+          },
+          "time_window_hours": {
+            "type": "number",
+            "default": 4.0,
+            "minimum": 0.5,
+            "maximum": 24.0,
+            "description": "Time window in hours (±) to search",
+            "example": 4.0
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RectificationEventModel"
+            },
+            "minItems": 1,
+            "description": "Life events for rectification (at least one required)"
+          },
+          "top_n": {
+            "type": "integer",
+            "default": 3,
+            "minimum": 1,
+            "maximum": 10,
+            "description": "Number of top candidate birth times to return"
+          },
+          "step_minutes": {
+            "type": "integer",
+            "default": 5,
+            "minimum": 1,
+            "maximum": 60,
+            "description": "Step size in minutes for candidate generation"
+          }
+        }
+      },
+      "CandidateTimeModel": {
+        "type": "object",
+        "required": ["birth_time", "ascendant", "midheaven", "score", "diagnostics"],
+        "properties": {
+          "birth_time": {
+            "type": "string",
+            "description": "Candidate birth time (HH:MM:SS)",
+            "example": "14:32:15"
+          },
+          "ascendant": {
+            "type": "number",
+            "description": "Ascendant longitude for this birth time",
+            "example": 71.845
+          },
+          "midheaven": {
+            "type": "number",
+            "description": "Midheaven longitude for this birth time",
+            "example": 6.123
+          },
+          "score": {
+            "type": "number",
+            "description": "Rectification score (higher = better match)",
+            "example": 85.5
+          },
+          "diagnostics": {
+            "type": "object",
+            "description": "Diagnostic information about this candidate"
+          }
+        }
+      },
+      "RectificationResponse": {
+        "type": "object",
+        "required": ["candidates"],
+        "properties": {
+          "candidates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CandidateTimeModel"
+            },
+            "description": "List of candidate birth times sorted by score (best first)"
+          },
+          "summary": {
+            "type": "string",
+            "description": "Summary of rectification process"
+          },
+          "narrative_summary": {
+            "type": "string",
+            "description": "Narrative interpretation of rectification results"
+          }
+        }
+      },
+      "ChartSVGRequest": {
+        "type": "object",
+        "required": ["natal_chart"],
+        "properties": {
+          "natal_chart": {
+            "type": "object",
+            "description": "Natal chart data object with planets, houses, ascendant, midheaven",
+            "properties": {
+              "planets": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "number"
+                }
+              },
+              "houses": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "number"
+                }
+              },
+              "ascendant": {
+                "type": "number"
+              },
+              "midheaven": {
+                "type": "number"
+              }
+            }
+          },
+          "aspects": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "body1": {
+                  "type": "string"
+                },
+                "body2": {
+                  "type": "string"
+                },
+                "aspect": {
+                  "type": "string"
+                },
+                "orb_deg": {
+                  "type": "number"
+                }
+              }
+            },
+            "description": "List of aspects to draw"
+          },
+          "config": {
+            "type": "object",
+            "properties": {
+              "style": {
+                "type": "string",
+                "enum": ["traditional", "modern"],
+                "default": "traditional"
+              },
+              "size": {
+                "type": "integer",
+                "default": 600,
+                "minimum": 200,
+                "maximum": 2000
+              }
+            }
+          }
+        }
+      },
+      "City": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Montreal"
+          },
+          "latitude": {
+            "type": "number",
+            "example": 45.5017
+          },
+          "longitude": {
+            "type": "number",
+            "example": -73.5673
+          },
+          "timezone": {
+            "type": "string",
+            "example": "America/Montreal"
+          },
+          "country": {
+            "type": "string",
+            "example": "Canada"
+          }
+        }
+      },
+      "Metrics": {
+        "type": "object",
+        "properties": {
+          "requests_total": {
+            "type": "integer",
+            "description": "Total number of requests"
+          },
+          "requests_per_endpoint": {
+            "type": "object",
+            "description": "Request counts per endpoint"
+          },
+          "average_response_time": {
+            "type": "number",
+            "description": "Average response time in seconds"
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "required": ["detail"],
+        "properties": {
+          "detail": {
+            "type": "string",
+            "description": "Error message",
+            "example": "Invalid date format. Use ISO format (YYYY-MM-DD)."
+          }
+        }
+      }
+    }
+  }
+}
+

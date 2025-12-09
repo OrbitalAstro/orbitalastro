@@ -202,3 +202,6 @@ import { Sparkles } from 'lucide-react'
 - **Scroll animations**: Fade in + slide up
 - **Never**: Bounce, shake, or jarring effects
 
+
+
+

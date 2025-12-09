@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Search, Home, Settings, BookOpen, Sparkles, Calendar, Command } from 'lucide-react'
+import { Search, Home, Settings, BookOpen, Sparkles, Calendar, Command, TrendingUp, Zap, Wand2, MessageSquare } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useKeyboardShortcuts } from '@/lib/keyboard'
@@ -42,6 +42,36 @@ export default function QuickActions() {
       shortcut: 'G C',
     },
     {
+      id: 'transits',
+      label: 'Transits',
+      icon: Zap,
+      action: () => {
+        router.push('/transits')
+        setIsOpen(false)
+      },
+      shortcut: 'G T',
+    },
+    {
+      id: 'progressions',
+      label: 'Progressions',
+      icon: TrendingUp,
+      action: () => {
+        router.push('/progressions')
+        setIsOpen(false)
+      },
+      shortcut: 'G P',
+    },
+    {
+      id: 'rectification',
+      label: 'Rectification',
+      icon: Wand2,
+      action: () => {
+        router.push('/rectification')
+        setIsOpen(false)
+      },
+      shortcut: 'G R',
+    },
+    {
       id: 'stories',
       label: 'Read Stories',
       icon: BookOpen,
@@ -50,6 +80,16 @@ export default function QuickActions() {
         setIsOpen(false)
       },
       shortcut: 'G S',
+    },
+    {
+      id: 'chat',
+      label: 'AI Chat',
+      icon: MessageSquare,
+      action: () => {
+        router.push('/chat')
+        setIsOpen(false)
+      },
+      shortcut: 'G /',
     },
     {
       id: 'settings',

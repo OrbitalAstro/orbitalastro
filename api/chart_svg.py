@@ -46,7 +46,11 @@ async def get_chart_svg(
         "size": size,
     }
 
-    svg_content = generate_chart_svg(chart_data, aspects_data, config)
+    try:
+        svg_content = generate_chart_svg(chart_data, aspects_data, config)
+    except Exception as e:
+        import traceback
+        raise HTTPException(status_code=500, detail=f"500: {str(e)}\n{traceback.format_exc()}")
 
     return Response(content=svg_content, media_type="image/svg+xml")
 
@@ -59,4 +63,5 @@ async def post_chart_svg(request: ChartSVGRequest):
     )
 
     return Response(content=svg_content, media_type="image/svg+xml")
+
 

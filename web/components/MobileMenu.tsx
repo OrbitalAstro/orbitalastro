@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Menu, X, Home, Sparkles, BookOpen, MessageSquare, Settings, Info } from 'lucide-react'
+import { Menu, X, Home, Sparkles, BookOpen, MessageSquare, Settings, Info, TrendingUp, Zap, Wand2 } from 'lucide-react'
 import Link from 'next/link'
 import Logo from './Logo'
 
@@ -12,8 +12,12 @@ export default function MobileMenu() {
   const menuItems = [
     { href: '/dashboard', label: 'Dashboard', icon: Home },
     { href: '/chart', label: 'Chart', icon: Sparkles },
+    { href: '/transits', label: 'Transits', icon: Zap },
+    { href: '/progressions', label: 'Progressions', icon: TrendingUp },
+    { href: '/rectification', label: 'Rectification', icon: Wand2 },
     { href: '/stories', label: 'Stories', icon: BookOpen },
     { href: '/dialogues', label: 'Dialogues', icon: MessageSquare },
+    { href: '/chat', label: 'Chat', icon: MessageSquare },
     { href: '/settings', label: 'Settings', icon: Settings },
     { href: '/about', label: 'About', icon: Info },
   ]

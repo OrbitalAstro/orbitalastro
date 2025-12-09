@@ -101,7 +101,10 @@ def generate_natal_golden_master(test_case: dict) -> dict:
 
 
 def generate_transit_golden_master(test_case: dict) -> dict:
-    """Generate golden master for transits."""
+    """Generate golden master for transits with chart data and patterns."""
+    from astro.houses import compute_asc_mc
+    from astro.houses_multi import compute_houses
+    
     natal_dt = test_case["natal_datetime"]
     target_dt = test_case["target_datetime"]
     
@@ -112,24 +115,49 @@ def generate_transit_golden_master(test_case: dict) -> dict:
     config = AspectConfig()
     transits = compute_transits(natal_positions, target_dt, config)
     
+    # Get transit chart data
+    transit_positions = EphemerisRepository.get_positions(target_dt)
+    transit_jd = datetime_to_julian_day(target_dt)
+    transit_asc, transit_mc = compute_asc_mc(
+        transit_jd, test_case["latitude"], test_case["longitude"]
+    )
+    transit_cusps = compute_houses(
+        "placidus",
+        transit_jd,
+        test_case["latitude"],
+        test_case["longitude"],
+        transit_asc,
+        transit_mc,
+    )
+    
+    # Detect patterns
+    patterns = detect_patterns(transits) if transits else {}
+    
     return {
         "target_datetime": target_dt.isoformat(),
         "natal_positions": natal_positions,
         "transits": [
             {
-                "body1": t.body1,
-                "body2": t.body2,
+                "transiting_body": t.body1.replace("transit_", ""),
+                "natal_body": t.body2.replace("natal_", ""),
                 "aspect": t.aspect,
                 "orb_deg": t.orb_deg,
                 "applying": t.applying,
+                "exact": t.exact,
             }
             for t in transits
         ],
+        "planets": transit_positions,
+        "ascendant": transit_asc,
+        "midheaven": transit_mc,
+        "houses": {str(i + 1): cusp for i, cusp in enumerate(transit_cusps)},
+        "house_system": "placidus",
+        "patterns": patterns,
     }
 
 
 def generate_progression_golden_master(test_case: dict) -> dict:
-    """Generate golden master for progressions."""
+    """Generate golden master for progressions with aspects and patterns."""
     birth_dt = test_case["birth_datetime"]
     progressed_date = test_case["progressed_date"]
     
@@ -141,11 +169,34 @@ def generate_progression_golden_master(test_case: dict) -> dict:
         test_case["house_system"],
     )
     
+    # Compute aspects within progressed chart
+    config = AspectConfig()
+    all_positions = progressed_data["planets"].copy()
+    all_positions["ascendant"] = progressed_data["ascendant"]
+    all_positions["midheaven"] = progressed_data["midheaven"]
+    
+    from datetime import datetime
+    progressed_dt = datetime.fromisoformat(progressed_data["progressed_datetime_utc"].replace("Z", "+00:00"))
+    aspects = find_aspects(all_positions, config, progressed_dt)
+    patterns = detect_patterns(aspects)
+    
+    progressed_data["aspects"] = [
+        {
+            "body1": a.body1,
+            "body2": a.body2,
+            "aspect": a.aspect,
+            "orb_deg": a.orb_deg,
+            "applying": a.applying,
+        }
+        for a in aspects
+    ]
+    progressed_data["patterns"] = patterns
+    
     return progressed_data
 
 
 def generate_solar_return_golden_master(test_case: dict) -> dict:
-    """Generate golden master for solar return."""
+    """Generate golden master for solar return with aspects and patterns."""
     birth_dt = test_case["birth_date"]
     natal_positions = EphemerisRepository.get_positions(birth_dt)
     natal_sun_long = natal_positions["sun"]
@@ -157,6 +208,29 @@ def generate_solar_return_golden_master(test_case: dict) -> dict:
         test_case["latitude"],
         test_case["longitude"],
     )
+    
+    # Compute aspects within return chart
+    config = AspectConfig()
+    all_positions = return_chart["planets"].copy()
+    all_positions["ascendant"] = return_chart["ascendant"]
+    all_positions["midheaven"] = return_chart["midheaven"]
+    
+    from datetime import datetime
+    return_dt_parsed = datetime.fromisoformat(return_chart["return_datetime_utc"].replace("Z", "+00:00"))
+    aspects = find_aspects(all_positions, config, return_dt_parsed)
+    patterns = detect_patterns(aspects)
+    
+    return_chart["aspects"] = [
+        {
+            "body1": a.body1,
+            "body2": a.body2,
+            "aspect": a.aspect,
+            "orb_deg": a.orb_deg,
+            "applying": a.applying,
+        }
+        for a in aspects
+    ]
+    return_chart["patterns"] = patterns
     
     return return_chart
 

@@ -125,7 +125,7 @@ export default function ChartHistory({ onLoadChart }: ChartHistoryProps) {
                           </div>
                           {item.chart?.planets?.sun && (
                             <div className="text-xs text-white/50 mt-2">
-                              Sun: {item.chart.planets.sun.sign} • Asc: {item.chart.planets ? Object.values(item.chart.planets)[0]?.sign : 'N/A'}
+                              Sun: {item.chart.planets.sun.sign} • Asc: {item.chart.planets && Object.values(item.chart.planets).length > 0 ? (Object.values(item.chart.planets)[0] as any)?.sign || 'N/A' : 'N/A'}
                             </div>
                           )}
                         </motion.div>

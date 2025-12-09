@@ -15,6 +15,8 @@ import { useToast } from '@/lib/toast'
 import ChartHistory from '@/components/ChartHistory'
 import { useChartHistory } from '@/lib/store'
 import FormField from '@/components/FormField'
+import LocationInput from '@/components/LocationInput'
+import BackButton from '@/components/BackButton'
 
 export default function Dashboard() {
   const settings = useSettingsStore()
@@ -22,11 +24,12 @@ export default function Dashboard() {
   const { addToHistory } = useChartHistory()
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [birthData, setBirthData] = useState({
-    birth_date: '',
-    birth_time: '12:00',
-    latitude: settings.defaultLatitude || 0,
-    longitude: settings.defaultLongitude || 0,
-    timezone: settings.defaultTimezone,
+    birth_date: '1967-07-05',
+    birth_time: '18:40',
+    birth_place: 'Hôpital Sainte-Croix, 570, Rue Hériot, Drummondville, Drummond, Centre-du-Québec, Quebec, J2B 0A0, Canada',
+    latitude: 45.8833, // Drummondville, Quebec coordinates
+    longitude: -72.4833,
+    timezone: 'America/Montreal',
   })
 
   const { data: natalChart, isLoading, error, refetch } = useQuery({
@@ -35,6 +38,7 @@ export default function Dashboard() {
       try {
         const response = await apiClient.natal.calculate({
           ...birthData,
+          birth_city: birthData.birth_place || undefined,
           house_system: settings.houseSystem,
           include_extra_objects: settings.includeExtraObjects,
           use_topocentric_moon: settings.useTopocentricMoon,
@@ -73,6 +77,10 @@ export default function Dashboard() {
       errors.birth_time = 'Birth time is required'
     }
     
+    if (!birthData.birth_place && (birthData.latitude === 0 || birthData.longitude === 0)) {
+      errors.birth_place = 'Birth place is required'
+    }
+    
     if (birthData.latitude < -90 || birthData.latitude > 90) {
       errors.latitude = 'Latitude must be between -90 and 90'
     }
@@ -102,6 +110,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" aria-labelledby="main-heading">
+        <BackButton href="/" />
         <h1 className="text-4xl font-heading font-bold text-white mb-8" id="main-heading">Astrological Dashboard</h1>
 
         {/* Input Form */}
@@ -145,60 +154,32 @@ export default function Dashboard() {
               icon={Clock}
               tooltip="The time of birth in local time (24-hour format)"
             />
-            <FormField
-              label="Timezone"
-              name="timezone"
-              value={birthData.timezone}
+            <LocationInput
+              label="Birth Place"
+              value={birthData.birth_place}
               onChange={(value) => {
-                setBirthData({ ...birthData, timezone: value })
-                if (errors.timezone) {
-                  setErrors({ ...errors, timezone: '' })
+                setBirthData({ ...birthData, birth_place: value })
+                if (errors.birth_place) {
+                  setErrors({ ...errors, birth_place: '' })
                 }
               }}
-              placeholder="America/New_York"
-              required
-              error={errors.timezone}
-              success={!!birthData.timezone && !errors.timezone}
-              icon={MapPin}
-              tooltip="IANA timezone identifier (e.g., America/New_York, Europe/London)"
-            />
-            <FormField
-              label="Latitude"
-              name="latitude"
-              value={birthData.latitude}
-              onChange={(value) => {
-                setBirthData({ ...birthData, latitude: value })
-                if (errors.latitude) {
-                  setErrors({ ...errors, latitude: '' })
+              onLocationSelect={(location) => {
+                setBirthData({
+                  ...birthData,
+                  birth_place: location.name,
+                  latitude: location.latitude,
+                  longitude: location.longitude,
+                  timezone: location.timezone || settings.defaultTimezone || '',
+                })
+                if (errors.birth_place || errors.timezone) {
+                  setErrors({ ...errors, birth_place: '', timezone: '' })
                 }
               }}
-              type="number"
-              step="0.0001"
-              min={-90}
-              max={90}
+              placeholder="Search for a city or place (e.g., 'Hospital Ste-Croix Drummondville')..."
               required
-              error={errors.latitude}
-              success={birthData.latitude !== 0 && !errors.latitude}
-              tooltip="Latitude in decimal degrees (-90 to 90)"
-            />
-            <FormField
-              label="Longitude"
-              name="longitude"
-              value={birthData.longitude}
-              onChange={(value) => {
-                setBirthData({ ...birthData, longitude: value })
-                if (errors.longitude) {
-                  setErrors({ ...errors, longitude: '' })
-                }
-              }}
-              type="number"
-              step="0.0001"
-              min={-180}
-              max={180}
-              required
-              error={errors.longitude}
-              success={birthData.longitude !== 0 && !errors.longitude}
-              tooltip="Longitude in decimal degrees (-180 to 180)"
+              error={errors.birth_place}
+              success={!!birthData.birth_place && !errors.birth_place}
+              tooltip="Search for your birth city to automatically set coordinates and timezone"
             />
             <div className="flex items-end">
               <button
@@ -255,7 +236,7 @@ export default function Dashboard() {
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20"
+                className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 overflow-hidden relative isolate"
               >
                 <h2 className="text-2xl font-bold text-white mb-4 flex items-center">
                   <Sparkles className="h-6 w-6 mr-2 text-cosmic-gold" />
@@ -268,7 +249,7 @@ export default function Dashboard() {
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20"
+                className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 overflow-hidden relative isolate"
               >
                 <h2 className="text-2xl font-bold text-white mb-4 flex items-center">
                   <BookOpen className="h-6 w-6 mr-2 text-horizon-blue" />

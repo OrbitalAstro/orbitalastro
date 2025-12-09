@@ -35,6 +35,15 @@ class EphemerisCatalog:
         if year not in self._years:
             self._years.append(year)
             self._years.sort()
+            # Persist to disk
+            self._save()
+    
+    def _save(self) -> None:
+        """Save catalog to index.json file."""
+        payload = {"available_years": self._years}
+        CATALOG_PATH.parent.mkdir(parents=True, exist_ok=True)
+        with CATALOG_PATH.open("w", encoding="utf-8") as handle:
+            json.dump(payload, handle, indent=2)
 
 
 catalog = EphemerisCatalog()

@@ -21,7 +21,10 @@ export default function ChartVisualization({ chart }: ChartVisualizationProps) {
 
   useEffect(() => {
     const loadSVG = async () => {
+      if (!chart) return
+      
       try {
+        // Add cache-busting timestamp to force refresh
         const response = await apiClient.chart.getSVG(
           chart,
           chart.aspects,
@@ -30,6 +33,20 @@ export default function ChartVisualization({ chart }: ChartVisualizationProps) {
         )
         if (svgRef.current) {
           svgRef.current.innerHTML = response.data
+          // Make SVG scale to fit container
+          const svgElement = svgRef.current.querySelector('svg')
+          if (svgElement) {
+            svgElement.style.width = '100%'
+            svgElement.style.height = 'auto'
+            svgElement.style.maxWidth = '100%'
+            // Ensure viewBox is set for proper scaling
+            if (!svgElement.getAttribute('viewBox') && svgElement.getAttribute('width') && svgElement.getAttribute('height')) {
+              const width = svgElement.getAttribute('width')
+              const height = svgElement.getAttribute('height')
+              svgElement.setAttribute('viewBox', `0 0 ${width} ${height}`)
+              svgElement.setAttribute('preserveAspectRatio', 'xMidYMid meet')
+            }
+          }
         }
       } catch (error) {
         console.error('Error loading chart SVG:', error)
@@ -37,10 +54,9 @@ export default function ChartVisualization({ chart }: ChartVisualizationProps) {
       }
     }
 
-    if (chart) {
-      loadSVG()
-    }
-  }, [chart, settings.chartStyle, settings.chartSize, toast])
+    loadSVG()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chart, settings.chartStyle, settings.chartSize])
 
   const handleExportPNG = async () => {
     if (!containerRef.current) return
@@ -96,12 +112,19 @@ export default function ChartVisualization({ chart }: ChartVisualizationProps) {
       </div>
       <div
         ref={containerRef}
-        className="flex justify-center items-center p-4"
+        className="flex justify-center items-center p-4 overflow-hidden relative w-full"
+        style={{ minHeight: '400px' }}
       >
         <div
           ref={svgRef}
-          className="chart-container"
-          style={{ maxWidth: '100%', height: 'auto' }}
+          className="chart-container relative w-full"
+          style={{ 
+            maxWidth: '100%',
+            width: '100%',
+            overflow: 'hidden',
+            position: 'relative',
+            zIndex: 1
+          }}
         />
       </div>
     </div>

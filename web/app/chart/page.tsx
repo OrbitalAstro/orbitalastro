@@ -7,6 +7,7 @@ import { useSettingsStore } from '@/lib/store'
 import { apiClient } from '@/lib/api'
 import { useQuery } from '@tanstack/react-query'
 import ChartVisualization from '@/components/ChartVisualization'
+import BackButton from '@/components/BackButton'
 
 export default function ChartPage() {
   const settings = useSettingsStore()
@@ -36,6 +37,7 @@ export default function ChartPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <BackButton href="/" />
         <h1 className="text-4xl font-bold text-white mb-8 flex items-center">
           <Sparkles className="h-10 w-10 mr-3 text-yellow-400" />
           Chart Visualization

@@ -1,12 +1,15 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Sparkles, Star, Telescope, Orbit, HeartHandshake } from 'lucide-react'
+import { Sparkles, Star, Eye, Orbit, HeartHandshake } from 'lucide-react'
 import Link from 'next/link'
 
 export default function AboutPage() {
   return (
     <div className="min-h-screen bg-black text-white pt-32 pb-20 px-4">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <BackButton href="/" />
+      </div>
       {/* Header */}
       <div className="text-center max-w-4xl mx-auto mb-20">
         <motion.div
@@ -61,7 +64,7 @@ export default function AboutPage() {
           className="bg-gradient-to-br from-purple-900/40 to-pink-900/40 p-10 rounded-3xl border border-white/10 backdrop-blur-sm"
         >
           <h2 className="text-4xl font-semibold mb-6 flex items-center gap-3">
-            <Telescope className="text-cosmic-gold h-8 w-8" />
+            <Eye className="text-cosmic-gold h-8 w-8" />
             The Mission
           </h2>
           <p className="text-white/70 leading-relaxed text-lg">

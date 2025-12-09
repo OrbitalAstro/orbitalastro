@@ -4,9 +4,12 @@ from __future__ import annotations
 
 import bisect
 import json
-from datetime import datetime, timezone
+import threading
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Dict, List, Tuple
+
+import swisseph as swe
 
 from astro.ephemeris_catalog import catalog
 from astro.interpolate import interpolate_longitude_deg
@@ -35,6 +38,15 @@ BODY_ORDER = [
 ]
 
 CACHE_DIR = Path(__file__).resolve().parent.parent / "data" / "ephemeris"
+EPHEMERIS_DIR = Path(__file__).resolve().parent.parent / "api" / "ephe"
+
+# Year bounds for on-demand generation
+MIN_YEAR = 1900
+MAX_YEAR = 2100
+
+# Thread lock for on-demand generation
+_generation_locks: Dict[int, threading.Lock] = {}
+_generation_lock = threading.Lock()  # Lock for managing per-year locks
 
 
 class YearlyEphemeris:
@@ -69,17 +81,127 @@ class YearlyEphemeris:
         return lower_time, lower_data, upper_time, upper_data
 
 
+def _generate_year_on_demand(year: int) -> None:
+    """Generate ephemeris data for a single year on-demand."""
+    # Check if already exists (race condition check)
+    file_path = CACHE_DIR / f"{year}.json"
+    if file_path.exists():
+        return
+    
+    # Prepare Swiss Ephemeris path
+    if not EPHEMERIS_DIR.exists():
+        raise FileNotFoundError(f"Swiss Ephemeris data not found at {EPHEMERIS_DIR}")
+    swe.set_ephe_path(str(EPHEMERIS_DIR))
+    
+    # Build planet IDs (same logic as generate_ephemeris.py)
+    planet_ids = {}
+    try:
+        planet_ids.update({
+            "sun": swe.SUN,
+            "moon": swe.MOON,
+            "mercury": swe.MERCURY,
+            "venus": swe.VENUS,
+            "mars": swe.MARS,
+            "jupiter": swe.JUPITER,
+            "saturn": swe.SATURN,
+            "uranus": swe.URANUS,
+            "neptune": swe.NEPTUNE,
+            "pluto": swe.PLUTO,
+            "true_node": swe.TRUE_NODE,
+            "chiron": swe.CHIRON,
+            "lilith_mean": swe.MEAN_APOG,
+            "lilith_true": swe.OSCU_APOG,
+            "ceres": swe.CERES,
+            "pallas": swe.PALLAS,
+            "juno": swe.JUNO,
+            "vesta": swe.VESTA,
+        })
+        if hasattr(swe, 'DWARF_PLANET_136199_ERIS'):
+            planet_ids["eris"] = swe.DWARF_PLANET_136199_ERIS
+        elif hasattr(swe, 'ERIS'):
+            planet_ids["eris"] = swe.ERIS
+    except AttributeError:
+        pass
+    
+    # Generate data for the year (hourly samples)
+    start = datetime(year, 1, 1, 0, 0)
+    end = datetime(year, 12, 31, 23, 0)
+    delta = timedelta(hours=1)
+    entries: Dict[str, Dict[str, float]] = {}
+    current = start
+    
+    while current <= end:
+        jd = swe.julday(
+            current.year,
+            current.month,
+            current.day,
+            current.hour + current.minute / 60 + current.second / 3600,
+            swe.GREG_CAL,
+        )
+        row: Dict[str, float] = {}
+        for body in BODY_ORDER:
+            if body not in planet_ids:
+                continue
+            body_id = planet_ids[body]
+            try:
+                result, rc = swe.calc_ut(jd, body_id, swe.FLG_SPEED)
+                if rc < 0:
+                    continue
+                longitude = result[0] % 360.0
+                row[body] = round(longitude, 6)
+            except (ValueError, AttributeError):
+                continue
+        entries[current.strftime("%Y-%m-%dT%H:%M:%SZ")] = row
+        current += delta
+    
+    # Save to file
+    CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    with file_path.open("w", encoding="utf-8") as handle:
+        json.dump(entries, handle, indent=2, sort_keys=True)
+    
+    # Update catalog (which will save to index.json)
+    catalog.register(year)
+
+
 class EphemerisRepository:
     _cache: Dict[int, YearlyEphemeris] = {}
+
+    @classmethod
+    def _get_year_lock(cls, year: int) -> threading.Lock:
+        """Get or create a lock for a specific year."""
+        with _generation_lock:
+            if year not in _generation_locks:
+                _generation_locks[year] = threading.Lock()
+            return _generation_locks[year]
 
     @classmethod
     def _load_year(cls, year: int) -> YearlyEphemeris:
         if year in cls._cache:
             return cls._cache[year]
+        
         file_path = CACHE_DIR / f"{year}.json"
+        
+        # If file doesn't exist and year is within bounds, generate on-demand
         if not file_path.exists():
-            telemetry.record_cache_miss()
-            raise FileNotFoundError(f"No ephemeris cache for year {year}")
+            if MIN_YEAR <= year <= MAX_YEAR:
+                # Use per-year lock to prevent duplicate generation
+                year_lock = cls._get_year_lock(year)
+                with year_lock:
+                    # Double-check after acquiring lock
+                    if not file_path.exists():
+                        try:
+                            _generate_year_on_demand(year)
+                        except Exception as e:
+                            telemetry.record_cache_miss()
+                            raise FileNotFoundError(
+                                f"Failed to generate ephemeris for year {year}: {e}"
+                            )
+            else:
+                telemetry.record_cache_miss()
+                raise FileNotFoundError(
+                    f"No ephemeris cache for year {year} (outside range {MIN_YEAR}-{MAX_YEAR})"
+                )
+        
         catalog.register(year)
         payload = json.loads(file_path.read_text(encoding="utf-8"))
         year_data = YearlyEphemeris(year, payload)

@@ -53,3 +53,6 @@ def build_patterns_module(patterns: Dict, config: Dict = None) -> str:
     else:
         return "\n".join(pattern_descriptions)
 
+
+
+

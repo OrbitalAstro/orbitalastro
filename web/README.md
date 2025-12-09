@@ -158,6 +158,146 @@ NEXT_PUBLIC_API_URL=http://localhost:8000
 
 All API calls are handled through `lib/api.ts` using React Query for caching and state management.
 
+### API Endpoints
+
+#### Natal Chart (`/natal`)
+Calculate a complete natal chart with optional narrative generation.
+
+**Request:**
+```typescript
+{
+  birth_date: string          // ISO format: "YYYY-MM-DD"
+  birth_time: string          // "HH:MM" or "HH:MM:SS"
+  latitude?: number
+  longitude?: number
+  timezone?: string           // IANA timezone (e.g., "America/New_York")
+  birth_city?: string         // Alternative to lat/long
+  house_system?: string       // Default: "placidus"
+  include_extra_objects?: boolean
+  use_topocentric_moon?: boolean
+  include_aspects?: boolean
+  narrative?: {
+    tone?: string             // "mythic" | "psychological" | "coaching" | "cinematic" | "soft_therapeutic"
+    depth?: string            // "short" | "standard" | "comprehensive"
+    focus?: string[]          // ["career", "relationships", "family", "spirituality", "creativity", "healing"]
+  }
+}
+```
+
+#### Transits (`/api/transits`)
+Calculate planetary transits for a specific date with optional chart data and narrative.
+
+**Request:**
+```typescript
+{
+  natal_positions: Record<string, number>  // Natal planetary longitudes
+  natal_asc?: number                       // Natal ascendant longitude
+  natal_mc?: number                        // Natal midheaven longitude
+  target_date: string                     // ISO format: "YYYY-MM-DD"
+  latitude?: number                        // Optional: for transit chart calculation
+  longitude?: number                       // Optional: for transit chart calculation
+  house_system?: string                    // Default: "placidus"
+  include_angles?: boolean                 // Default: true
+  include_patterns?: boolean               // Default: false
+  narrative?: NarrativeConfig             // Optional narrative generation
+}
+```
+
+**Response includes:**
+- `transits`: List of transit aspects
+- `transits_to_angles`: Transits to ASC/MC/IC/DSC
+- `planets`: Transit chart planetary positions (if lat/long provided)
+- `ascendant`, `midheaven`, `houses`: Transit chart data (if lat/long provided)
+- `patterns`: Aspect patterns (if `include_patterns: true`)
+- `narrative_seed`: Generated prompt for LLM interpretation (if `narrative` provided)
+
+#### Progressions (`/api/progressions`)
+Calculate secondary progressions (1 day = 1 year).
+
+**Request:**
+```typescript
+{
+  birth_datetime: string      // ISO format: "YYYY-MM-DDTHH:MM:SS"
+  progressed_date: string     // ISO format: "YYYY-MM-DD"
+  latitude: number
+  longitude: number
+  house_system?: string        // Default: "placidus"
+  include_aspects?: boolean   // Default: true
+  include_patterns?: boolean  // Default: false
+  narrative?: NarrativeConfig // Optional narrative generation
+}
+```
+
+**Response includes:**
+- `progressed_datetime_utc`: Progressed datetime
+- `age_years`: Age at progressed date
+- `planets`, `ascendant`, `midheaven`, `houses`: Progressed chart data
+- `progressed_to_natal_aspects`: Aspects between progressed and natal positions
+- `patterns`: Aspect patterns (if `include_patterns: true`)
+- `narrative_seed`: Generated prompt (if `narrative` provided)
+
+#### Solar Returns (`/api/solar-return`)
+Calculate solar return chart for a specific year.
+
+**Request:**
+```typescript
+{
+  birth_date: string           // ISO format: "YYYY-MM-DD"
+  natal_sun_longitude: number  // Natal Sun longitude in degrees
+  target_year: number          // Year for solar return
+  latitude: number
+  longitude: number
+  house_system?: string         // Default: "placidus"
+  include_aspects?: boolean    // Default: true
+  include_patterns?: boolean  // Default: false
+  narrative?: NarrativeConfig // Optional narrative generation
+}
+```
+
+**Response includes:**
+- `return_datetime_utc`: Solar return datetime
+- `planets`, `ascendant`, `midheaven`, `houses`: Return chart data
+- `sun_exactness_deg`: How close Sun is to natal position
+- `aspects`: Aspects within return chart
+- `patterns`: Aspect patterns (if `include_patterns: true`)
+- `narrative_seed`: Generated prompt (if `narrative` provided)
+
+#### Rectification (`/api/rectify-birth-time`)
+Rectify birth time using significant life events.
+
+**Request:**
+```typescript
+{
+  birth_date: string
+  approx_time: string          // "HH:MM" or "HH:MM:SS"
+  timezone: string
+  latitude_deg: number
+  longitude_deg: number
+  time_window_hours: number    // Search window (±hours)
+  events: Array<{
+    type: string               // e.g., "marriage", "career_change"
+    datetime_local: string     // ISO format
+    weight: number            // 0.1-5.0
+  }>
+  top_n?: number               // Default: 3
+  step_minutes?: number        // Default: 5
+}
+```
+
+### Narrative Configuration
+
+All endpoints that support narrative generation accept a `NarrativeConfig`:
+
+```typescript
+interface NarrativeConfig {
+  tone?: string      // "mythic" | "psychological" | "coaching" | "cinematic" | "soft_therapeutic"
+  depth?: string     // "short" | "standard" | "comprehensive"
+  focus?: string[]   // ["career", "relationships", "family", "spirituality", "creativity", "healing"]
+}
+```
+
+The `narrative_seed` in responses is a formatted prompt ready to be sent to an LLM (like Gemini) for interpretation generation.
+
 ## State Management
 
 - **Zustand**: Client state (settings, chart history)

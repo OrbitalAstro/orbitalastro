@@ -129,3 +129,6 @@ export const ASTRO_TERMS: Record<string, string> = {
   'Grand Trine': 'Three planets forming trines to each other, creating a triangle of harmonious energy.',
 }
 
+
+
+

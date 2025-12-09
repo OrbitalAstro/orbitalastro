@@ -8,7 +8,7 @@ from typing import Dict, List, Optional
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
-from astro.rectification import RectificationEvent, rectify_birth_time
+from astro.rectification import rectify_birth_time
 
 router = APIRouter(prefix="/api", tags=["rectification"])
 
@@ -53,71 +53,101 @@ async def rectify(request: RectificationRequest):
         approx_time_str = request.approx_time
         if "T" not in approx_time_str:
             # Assume it's just time, combine with birth date
-            approx_time = datetime.combine(birth_date, datetime.strptime(approx_time_str, "%H:%M").time())
+            try:
+                approx_time = datetime.combine(birth_date, datetime.strptime(approx_time_str, "%H:%M").time())
+            except ValueError:
+                approx_time = datetime.combine(birth_date, datetime.strptime(approx_time_str, "%H:%M:%S").time())
         else:
             approx_time = datetime.fromisoformat(approx_time_str)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=f"Invalid date/time format: {e}")
 
-    # Convert events
-    events = []
+    # Convert events to dict format
+    events_data = []
     for event_model in request.events:
         try:
             event_dt = datetime.fromisoformat(event_model.datetime_local)
-            events.append(
-                RectificationEvent(
-                    type=event_model.type,
-                    datetime_local=event_dt,
-                    weight=event_model.weight,
-                )
-            )
+            events_data.append({
+                "type": event_model.type,
+                "datetime_local": event_dt.isoformat(),
+                "weight": event_model.weight,
+            })
         except ValueError:
             raise HTTPException(status_code=400, detail=f"Invalid event datetime: {event_model.datetime_local}")
 
-    candidates = rectify_birth_time(
-        birth_date,
-        approx_time,
-        request.timezone,
-        request.latitude_deg,
-        request.longitude_deg,
-        request.time_window_hours,
-        events,
-        request.top_n or 3,
-        request.step_minutes or 5,
-    )
+    # Prepare data dict for rectify_birth_time
+    data = {
+        "birth_date": birth_date.isoformat(),
+        "approx_time": approx_time.strftime("%H:%M"),
+        "timezone": request.timezone,
+        "latitude_deg": request.latitude_deg,
+        "longitude_deg": request.longitude_deg,
+        "time_window_hours": request.time_window_hours,
+        "events": events_data,
+    }
+    
+    try:
+        result = rectify_birth_time(
+            data,
+            step_minutes=request.step_minutes or 5,
+            top_n=request.top_n or 3,
+        )
+    except Exception as e:
+        import traceback
+        error_detail = traceback.format_exc()
+        raise HTTPException(status_code=500, detail=f"Rectification error: {str(e)}\n{error_detail}")
+    
+    # Convert result to candidates format
+    candidates = []
+    for candidate_data in result.get("top_candidates", []):
+        try:
+            candidates.append({
+                "birth_time": datetime.fromisoformat(candidate_data["local_time"]),
+                "ascendant": candidate_data["ascendant_degree"],
+                "midheaven": candidate_data["midheaven_degree"],
+                "score": candidate_data["score"],
+                "diagnostics": {
+                    "ascendant_sign": candidate_data["ascendant_sign"],
+                    "events": candidate_data.get("events", []),
+                },
+            })
+        except KeyError as e:
+            raise HTTPException(status_code=500, detail=f"Missing field in candidate data: {e}")
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error processing candidate: {e}")
 
     # Generate summary and narrative
-    summary = f"Found {len(candidates)} candidate birth times based on {len(events)} life events."
+    summary = f"Found {len(candidates)} candidate birth times based on {len(request.events)} life events."
     if candidates:
         best = candidates[0]
-        summary += f" Top candidate: {best.birth_time.strftime('%H:%M:%S')} (score: {best.score:.2f})"
+        summary += f" Top candidate: {best['birth_time'].strftime('%H:%M:%S')} (score: {best['score']:.2f})"
     
     narrative_summary = None
     if candidates:
         best = candidates[0]
         narrative_summary = f"""
-Based on the life events provided, the most likely birth time is {best.birth_time.strftime('%H:%M:%S')}.
+Based on the life events provided, the most likely birth time is {best['birth_time'].strftime('%H:%M:%S')}.
 
-This time produces an Ascendant of {best.ascendant:.2f}° and Midheaven of {best.midheaven:.2f}°, 
+This time produces an Ascendant of {best['ascendant']:.2f}° and Midheaven of {best['midheaven']:.2f}°, 
 which aligns best with the significant events in your life.
 
-The rectification process analyzed {len(events)} key life events and evaluated multiple candidate times 
+The rectification process analyzed {len(request.events)} key life events and evaluated multiple candidate times 
 within a {request.time_window_hours * 2}-hour window around the approximate birth time.
 
 Key diagnostics:
-- Score: {best.score:.2f} (higher indicates better alignment with events)
-- Ascendant: {best.ascendant:.2f}°
-- Midheaven: {best.midheaven:.2f}°
+- Score: {best['score']:.2f} (higher indicates better alignment with events)
+- Ascendant: {best['ascendant']:.2f}°
+- Midheaven: {best['midheaven']:.2f}°
 """.strip()
 
     return RectificationResponse(
         candidates=[
             CandidateTimeModel(
-                birth_time=c.birth_time.isoformat(),
-                ascendant=c.ascendant,
-                midheaven=c.midheaven,
-                score=c.score,
-                diagnostics=c.diagnostics,
+                birth_time=c["birth_time"].isoformat(),
+                ascendant=c["ascendant"],
+                midheaven=c["midheaven"],
+                score=c["score"],
+                diagnostics=c["diagnostics"],
             )
             for c in candidates
         ],

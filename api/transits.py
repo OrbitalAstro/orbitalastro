@@ -8,8 +8,14 @@ from typing import Dict, List, Optional
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
-from astro.aspects import AspectConfig, Aspect
+from astro.aspects import AspectConfig, Aspect, find_aspects, detect_patterns
 from astro.transits import compute_transits, compute_transits_to_angles
+from astro.houses import compute_asc_mc
+from astro.houses_multi import compute_houses
+from astro.julian import datetime_to_julian_day
+from astro.ephemeris_loader import EphemerisRepository
+from astro.master_prompt_builder import build_natal_reading_prompt
+from api.schemas import NarrativeConfig
 
 router = APIRouter(prefix="/api", tags=["transits"])
 
@@ -19,18 +25,32 @@ class TransitRequest(BaseModel):
     natal_asc: Optional[float] = Field(None, description="Natal ascendant longitude")
     natal_mc: Optional[float] = Field(None, description="Natal midheaven longitude")
     target_date: str = Field(..., description="Target date for transits (ISO format)")
+    latitude: Optional[float] = Field(None, description="Latitude for transit chart (optional)")
+    longitude: Optional[float] = Field(None, description="Longitude for transit chart (optional)")
+    house_system: Optional[str] = Field("placidus", description="House system for transit chart")
     include_angles: Optional[bool] = Field(True, description="Include transits to angles")
+    include_patterns: Optional[bool] = Field(False, description="Include aspect patterns")
+    narrative: Optional[NarrativeConfig] = Field(None, description="Narrative configuration")
 
 
 class TransitResponse(BaseModel):
     target_date: str
     transits: List[Dict]
     transits_to_angles: Optional[List[Dict]] = None
+    # Structured chart data
+    planets: Optional[Dict[str, float]] = None
+    ascendant: Optional[float] = None
+    midheaven: Optional[float] = None
+    houses: Optional[Dict[str, float]] = None
+    house_system: Optional[str] = None
+    # Patterns and narrative
+    patterns: Optional[Dict] = None
+    narrative_seed: Optional[str] = None
 
 
 @router.post("/transits", response_model=TransitResponse)
 async def calculate_transits(request: TransitRequest):
-    """Compute transits for a given date."""
+    """Compute transits for a given date with optional chart data and narrative."""
     try:
         target_datetime = datetime.fromisoformat(request.target_date.replace("Z", "+00:00"))
     except ValueError:
@@ -57,9 +77,74 @@ async def calculate_transits(request: TransitRequest):
             request.natal_asc, request.natal_mc, target_datetime, config
         )
 
+    # Get transit chart data if latitude/longitude provided
+    transit_planets = None
+    transit_asc = None
+    transit_mc = None
+    transit_houses = None
+    if request.latitude is not None and request.longitude is not None:
+        transit_planets = EphemerisRepository.get_positions(target_datetime)
+        transit_jd = datetime_to_julian_day(target_datetime)
+        transit_asc, transit_mc = compute_asc_mc(transit_jd, request.latitude, request.longitude)
+        transit_cusps = compute_houses(
+            request.house_system or "placidus",
+            transit_jd,
+            request.latitude,
+            request.longitude,
+            transit_asc,
+            transit_mc,
+        )
+        transit_houses = {str(i + 1): cusp for i, cusp in enumerate(transit_cusps)}
+
+    # Detect patterns if requested
+    patterns_dict = None
+    if request.include_patterns and transits:
+        # Use the transit aspects directly for pattern detection
+        patterns_dict = detect_patterns(transits)
+
+    # Generate narrative seed if requested
+    narrative_seed = None
+    if request.narrative:
+        narrative_config = {
+            "tone": request.narrative.tone or "mythic",
+            "depth": request.narrative.depth or "standard",
+            "focus": request.narrative.focus or [],
+        }
+        # Build chart dict for narrative
+        chart_dict = {
+            "planets": transit_planets or EphemerisRepository.get_positions(target_datetime),
+            "ascendant": transit_asc or request.natal_asc or 0.0,
+            "midheaven": transit_mc or request.natal_mc or 0.0,
+            "houses": transit_houses or {},
+        }
+        # Convert transits to dict format for narrative
+        transits_for_narrative = [
+            {
+                "body1": t.body1.replace("transit_", ""),
+                "body2": t.body2.replace("natal_", ""),
+                "aspect": t.aspect,
+                "orb_deg": t.orb_deg,
+            }
+            for t in transits
+        ]
+        narrative_seed = build_natal_reading_prompt(
+            chart_dict,
+            aspects=None,  # Transits are separate from natal aspects
+            transits=transits_for_narrative,
+            patterns=patterns_dict,
+            narrative_config=narrative_config,
+        )
+
     return TransitResponse(
         target_date=request.target_date,
         transits=transits_list,
         transits_to_angles=transits_to_angles_list,
+        planets=transit_planets,
+        ascendant=transit_asc,
+        midheaven=transit_mc,
+        houses=transit_houses,
+        house_system=request.house_system if transit_houses else None,
+        patterns=patterns_dict,
+        narrative_seed=narrative_seed,
     )
 

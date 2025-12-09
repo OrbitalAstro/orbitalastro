@@ -37,27 +37,36 @@ PLANETS: List[str] = [
     "eris",
 ]
 
-PLANET_IDS = {
-    "sun": swe.SUN,
-    "moon": swe.MOON,
-    "mercury": swe.MERCURY,
-    "venus": swe.VENUS,
-    "mars": swe.MARS,
-    "jupiter": swe.JUPITER,
-    "saturn": swe.SATURN,
-    "uranus": swe.URANUS,
-    "neptune": swe.NEPTUNE,
-    "pluto": swe.PLUTO,
-    "true_node": swe.TRUE_NODE,
-    "chiron": swe.CHIRON,
-    "lilith_mean": swe.MEAN_APOG,
-    "lilith_true": swe.TRUE_APOG,
-    "ceres": swe.CERES,
-    "pallas": swe.PALLAS,
-    "juno": swe.JUNO,
-    "vesta": swe.VESTA,
-    "eris": swe.DWARF_PLANET_136199_ERIS,
-}
+# Build PLANET_IDS dynamically to handle missing constants
+PLANET_IDS = {}
+try:
+    PLANET_IDS.update({
+        "sun": swe.SUN,
+        "moon": swe.MOON,
+        "mercury": swe.MERCURY,
+        "venus": swe.VENUS,
+        "mars": swe.MARS,
+        "jupiter": swe.JUPITER,
+        "saturn": swe.SATURN,
+        "uranus": swe.URANUS,
+        "neptune": swe.NEPTUNE,
+        "pluto": swe.PLUTO,
+        "true_node": swe.TRUE_NODE,
+        "chiron": swe.CHIRON,
+        "lilith_mean": swe.MEAN_APOG,
+        "lilith_true": swe.OSCU_APOG,  # Oscillating apogee = True Lilith
+        "ceres": swe.CERES,
+        "pallas": swe.PALLAS,
+        "juno": swe.JUNO,
+        "vesta": swe.VESTA,
+    })
+    # Eris might not be available in all swisseph versions
+    if hasattr(swe, 'DWARF_PLANET_136199_ERIS'):
+        PLANET_IDS["eris"] = swe.DWARF_PLANET_136199_ERIS
+    elif hasattr(swe, 'ERIS'):
+        PLANET_IDS["eris"] = swe.ERIS
+except AttributeError as e:
+    print(f"Warning: Some planet constants not available: {e}")
 
 
 def _prepare_ephe_path() -> None:
@@ -83,18 +92,19 @@ def _generate_year(year: int, interval_hours: int) -> Dict[str, Dict[str, float]
         )
         row: Dict[str, float] = {}
         for body in PLANETS:
+            if body not in PLANET_IDS:
+                # Skip bodies that don't have a constant defined
+                continue
             body_id = PLANET_IDS[body]
             try:
                 result, rc = swe.calc_ut(jd, body_id, swe.FLG_SPEED)
                 if rc < 0:
                     # Some objects might not be available for all dates, skip with warning
-                    print(f"Warning: Swiss Ephemeris failed for {body} at {current.isoformat()}, skipping")
                     continue
                 longitude = result[0] % 360.0
                 row[body] = round(longitude, 6)
             except (ValueError, AttributeError):
                 # Handle case where object ID might not be available
-                print(f"Warning: Could not compute {body} at {current.isoformat()}, skipping")
                 continue
         entries[current.strftime("%Y-%m-%dT%H:%M:%SZ")] = row
         current += delta

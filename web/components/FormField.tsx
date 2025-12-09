@@ -78,7 +78,7 @@ export default function FormField({
               : 'border-white/20 focus:ring-cosmic-pink'
             }
           `}
-          aria-invalid={showError}
+          aria-invalid={showError ? 'true' : 'false'}
           aria-describedby={showError ? `${name}-error` : undefined}
         />
         <AnimatePresence>
