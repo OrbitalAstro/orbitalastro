@@ -25,12 +25,14 @@ export default function ChartVisualization({ chart }: ChartVisualizationProps) {
       
       try {
         // Add cache-busting timestamp to force refresh
-        const response = await apiClient.chart.getSVG(
-          chart,
-          chart.aspects,
-          settings.chartStyle,
-          settings.chartSize
-        )
+        const response = await apiClient.chart.svg({
+          natal_chart: chart,
+          aspects: chart.aspects,
+          config: {
+            style: settings.chartStyle || 'traditional',
+            size: settings.chartSize || 600,
+          },
+        })
         if (svgRef.current) {
           svgRef.current.innerHTML = response.data
           // Make SVG scale to fit container

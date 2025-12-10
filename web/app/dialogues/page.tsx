@@ -16,13 +16,13 @@ export default function Dialogues() {
   const settings = useSettingsStore()
   const t = useTranslation()
   const [birthData, setBirthData] = useState({
-    birth_date: '',
-    birth_time: '12:00',
+    birth_date: settings.defaultBirthDate || '',
+    birth_time: settings.defaultBirthTime || '12:00',
     birth_place: '',
-    firstName: '',
+    firstName: settings.defaultFirstName || '',
     latitude: settings.defaultLatitude || 0,
     longitude: settings.defaultLongitude || 0,
-    timezone: settings.defaultTimezone,
+    timezone: settings.defaultTimezone || 'UTC',
   })
 
   const [dialogue, setDialogue] = useState<string | null>(null)
@@ -36,23 +36,55 @@ export default function Dialogues() {
 
     setLoading(true)
     try {
+      // Validate required fields
+      if (!birthData.birth_date || !birthData.birth_time) {
+        alert('Date et heure de naissance requises')
+        setLoading(false)
+        return
+      }
+
+      if (!birthData.latitude || !birthData.longitude) {
+        alert('Lieu de naissance requis')
+        setLoading(false)
+        return
+      }
+
       // Get natal chart first
+      console.log('Requesting natal chart...', {
+        birth_date: birthData.birth_date,
+        birth_time: birthData.birth_time,
+        latitude: birthData.latitude,
+        longitude: birthData.longitude,
+        timezone: birthData.timezone,
+      })
+
       const chartResponse = await apiClient.natal.calculate({
         birth_date: birthData.birth_date,
         birth_time: birthData.birth_time,
         birth_place: birthData.birth_place,
         latitude: birthData.latitude,
         longitude: birthData.longitude,
-        timezone: birthData.timezone,
+        timezone: birthData.timezone || 'UTC',
         birth_city: birthData.birth_place || undefined,
-        house_system: settings.houseSystem,
+        house_system: settings.houseSystem || 'placidus',
         include_aspects: true,
-        include_extra_objects: settings.includeExtraObjects,
+        include_extra_objects: settings.includeExtraObjects ?? true,
       })
       
       const chart = chartResponse.data
+      console.log('Chart received:', {
+        hasPlanets: !!chart.planets,
+        hasAspects: !!chart.aspects,
+        planetCount: chart.planets ? Object.keys(chart.planets).length : 0,
+        aspectCount: chart.aspects ? chart.aspects.length : 0,
+      })
+
+      if (!chart.planets) {
+        throw new Error('Chart response missing planets data')
+      }
       
       // Generate pre-incarnation dialogue using Gemini
+      console.log('Generating dialogue with Gemini...')
       const dialogueText = await generateDialogue(
         settings.geminiApiKey,
         chart,
@@ -62,16 +94,20 @@ export default function Dialogues() {
           birth_place: birthData.birth_place,
           firstName: birthData.firstName,
         },
-        settings.language || 'fr'
+        (settings.language || 'fr') as 'en' | 'fr' | 'es'
       )
       
+      console.log('Dialogue generated successfully')
       setDialogue(dialogueText)
     } catch (error: any) {
       console.error('Error generating dialogue:', error)
-      const errorMsg = error.message?.includes('Rate limit') 
-        ? t.dialogues.rateLimitError || 'Limite de requêtes atteinte. Veuillez attendre quelques instants et réessayer.'
-        : `Erreur lors de la génération du dialogue: ${error.message}`
-      alert(errorMsg)
+      const errorMsg = error.response?.data?.detail || error.message || 'Erreur inconnue'
+      const userFriendlyMsg = errorMsg.includes('Rate limit') || errorMsg.includes('429')
+        ? (t.dialogues.rateLimitError || 'Limite de requêtes atteinte. Veuillez attendre quelques instants et réessayer.')
+        : errorMsg.includes('API key') || errorMsg.includes('401')
+          ? 'Clé API Gemini invalide ou manquante. Vérifiez vos paramètres.'
+          : `Erreur lors de la génération du dialogue: ${errorMsg}`
+      alert(userFriendlyMsg)
     } finally {
       setLoading(false)
     }
@@ -148,7 +184,7 @@ export default function Dialogues() {
                     timezone: location.timezone || settings.defaultTimezone || '',
                   })
                 }}
-                placeholder="Recherchez une ville ou un lieu (ex: 'Hôpital Sainte-Croix Drummondville')..."
+                placeholder={t.tooltips.locationSearch}
               />
             </div>
           </div>

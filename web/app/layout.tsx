@@ -1,11 +1,14 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
+import dynamic from 'next/dynamic'
 import './globals.css'
 import { Providers } from './providers'
 import Toaster from '@/components/Toaster'
 import QuickActions from '@/components/QuickActions'
-import Navigation from '@/components/Navigation'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
+
+// Disable SSR for Navigation to prevent hydration errors (it uses localStorage via useTranslation)
+const Navigation = dynamic(() => import('@/components/Navigation'), { ssr: false })
 
 const inter = Inter({ 
   subsets: ['latin'],

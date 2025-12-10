@@ -1,13 +1,12 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Zap, Calendar } from 'lucide-react'
 import { useSettingsStore, useChartHistory } from '@/lib/store'
 import { apiClient } from '@/lib/api'
 import { useToast } from '@/lib/toast'
 import BackButton from '@/components/BackButton'
-import BiWheel from '@/components/BiWheel'
 
 export default function TransitsPage() {
   const settings = useSettingsStore()
@@ -143,15 +142,6 @@ export default function TransitsPage() {
 
           {transits && (
             <div className="space-y-6">
-              {/* Chart Visualization */}
-              {transits.planets && latestChart?.chart && (
-                <TransitChartVisualization
-                  natalChart={latestChart.chart}
-                  transitChart={transits}
-                  lang={lang}
-                />
-              )}
-
               {/* Transit Results List */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -217,43 +207,6 @@ export default function TransitsPage() {
         </motion.div>
       </div>
     </div>
-  )
-}
-
-// Separate component to prevent infinite re-renders
-function TransitChartVisualization({ natalChart, transitChart, lang }: { natalChart: any; transitChart: any; lang: string }) {
-  const transitChartData = useMemo(() => ({
-    planets: transitChart.planets,
-    ascendant: transitChart.ascendant,
-    midheaven: transitChart.midheaven,
-    houses: transitChart.houses,
-    house_system: transitChart.house_system,
-    aspects: transitChart.transits?.map((t: any) => ({
-      body1: t.transiting_body,
-      body2: t.natal_body,
-      aspect: t.aspect,
-      orb_deg: t.orb_deg,
-      applying: t.applying,
-    })),
-  }), [transitChart.planets, transitChart.ascendant, transitChart.midheaven, transitChart.houses, transitChart.house_system, transitChart.transits])
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="bg-white/5 rounded-xl p-6 border border-white/10"
-    >
-      <h2 className="text-2xl font-bold text-white mb-4">
-        {lang === 'fr' ? 'Carte des Transits' : lang === 'es' ? 'Carta de Tránsitos' : 'Transit Chart'}
-      </h2>
-      <BiWheel
-        chart1={natalChart}
-        chart2={transitChartData}
-        label1={lang === 'fr' ? 'Natal' : lang === 'es' ? 'Natal' : 'Natal'}
-        label2={lang === 'fr' ? 'Transits' : lang === 'es' ? 'Tránsitos' : 'Transits'}
-        showAspects={false}
-      />
-    </motion.div>
   )
 }
 

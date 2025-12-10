@@ -91,9 +91,9 @@ export default function ChartHistory({ onLoadChart }: ChartHistoryProps) {
                       </button>
                     </div>
                     <div className="space-y-3">
-                      {history.map((item, idx) => (
+                      {history.map((item) => (
                         <motion.div
-                          key={idx}
+                          key={item.id || Math.random().toString()}
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           className="bg-white/5 rounded-lg p-4 border border-white/10 hover:border-cosmic-gold/50 transition cursor-pointer"
@@ -114,7 +114,7 @@ export default function ChartHistory({ onLoadChart }: ChartHistoryProps) {
                             <button
                               onClick={(e) => {
                                 e.stopPropagation()
-                                removeFromHistory(idx)
+                                removeFromHistory(item.id || '')
                                 toast.info('Removed from history')
                               }}
                               className="p-1 hover:bg-white/10 rounded transition"

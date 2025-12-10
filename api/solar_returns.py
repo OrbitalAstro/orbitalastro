@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field
 from astro.solar_returns import compute_solar_return_chart, find_solar_return
 from astro.aspects import AspectConfig, find_aspects, detect_patterns
 from astro.master_prompt_builder import build_natal_reading_prompt
+from astro.chart_utils import build_chart_payload_for_narrative
 from api.schemas import NarrativeConfig
 
 router = APIRouter(prefix="/api", tags=["solar-returns"])
@@ -87,7 +88,9 @@ async def calculate_solar_return(request: SolarReturnRequest):
         if request.include_patterns:
             patterns_dict = detect_patterns(aspects)
 
-    # Generate narrative seed if requested
+    return_houses = return_chart["houses"]
+    return_cusps = [return_houses.get(str(i + 1), 0.0) for i in range(12)]
+
     narrative_seed = None
     if request.narrative:
         narrative_config = {
@@ -95,11 +98,20 @@ async def calculate_solar_return(request: SolarReturnRequest):
             "depth": request.narrative.depth or "standard",
             "focus": request.narrative.focus or [],
         }
+        chart_payload = build_chart_payload_for_narrative(
+            return_chart["planets"],
+            return_chart["ascendant"],
+            return_chart["midheaven"],
+            return_cusps,
+            return_houses,
+            return_chart["house_system"],
+        )
         narrative_seed = build_natal_reading_prompt(
-            return_chart,
+            chart_payload,
             aspects=aspects_list,
-            patterns=patterns_dict,
+            patterns=patterns_dict or {},
             narrative_config=narrative_config,
+            chart_context="solar_return",
         )
 
     return SolarReturnResponse(
@@ -116,4 +128,3 @@ async def calculate_solar_return(request: SolarReturnRequest):
         patterns=patterns_dict,
         narrative_seed=narrative_seed,
     )
-

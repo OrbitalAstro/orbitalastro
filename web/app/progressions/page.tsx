@@ -19,11 +19,17 @@ export default function ProgressionsPage() {
   
   const latestChart = history && history.length > 0 ? history[history.length - 1] : null
   const [progressedDate, setProgressedDate] = useState(new Date().toISOString().split('T')[0])
+  const [birthDate, setBirthDate] = useState(
+    settings.defaultBirthDate || latestChart?.birthData?.birth_date || ''
+  )
+  const [birthTime, setBirthTime] = useState(
+    settings.defaultBirthTime || latestChart?.birthData?.birth_time || '12:00'
+  )
   const [location, setLocation] = useState({
     place: latestChart?.birthData?.birth_place || '',
-    latitude: latestChart?.birthData?.latitude || settings.defaultLatitude || 0,
-    longitude: latestChart?.birthData?.longitude || settings.defaultLongitude || 0,
-    timezone: latestChart?.birthData?.timezone || settings.defaultTimezone || 'UTC',
+    latitude: settings.defaultLatitude || latestChart?.birthData?.latitude || 0,
+    longitude: settings.defaultLongitude || latestChart?.birthData?.longitude || 0,
+    timezone: settings.defaultTimezone || latestChart?.birthData?.timezone || 'UTC',
   })
 
   const lang = settings.language || 'en'
@@ -34,6 +40,8 @@ export default function ProgressionsPage() {
       calculate: 'Calculate Progressions',
       calculating: 'Calculating...',
       progressedDate: 'Progressed Date',
+      birthDate: 'Birth Date',
+      birthTime: 'Birth Time',
       birthPlace: 'Birth Place',
       noChart: 'Please calculate your natal chart first in the Dashboard.',
       success: 'Progressions calculated successfully!',
@@ -45,6 +53,8 @@ export default function ProgressionsPage() {
       calculate: 'Calculer les Progressions',
       calculating: 'Calcul en cours...',
       progressedDate: 'Date Progressée',
+      birthDate: 'Date de Naissance',
+      birthTime: 'Heure de Naissance',
       birthPlace: 'Lieu de Naissance',
       noChart: "Veuillez d'abord calculer votre thème natal dans le Tableau de bord.",
       success: 'Progressions calculées avec succès!',
@@ -56,6 +66,8 @@ export default function ProgressionsPage() {
       calculate: 'Calcular Progresiones',
       calculating: 'Calculando...',
       progressedDate: 'Fecha Progresada',
+      birthDate: 'Fecha de Nacimiento',
+      birthTime: 'Hora de Nacimiento',
       birthPlace: 'Lugar de Nacimiento',
       noChart: 'Por favor calcula tu carta natal primero en el Panel.',
       success: '¡Progresiones calculadas con éxito!',
@@ -65,20 +77,23 @@ export default function ProgressionsPage() {
   const t = translations[lang]
 
   const calculateProgressions = async () => {
-    if (!latestChart) {
-      toast.error(t.noChart)
+    if (!birthDate) {
+      toast.error(lang === 'fr' ? 'Date de naissance requise' : lang === 'es' ? 'Fecha de nacimiento requerida' : 'Birth date is required')
       return
     }
 
-    if (!latestChart.birthData) {
-      toast.error(t.noChart)
+    if (!birthTime) {
+      toast.error(lang === 'fr' ? 'Heure de naissance requise' : lang === 'es' ? 'Hora de nacimiento requerida' : 'Birth time is required')
+      return
+    }
+
+    if ((location.latitude === 0 && location.longitude === 0) || !location.place) {
+      toast.error(lang === 'fr' ? 'Lieu de naissance requis' : lang === 'es' ? 'Lugar de nacimiento requerido' : 'Birth place is required')
       return
     }
 
     setLoading(true)
     try {
-      const birthDate = latestChart.birthData.birth_date
-      const birthTime = latestChart.birthData.birth_time || '12:00'
       // Ensure timezone is included (UTC)
       const birthDatetime = `${birthDate}T${birthTime}:00Z`
 
@@ -118,12 +133,42 @@ export default function ProgressionsPage() {
           <p className="text-white/70 mb-8">{t.description}</p>
 
           {!latestChart && (
-            <div className="bg-yellow-500/20 border border-yellow-500/50 rounded-lg p-4 mb-6">
-              <p className="text-yellow-400">{t.noChart}</p>
+            <div className="bg-blue-500/20 border border-blue-500/50 rounded-lg p-4 mb-6">
+              <p className="text-blue-400">
+                {lang === 'fr' 
+                  ? '💡 Entrez vos informations de naissance ci-dessous pour calculer les progressions.'
+                  : lang === 'es'
+                  ? '💡 Ingresa tu información de nacimiento a continuación para calcular las progresiones.'
+                  : '💡 Enter your birth information below to calculate progressions.'}
+              </p>
             </div>
           )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div>
+              <label className="block text-sm font-medium text-white/80 mb-2">
+                <Calendar className="inline h-4 w-4 mr-1" />
+                {t.birthDate}
+              </label>
+              <input
+                type="date"
+                value={birthDate}
+                onChange={(e) => setBirthDate(e.target.value)}
+                className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-white/80 mb-2">
+                <Calendar className="inline h-4 w-4 mr-1" />
+                {t.birthTime}
+              </label>
+              <input
+                type="time"
+                value={birthTime}
+                onChange={(e) => setBirthTime(e.target.value)}
+                className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+            </div>
             <div>
               <label className="block text-sm font-medium text-white/80 mb-2">
                 <Calendar className="inline h-4 w-4 mr-1" />
@@ -155,7 +200,7 @@ export default function ProgressionsPage() {
 
           <button
             onClick={calculateProgressions}
-            disabled={loading || !latestChart || !progressedDate}
+            disabled={loading || !birthDate || !birthTime || !progressedDate || (location.latitude === 0 && location.longitude === 0 && !location.place)}
             className="w-full px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:shadow-lg transition disabled:opacity-50 mb-8"
           >
             {loading ? t.calculating : t.calculate}

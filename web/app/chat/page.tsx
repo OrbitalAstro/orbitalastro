@@ -31,7 +31,17 @@ export default function ChatPage() {
   const latestChart = history && history.length > 0 ? history[history.length - 1] : null
 
   // Translations
-  const translations = {
+  const translations: Record<
+    import('@/lib/i18n').Language,
+    {
+      title: string
+      placeholder: string
+      noChart: string
+      thinking: string
+      send: string
+      exampleQuestions: string[]
+    }
+  > = {
     en: {
       title: 'Astrological Chat',
       placeholder: 'Ask about your chart, current transits, or future...',
@@ -73,9 +83,9 @@ export default function ChatPage() {
     },
   }
 
-  const t = translations[settings.language || 'en']
+  const lang = settings.language
+  const t = translations[lang]
   const hasApiKey = !!settings.geminiApiKey?.trim()
-  const lang = settings.language || 'en'
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -249,6 +259,9 @@ export default function ChatPage() {
               birth_time: birthTime,
               birth_place: birthPlace || undefined,
               birth_city: birthPlace || undefined,
+              latitude: settings.defaultLatitude || 0,
+              longitude: settings.defaultLongitude || 0,
+              timezone: settings.defaultTimezone || 'UTC',
               house_system: settings.houseSystem,
               include_extra_objects: settings.includeExtraObjects,
               use_topocentric_moon: settings.useTopocentricMoon,

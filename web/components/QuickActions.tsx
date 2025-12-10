@@ -6,6 +6,7 @@ import { Search, Home, Settings, BookOpen, Sparkles, Calendar, Command, Trending
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useKeyboardShortcuts } from '@/lib/keyboard'
+import { useTranslation } from '@/lib/useTranslation'
 
 interface QuickAction {
   id: string
@@ -19,6 +20,7 @@ export default function QuickActions() {
   const [isOpen, setIsOpen] = useState(false)
   const [search, setSearch] = useState('')
   const router = useRouter()
+  const t = useTranslation()
 
   const actions: QuickAction[] = [
     {
@@ -161,7 +163,7 @@ export default function QuickActions() {
                   type="text"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search actions..."
+                  placeholder={t.tooltips.searchActions}
                   className="flex-1 bg-transparent text-white placeholder-white/50 outline-none"
                 />
                 <kbd className="px-2 py-1 bg-white/10 rounded text-xs text-white/60 flex items-center gap-1">

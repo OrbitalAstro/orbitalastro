@@ -10,17 +10,19 @@ import ReactMarkdown from 'react-markdown'
 import LocationInput from '@/components/LocationInput'
 import { useToast } from '@/lib/toast'
 import BackButton from '@/components/BackButton'
+import { useTranslation } from '@/lib/useTranslation'
 
 export default function Stories() {
   const settings = useSettingsStore()
   const toast = useToast()
+  const t = useTranslation()
   const [birthData, setBirthData] = useState({
-    birth_date: '1967-07-05',
-    birth_time: '18:40',
-    birth_place: 'Hôpital Sainte-Croix, 570, Rue Hériot, Drummondville, Drummond, Centre-du-Québec, Quebec, J2B 0A0, Canada',
-    latitude: 45.8833, // Drummondville, Quebec coordinates
-    longitude: -72.4833,
-    timezone: 'America/Montreal',
+    birth_date: settings.defaultBirthDate || '',
+    birth_time: settings.defaultBirthTime || '12:00',
+    birth_place: '',
+    latitude: settings.defaultLatitude || 0,
+    longitude: settings.defaultLongitude || 0,
+    timezone: settings.defaultTimezone || 'UTC',
   })
 
   const { data: natalChart } = useQuery({
@@ -198,7 +200,7 @@ ${t.journeyText(ascSign)}
                     timezone: location.timezone || settings.defaultTimezone || '',
                   })
                 }}
-                placeholder="Search for a city or place (e.g., 'Hospital Ste-Croix Drummondville')..."
+                placeholder={t.tooltips.locationSearch}
               />
             </div>
           </div>

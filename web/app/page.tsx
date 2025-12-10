@@ -23,7 +23,7 @@ export default function LandingPage() {
   const opacity = useTransform(scrollY, [0, 300], [1, 0])
 
   return (
-    <div className="min-h-screen bg-black text-white overflow-hidden">
+    <div className="min-h-screen bg-cosmic-black text-cosmic-white relative">
       
       {/* Starfield */}
       <Starfield />
@@ -34,7 +34,7 @@ export default function LandingPage() {
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="px-6 py-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg font-semibold shadow-lg"
+            className="px-6 py-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg font-semibold shadow-lg text-white"
           >
             {t.nav.beginJourney}
           </motion.button>
@@ -42,34 +42,34 @@ export default function LandingPage() {
       </div>
 
       {/* HERO SECTION */}
-      <section className="relative min-h-screen flex items-center justify-center px-4">
+      <section className="relative min-h-screen flex items-center justify-center px-4 pt-16">
         <motion.div
-          style={{ y: y1, opacity }}
-          className="text-center max-w-5xl mx-auto z-10"
+          style={{ y: y1 }}
+          className="text-center max-w-5xl mx-auto z-10 relative"
         >
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1 }}
           >
-            <h1 className="text-6xl md:text-8xl font-heading font-bold mb-6 leading-tight">
+            <h1 className="text-5xl md:text-7xl lg:text-8xl font-heading font-bold mb-6 leading-tight">
               <span className="text-cosmic-gradient">
                 {t.home.heroTitle1}
               </span>
               <br />
-              <span className="text-white">{t.home.heroTitle2}</span>
+              <span className="text-cosmic-white">{t.home.heroTitle2}</span>
             </h1>
 
-            <p className="text-2xl md:text-3xl text-white/80 mb-4 font-light">
+            <p className="text-xl md:text-2xl lg:text-3xl text-cosmic-white/80 mb-4 font-light">
               {t.home.heroSubtitle}
             </p>
 
-            <p className="text-lg text-white/60 mb-12 max-w-2xl mx-auto">
+            <p className="text-base md:text-lg text-cosmic-white/60 mb-12 max-w-2xl mx-auto">
               {t.home.heroDescription}
               <Link href="/dashboard" className="text-purple-400 hover:text-purple-300 underline">{t.home.heroDescriptionLinkNatal}</Link>,{' '}
               <Link href="/transits" className="text-purple-400 hover:text-purple-300 underline">{t.home.heroDescriptionLinkTransits}</Link>,{' '}
               <Link href="/progressions" className="text-purple-400 hover:text-purple-300 underline">{t.home.heroDescriptionLinkProgressions}</Link>,
-              {' '}and hear the <Link href="/dialogues" className="text-purple-400 hover:text-purple-300 underline">{t.home.heroDescriptionLinkDialogues}</Link>.
+              {' '}{t.home.heroDescriptionAnd}<Link href="/dialogues" className="text-purple-400 hover:text-purple-300 underline">{t.home.heroDescriptionLinkDialogues}</Link>.
             </p>
 
             {/* CTAs */}
@@ -98,13 +98,13 @@ export default function LandingPage() {
           </motion.div>
         </motion.div>
 
-        <motion.div style={{ y: y2 }} className="absolute inset-0 pointer-events-none">
+        <motion.div style={{ y: y2 }} className="absolute inset-0 pointer-events-none opacity-10 z-0">
           <FloatingPlanets />
         </motion.div>
       </section>
 
       {/* STORIES CAROUSEL */}
-      <section className="relative py-32 px-4">
+      <section className="relative py-32 px-4 z-10">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0 }}
@@ -115,7 +115,7 @@ export default function LandingPage() {
             <h2 className="text-5xl font-heading font-bold mb-4 text-gold-gradient">
               {t.home.storiesTitle}
             </h2>
-            <p className="text-xl text-white/70">
+            <p className="text-xl text-cosmic-white/70">
               {t.home.storiesSubtitle}
             </p>
           </motion.div>
@@ -125,35 +125,35 @@ export default function LandingPage() {
       </section>
 
       {/* CHART SHOWCASE */}
-      <section className="relative py-32 px-4">
+      <section className="relative py-32 px-4 z-10">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="bg-gradient-to-br from-purple-900/50 to-pink-900/50 rounded-3xl p-12 backdrop-blur-sm border border-white/10"
+            className="bg-gradient-to-br from-purple-900/50 to-pink-900/50 rounded-3xl p-12 backdrop-blur-sm border border-cosmic-white/10"
           >
-            <div className="grid md:grid-cols-2 gap-12 items-center">
+            <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-center">
 
               {/* Left Text */}
-              <div>
-                <h2 className="text-4xl font-bold mb-6">{t.home.precisionTitle}</h2>
-                <p className="text-lg text-white/80 mb-6">
+              <div className="order-2 md:order-1">
+                <h2 className="text-3xl md:text-4xl font-bold mb-6 text-cosmic-white">{t.home.precisionTitle}</h2>
+                <p className="text-base md:text-lg text-cosmic-white/80 mb-6">
                   {t.home.precisionDescription}
                 </p>
 
-                <ul className="space-y-3 text-white/70">
+                <ul className="space-y-3 text-cosmic-white/70">
                   <li className="flex items-center">
-                    <Star className="h-5 w-5 mr-3 text-cosmic-gold" /> {t.home.feature1}
+                    <Star className="h-5 w-5 mr-3 text-cosmic-gold flex-shrink-0" /> {t.home.feature1}
                   </li>
                   <li className="flex items-center">
-                    <Star className="h-5 w-5 mr-3 text-cosmic-gold" /> {t.home.feature2}
+                    <Star className="h-5 w-5 mr-3 text-cosmic-gold flex-shrink-0" /> {t.home.feature2}
                   </li>
                   <li className="flex items-center">
-                    <Star className="h-5 w-5 mr-3 text-cosmic-gold" /> {t.home.feature3}
+                    <Star className="h-5 w-5 mr-3 text-cosmic-gold flex-shrink-0" /> {t.home.feature3}
                   </li>
                   <li className="flex items-center">
-                    <Star className="h-5 w-5 mr-3 text-cosmic-gold" />{' '}
+                    <Star className="h-5 w-5 mr-3 text-cosmic-gold flex-shrink-0" />{' '}
                     <Link href="/rectification" className="hover:text-cosmic-gold transition">
                       {t.home.feature4}
                     </Link>
@@ -162,8 +162,10 @@ export default function LandingPage() {
               </div>
 
               {/* Right Visual */}
-              <div className="relative">
-                <ChartShowcase />
+              <div className="relative order-1 md:order-2 flex justify-center md:justify-end">
+                <div className="w-full max-w-xs flex items-center justify-center">
+                  <Sparkles className="h-32 w-32 text-yellow-400/50" />
+                </div>
               </div>
 
             </div>
@@ -172,7 +174,7 @@ export default function LandingPage() {
       </section>
 
       {/* FEATURES GRID */}
-      <section className="relative py-32 px-4">
+      <section className="relative py-32 px-4 z-10">
         <div className="max-w-7xl mx-auto">
           
           <motion.div
@@ -192,19 +194,19 @@ export default function LandingPage() {
       </section>
 
       {/* BIG CTA */}
-      <section className="relative py-32 px-4">
+      <section className="relative py-32 px-4 z-10">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
           className="max-w-4xl mx-auto text-center"
         >
-          <div className="bg-gradient-to-br from-purple-900/50 to-pink-900/50 rounded-3xl p-16 backdrop-blur-sm border border-white/10">
+          <div className="bg-gradient-to-br from-purple-900/50 to-pink-900/50 rounded-3xl p-16 backdrop-blur-sm border border-cosmic-white/10">
             <Eye className="h-16 w-16 mx-auto mb-6 text-cosmic-gold" />
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 text-cosmic-white">
               {t.home.ctaTitle}
             </h2>
-            <p className="text-xl text-white/80 mb-8">
+            <p className="text-xl text-cosmic-white/80 mb-8">
               {t.home.ctaDescription}
             </p>
 
@@ -222,41 +224,40 @@ export default function LandingPage() {
       </section>
 
       {/* FOOTER */}
-      <footer className="relative border-t border-white/10 py-12 px-4">
+      <footer className="relative border-t border-cosmic-white/10 py-12 px-4 z-10">
         <div className="max-w-7xl mx-auto">
 
           <div className="grid md:grid-cols-4 gap-8">
             <div>
               <Logo variant="horizontal" size="sm" />
-              <p className="text-white/60">{t.home.footerTagline}</p>
+              <p className="text-cosmic-white/60 mt-2">{t.home.footerTagline}</p>
             </div>
 
             <div>
-              <h3 className="font-semibold mb-4">{t.home.footerFeatures}</h3>
-              <ul className="space-y-2 text-white/60">
-                <li><Link href="/dashboard" className="hover:text-white">{t.nav.dashboard}</Link></li>
-                <li><Link href="/chart" className="hover:text-white">{t.nav.chart}</Link></li>
-                <li><Link href="/transits" className="hover:text-white">Transits</Link></li>
-                <li><Link href="/progressions" className="hover:text-white">Progressions</Link></li>
-                <li><Link href="/rectification" className="hover:text-white">Rectification</Link></li>
-                <li><Link href="/stories" className="hover:text-white">{t.nav.stories}</Link></li>
-                <li><Link href="/dialogues" className="hover:text-white">{t.nav.dialogues}</Link></li>
-                <li><Link href="/chat" className="hover:text-white">{t.nav.chat}</Link></li>
+              <h3 className="font-semibold mb-4 text-cosmic-white">{t.home.footerFeatures}</h3>
+              <ul className="space-y-2 text-cosmic-white/60">
+                <li><Link href="/dashboard" className="hover:text-cosmic-white transition text-base">{t.nav.dashboard}</Link></li>
+                <li><Link href="/transits" className="hover:text-cosmic-white transition text-base">Transits</Link></li>
+                <li><Link href="/progressions" className="hover:text-cosmic-white transition text-base">Progressions</Link></li>
+                <li><Link href="/rectification" className="hover:text-cosmic-white transition text-base">Rectification</Link></li>
+                <li><Link href="/stories" className="hover:text-cosmic-white transition text-base">{t.nav.stories}</Link></li>
+                <li><Link href="/dialogues" className="hover:text-cosmic-white transition text-base">{t.nav.dialogues}</Link></li>
+                <li><Link href="/chat" className="hover:text-cosmic-white transition text-base">{t.nav.chat}</Link></li>
               </ul>
             </div>
 
             <div>
-              <h3 className="font-semibold mb-4">{t.home.footerResources}</h3>
-              <ul className="space-y-2 text-white/60">
-                <li><Link href="/settings" className="hover:text-white">{t.nav.settings}</Link></li>
-                <li><Link href="/about" className="hover:text-white">{t.nav.about}</Link></li>
-                <li><a href="/docs" className="hover:text-white">API Docs</a></li>
+              <h3 className="font-semibold mb-4 text-cosmic-white">{t.home.footerResources}</h3>
+              <ul className="space-y-2 text-cosmic-white/60">
+                <li><Link href="/settings" className="hover:text-cosmic-white transition text-base">{t.nav.settings}</Link></li>
+                <li><Link href="/about" className="hover:text-cosmic-white transition text-base">{t.nav.about}</Link></li>
+                <li><a href="/docs" className="hover:text-cosmic-white transition text-base">API Docs</a></li>
               </ul>
             </div>
 
             <div>
-              <h3 className="font-semibold mb-4">{t.home.footerAbout}</h3>
-              <p className="text-white/60 text-sm">
+              <h3 className="font-semibold mb-4 text-cosmic-white">{t.home.footerAbout}</h3>
+              <p className="text-cosmic-white/60 text-sm">
                 {t.home.footerAboutText}
               </p>
               <Link href="/about" className="text-purple-400 hover:text-purple-300 text-sm mt-2 inline-block">
@@ -265,7 +266,7 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <div className="mt-8 pt-8 border-t border-white/10 text-center text-white/60">
+          <div className="mt-8 pt-8 border-t border-cosmic-white/10 text-center text-cosmic-white/60">
             <p>{t.home.footerCopyright}</p>
           </div>
 
@@ -302,7 +303,7 @@ function Starfield() {
   }, [])
 
   return (
-    <div className="fixed inset-0 pointer-events-none">
+    <div className="fixed inset-0 pointer-events-none z-0">
       {stars.map((star) => (
         <motion.div
           key={star.id}
@@ -337,7 +338,7 @@ function FloatingPlanets() {
       {['☉', '☽', '☿', '♀', '♂', '♃', '♄'].map((glyph, i) => (
         <motion.div
           key={i}
-          className="absolute text-6xl opacity-20"
+          className="absolute text-2xl md:text-3xl lg:text-4xl opacity-5"
           style={{
             left: `${10 + i * 12}%`,
             top: `${20 + (i % 3) * 30}%`,
@@ -391,35 +392,15 @@ function StoryCarousel() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: i * 0.1 }}
-          className="bg-gradient-to-br from-purple-900/30 to-pink-900/30 rounded-2xl p-8 border border-white/10 backdrop-blur-sm hover:border-white/20 transition"
+          className="bg-gradient-to-br from-purple-900/30 to-pink-900/30 rounded-2xl p-8 border border-cosmic-white/10 backdrop-blur-sm hover:border-cosmic-white/20 transition"
         >
           <Scroll className="h-12 w-12 text-cosmic-gold mb-4" />
-          <h3 className="text-2xl font-bold mb-2">{story.title}</h3>
-          <p className="text-white/70 mb-4">{story.excerpt}</p>
+          <h3 className="text-2xl font-bold mb-2 text-cosmic-white">{story.title}</h3>
+          <p className="text-cosmic-white/70 mb-4">{story.excerpt}</p>
           <span className="text-sm text-purple-400 font-semibold">{story.sign}</span>
         </motion.div>
       ))}
     </div>
-  )
-}
-
-// -------------------------------------------------------------
-// ROTATING CHART SHOWCASE
-// -------------------------------------------------------------
-function ChartShowcase() {
-  return (
-    <motion.div
-      animate={{ rotate: 360 }}
-      transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
-      className="w-full aspect-square relative"
-    >
-      <div className="absolute inset-0 rounded-full border-4 border-cosmic-purple/30" />
-      <div className="absolute inset-4 rounded-full border-2 border-cosmic-pink/30" />
-      <div className="absolute inset-8 rounded-full border border-cosmic-gold/30" />
-      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-        <Sparkles className="h-16 w-16 text-yellow-400" />
-      </div>
-    </motion.div>
   )
 }
 
@@ -434,7 +415,6 @@ function FeatureGrid() {
     { icon: Wand2, title: t.home.featureRectification, desc: t.home.featureRectificationDesc, href: "/rectification" },
     { icon: Zap, title: t.home.featureTransits, desc: t.home.featureTransitsDesc, href: "/transits" },
     { icon: Heart, title: t.home.featureInterpretations, desc: t.home.featureInterpretationsDesc, href: "/dashboard" },
-    { icon: BarChart3, title: t.home.featureCharts, desc: t.home.featureChartsDesc, href: "/chart" },
   ]
 
   return (
@@ -446,12 +426,12 @@ function FeatureGrid() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: i * 0.1 }}
-          className="bg-white/5 rounded-xl p-6 border border-white/10 hover:border-white/20 transition"
+          className="bg-cosmic-white/5 rounded-xl p-6 border border-cosmic-white/10 hover:border-cosmic-white/20 transition"
         >
           <Link href={feature.href || '#'} className="block">
             <feature.icon className="h-10 w-10 text-cosmic-gold mb-4" />
-            <h3 className="text-xl font-semibold mb-2 hover:text-cosmic-gold transition">{feature.title}</h3>
-            <p className="text-white/70">{feature.desc}</p>
+            <h3 className="text-xl font-semibold mb-2 hover:text-cosmic-gold transition text-cosmic-white">{feature.title}</h3>
+            <p className="text-cosmic-white/70">{feature.desc}</p>
           </Link>
         </motion.div>
       ))}

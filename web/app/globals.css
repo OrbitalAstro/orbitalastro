@@ -1,11 +1,11 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-/* Import Fonts */
+/* Import Fonts (must be at the very top) */
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
   --cosmic-gold: #F6C94C;
@@ -120,6 +120,26 @@ body {
 }
 
 ::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, var(--nebula-pink), var(--cosmic-gold));
+}
+
+/* Custom scrollbar class for specific containers */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--cosmic-gold), var(--nebula-pink));
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(180deg, var(--nebula-pink), var(--cosmic-gold));
 }
 

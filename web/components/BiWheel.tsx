@@ -67,3 +67,6 @@ export default function BiWheel({ chart1, chart2, label1 = 'Chart 1', label2 = '
 
 
 
+
+
+

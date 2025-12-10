@@ -17,6 +17,7 @@ def build_natal_reading_prompt(
     transits: Optional[List[Dict]] = None,
     patterns: Optional[Dict] = None,
     narrative_config: Optional[Dict] = None,
+    chart_context: str = "natal",
 ) -> str:
     """
     Build a complete natal reading prompt from modular components.
@@ -27,6 +28,7 @@ def build_natal_reading_prompt(
         transits: Optional list of transit dictionaries
         patterns: Optional dictionary of aspect patterns
         narrative_config: Narrative configuration (tone, depth, focus)
+        chart_context: Optional context key (natal, transit, progression, solar_return)
 
     Returns:
         Complete formatted prompt string
@@ -72,8 +74,16 @@ def build_natal_reading_prompt(
     if focus:
         focus_text = f"\n\nFocus domains: {', '.join(focus)}."
 
+    context_labels = {
+        "natal": "natal chart interpretation",
+        "transit": "transit snapshot",
+        "progression": "progressed chart narrative",
+        "solar_return": "solar return profile",
+    }
+    context_label = context_labels.get(chart_context.lower(), f"{chart_context} chart interpretation")
+
     return f"""
-You are generating a {tone} natal chart interpretation.
+You are generating a {tone} {context_label}.
 
 Depth: {depth}.{focus_text}
 
@@ -83,6 +93,9 @@ Use the following structured modules:
 
 Write a coherent, flowing interpretation that weaves all modules together.
 """
+
+
+
 
 
 

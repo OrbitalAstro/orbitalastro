@@ -8,9 +8,10 @@ from typing import Dict, List, Optional
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
-from astro.progressions import compute_progressed_chart, compute_progressed_to_natal_aspects
+from astro.progressions import compute_progressed_chart
 from astro.aspects import AspectConfig, find_aspects, detect_patterns
 from astro.master_prompt_builder import build_natal_reading_prompt
+from astro.chart_utils import build_chart_payload_for_narrative
 from api.schemas import NarrativeConfig
 
 router = APIRouter(prefix="/api", tags=["progressions"])
@@ -74,12 +75,13 @@ async def calculate_progressions(request: ProgressionRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error computing progressions: {str(e)}")
 
+    progressed_houses = progressed_data["houses"]
+    progressed_cusps = [progressed_houses.get(str(i + 1), 0.0) for i in range(12)]
+
     # Compute aspects if requested
     aspects_list = None
     patterns_dict = None
     if request.include_aspects:
-        # Get natal positions (would need to be passed in or computed)
-        # For now, compute aspects within progressed chart
         config = AspectConfig()
         all_positions = progressed_data["planets"].copy()
         all_positions["ascendant"] = progressed_data["ascendant"]
@@ -101,7 +103,6 @@ async def calculate_progressions(request: ProgressionRequest):
         if request.include_patterns:
             patterns_dict = detect_patterns(aspects)
 
-    # Generate narrative seed if requested
     narrative_seed = None
     if request.narrative:
         narrative_config = {
@@ -109,17 +110,20 @@ async def calculate_progressions(request: ProgressionRequest):
             "depth": request.narrative.depth or "standard",
             "focus": request.narrative.focus or [],
         }
-        natal_dict = {
-            "planets": progressed_data["planets"],
-            "ascendant": progressed_data["ascendant"],
-            "midheaven": progressed_data["midheaven"],
-            "houses": progressed_data["houses"],
-        }
+        chart_payload = build_chart_payload_for_narrative(
+            progressed_data["planets"],
+            progressed_data["ascendant"],
+            progressed_data["midheaven"],
+            progressed_cusps,
+            progressed_houses,
+            progressed_data["house_system"],
+        )
         narrative_seed = build_natal_reading_prompt(
-            natal_dict,
+            chart_payload,
             aspects=aspects_list,
-            patterns=patterns_dict,
+            patterns=patterns_dict or {},
             narrative_config=narrative_config,
+            chart_context="progression",
         )
 
     return ProgressionResponse(

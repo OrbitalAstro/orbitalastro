@@ -9,6 +9,7 @@ import { useToast } from '@/lib/toast'
 import BackButton from '@/components/BackButton'
 import LocationInput from '@/components/LocationInput'
 import ReactMarkdown from 'react-markdown'
+import { useTranslation } from '@/lib/useTranslation'
 
 interface RectificationEvent {
   type: string
@@ -18,14 +19,15 @@ interface RectificationEvent {
 
 export default function RectificationPage() {
   const settings = useSettingsStore()
+  const t = useTranslation()
   const { history } = useChartHistory()
   const toast = useToast()
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<any>(null)
   
   const latestChart = history && history.length > 0 ? history[history.length - 1] : null
-  const [birthDate, setBirthDate] = useState(latestChart?.birthData?.birth_date || '')
-  const [approxTime, setApproxTime] = useState(latestChart?.birthData?.birth_time || '12:00')
+  const [birthDate, setBirthDate] = useState(latestChart?.birthData?.birth_date || settings.defaultBirthDate || '')
+  const [approxTime, setApproxTime] = useState(latestChart?.birthData?.birth_time || settings.defaultBirthTime || '12:00')
   const [timeWindow, setTimeWindow] = useState(4.0)
   const [events, setEvents] = useState<RectificationEvent[]>([
     { type: '', datetime_local: '', weight: 1.0 },
@@ -37,67 +39,6 @@ export default function RectificationPage() {
     timezone: latestChart?.birthData?.timezone || settings.defaultTimezone || 'UTC',
   })
 
-  const lang = settings.language || 'en'
-  const translations = {
-    en: {
-      title: 'Birth-Time Rectification',
-      description: 'Find your exact birth moment using significant life events.',
-      calculate: 'Rectify Birth Time',
-      calculating: 'Calculating...',
-      birthDate: 'Birth Date',
-      approxTime: 'Approximate Birth Time',
-      timeWindow: 'Time Window (hours)',
-      birthPlace: 'Birth Place',
-      events: 'Life Events',
-      eventType: 'Event Type',
-      eventDate: 'Event Date & Time',
-      eventWeight: 'Weight',
-      addEvent: 'Add Event',
-      removeEvent: 'Remove',
-      noChart: 'Please calculate your natal chart first in the Dashboard.',
-      success: 'Rectification completed successfully!',
-      error: 'Failed to rectify birth time',
-    },
-    fr: {
-      title: "Rectification de l'Heure de Naissance",
-      description: 'Trouvez votre moment de naissance exact en utilisant des événements de vie significatifs.',
-      calculate: "Rectifier l'Heure de Naissance",
-      calculating: 'Calcul en cours...',
-      birthDate: 'Date de Naissance',
-      approxTime: 'Heure Approximative de Naissance',
-      timeWindow: 'Fenêtre Temporelle (heures)',
-      birthPlace: 'Lieu de Naissance',
-      events: 'Événements de Vie',
-      eventType: "Type d'Événement",
-      eventDate: "Date et Heure de l'Événement",
-      eventWeight: 'Poids',
-      addEvent: 'Ajouter un Événement',
-      removeEvent: 'Retirer',
-      noChart: "Veuillez d'abord calculer votre thème natal dans le Tableau de bord.",
-      success: 'Rectification terminée avec succès!',
-      error: "Échec de la rectification de l'heure de naissance",
-    },
-    es: {
-      title: 'Rectificación de Hora de Nacimiento',
-      description: 'Encuentra tu momento exacto de nacimiento usando eventos significativos de la vida.',
-      calculate: 'Rectificar Hora de Nacimiento',
-      calculating: 'Calculando...',
-      birthDate: 'Fecha de Nacimiento',
-      approxTime: 'Hora Aproximada de Nacimiento',
-      timeWindow: 'Ventana de Tiempo (horas)',
-      birthPlace: 'Lugar de Nacimiento',
-      events: 'Eventos de Vida',
-      eventType: 'Tipo de Evento',
-      eventDate: 'Fecha y Hora del Evento',
-      eventWeight: 'Peso',
-      addEvent: 'Agregar Evento',
-      removeEvent: 'Eliminar',
-      noChart: 'Por favor calcula tu carta natal primero en el Panel.',
-      success: '¡Rectificación completada con éxito!',
-      error: 'Error al rectificar hora de nacimiento',
-    },
-  }
-  const t = translations[lang]
 
   const addEvent = () => {
     setEvents([...events, { type: '', datetime_local: '', weight: 1.0 }])
@@ -115,7 +56,7 @@ export default function RectificationPage() {
 
   const calculateRectification = async () => {
     if (!birthDate || !approxTime) {
-      toast.error(lang === 'fr' ? 'Veuillez remplir tous les champs' : lang === 'es' ? 'Por favor completa todos los campos' : 'Please fill all fields')
+      toast.error(t.rectification.fillAllFields)
       return
     }
 
@@ -130,17 +71,9 @@ export default function RectificationPage() {
     if (validEvents.length === 0) {
       const invalidCount = events.filter(e => e.type || e.datetime_local).length
       if (invalidCount > 0) {
-        toast.error(lang === 'fr' 
-          ? 'Veuillez compléter tous les champs des événements (type, date et heure complètes)'
-          : lang === 'es'
-          ? 'Por favor completa todos los campos de los eventos (tipo, fecha y hora completas)'
-          : 'Please complete all event fields (type, full date and time)')
+        toast.error(t.rectification.completeEventFields)
       } else {
-        toast.error(lang === 'fr' 
-          ? 'Veuillez ajouter au moins un événement valide'
-          : lang === 'es'
-          ? 'Por favor agrega al menos un evento válido'
-          : 'Please add at least one valid event')
+        toast.error(t.rectification.addValidEvent)
       }
       return
     }
@@ -164,10 +97,10 @@ export default function RectificationPage() {
       })
 
       setResult(response.data)
-      toast.success(t.success)
+      toast.success(t.rectification.success)
     } catch (error: any) {
       console.error('Error calculating rectification:', error)
-      toast.error(t.error, error?.response?.data?.detail || 'Please check your input and try again')
+      toast.error(t.rectification.error, error?.response?.data?.detail || t.rectification.error)
     } finally {
       setLoading(false)
     }
@@ -185,15 +118,15 @@ export default function RectificationPage() {
         >
           <h1 className="text-3xl font-bold text-white mb-4 flex items-center">
             <Wand2 className="h-8 w-8 mr-3 text-cosmic-gold" />
-            {t.title}
+            {t.rectification.title}
           </h1>
-          <p className="text-white/70 mb-8">{t.description}</p>
+          <p className="text-white/70 mb-8">{t.rectification.description}</p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <div>
               <label className="block text-sm font-medium text-white/80 mb-2">
                 <Calendar className="inline h-4 w-4 mr-1" />
-                {t.birthDate}
+                {t.rectification.birthDate}
               </label>
               <input
                 type="date"
@@ -204,7 +137,7 @@ export default function RectificationPage() {
             </div>
             <div>
               <label className="block text-sm font-medium text-white/80 mb-2">
-                {t.approxTime}
+                {t.rectification.approxTime}
               </label>
               <input
                 type="time"
@@ -215,7 +148,7 @@ export default function RectificationPage() {
             </div>
             <div>
               <label className="block text-sm font-medium text-white/80 mb-2">
-                {t.timeWindow}
+                {t.rectification.timeWindow}
               </label>
               <input
                 type="number"
@@ -229,7 +162,7 @@ export default function RectificationPage() {
             </div>
             <div className="md:col-span-2">
               <LocationInput
-                label={t.birthPlace}
+                label={t.rectification.birthPlace}
                 value={location.place}
                 onChange={(value) => setLocation({ ...location, place: value })}
                 onLocationSelect={(loc) => {
@@ -246,13 +179,13 @@ export default function RectificationPage() {
 
           <div className="mb-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-white">{t.events}</h2>
+              <h2 className="text-xl font-semibold text-white">{t.rectification.events}</h2>
               <button
                 onClick={addEvent}
                 className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition flex items-center gap-2"
               >
                 <Plus className="h-4 w-4" />
-                {t.addEvent}
+                {t.rectification.addEvent}
               </button>
             </div>
             <div className="space-y-4">
@@ -261,19 +194,19 @@ export default function RectificationPage() {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-white/80 mb-2">
-                        {t.eventType}
+                        {t.rectification.eventType}
                       </label>
                       <input
                         type="text"
                         value={event.type}
                         onChange={(e) => updateEvent(index, 'type', e.target.value)}
-                        placeholder="e.g., marriage, career_change"
+                        placeholder={t.rectification.eventTypePlaceholder}
                         className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500"
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-white/80 mb-2">
-                        {t.eventDate}
+                        {t.rectification.eventDate}
                       </label>
                       <input
                         type="datetime-local"
@@ -286,7 +219,7 @@ export default function RectificationPage() {
                     <div className="flex items-end gap-2">
                       <div className="flex-1">
                         <label className="block text-sm font-medium text-white/80 mb-2">
-                          {t.eventWeight}
+                          {t.rectification.eventWeight}
                         </label>
                         <input
                           type="number"
@@ -318,7 +251,7 @@ export default function RectificationPage() {
             disabled={loading || !birthDate || !approxTime}
             className="w-full px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:shadow-lg transition disabled:opacity-50 mb-8"
           >
-            {loading ? t.calculating : t.calculate}
+            {loading ? t.rectification.calculating : t.rectification.calculate}
           </button>
 
           {result && (
@@ -328,7 +261,7 @@ export default function RectificationPage() {
               className="bg-white/5 rounded-xl p-6 border border-white/10"
             >
               <h2 className="text-2xl font-bold text-white mb-4">
-                {lang === 'fr' ? 'Résultats de Rectification' : lang === 'es' ? 'Resultados de Rectificación' : 'Rectification Results'}
+                {t.rectification.results}
               </h2>
               {result.summary && (
                 <p className="text-white/80 mb-4">{result.summary}</p>
@@ -336,7 +269,7 @@ export default function RectificationPage() {
               {result.narrative_summary && (
                 <div className="mt-6">
                   <h3 className="text-xl font-semibold text-white mb-2">
-                    {lang === 'fr' ? 'Résumé Narratif' : lang === 'es' ? 'Resumen Narrativo' : 'Narrative Summary'}
+                    {t.rectification.narrativeSummary}
                   </h3>
                   <ReactMarkdown className="text-white/80 prose prose-invert max-w-none">
                     {result.narrative_summary}
@@ -346,7 +279,7 @@ export default function RectificationPage() {
               {result.candidates && result.candidates.length > 0 && (
                 <div className="mt-6">
                   <h3 className="text-xl font-semibold text-white mb-4">
-                    {lang === 'fr' ? 'Meilleurs Candidats' : lang === 'es' ? 'Mejores Candidatos' : 'Top Candidates'}
+                    {t.rectification.topCandidates}
                   </h3>
                   <div className="space-y-4">
                     {result.candidates.map((candidate: any, i: number) => (
