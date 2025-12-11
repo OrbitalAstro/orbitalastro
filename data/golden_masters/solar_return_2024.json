@@ -1,0 +1,879 @@
+{
+  "return_datetime_utc": "2024-01-01T18:19:41.250000",
+  "planets": {
+    "sun": 281.035274515625,
+    "moon": 167.476612703125,
+    "mercury": 20.313531734375033,
+    "venus": 243.799341234375,
+    "mars": 268.035017609375,
+    "jupiter": 35.584611578125,
+    "saturn": 333.333619546875,
+    "uranus": 167.484415578125,
+    "neptune": 355.092148375,
+    "pluto": 299.393359234375,
+    "true_node": 167.476612703125,
+    "chiron": 0.0,
+    "lilith_mean": 0.0,
+    "lilith_true": 0.0,
+    "ceres": 0.0,
+    "pallas": 0.0,
+    "juno": 0.0,
+    "vesta": 0.0,
+    "eris": 0.0
+  },
+  "ascendant": 46.17656203818247,
+  "midheaven": 299.6548876352657,
+  "houses": {
+    "1": 46.17656203818247,
+    "2": 14.919372939062779,
+    "3": 76.81539093356467,
+    "4": 119.65488763526571,
+    "5": 166.9193301535022,
+    "6": 232.3151403886611,
+    "7": 226.17656203818245,
+    "8": 194.91937293906278,
+    "9": 256.8153909335647,
+    "10": 299.6548876352657,
+    "11": 346.91933015350213,
+    "12": 52.3151403886611
+  },
+  "house_system": "placidus",
+  "sun_exactness_deg": 0.0028325156250161854,
+  "natal_sun_longitude": 281.032442,
+  "return_sun_longitude": 281.035274515625,
+  "aspects": [
+    {
+      "body1": "sun",
+      "body2": "moon",
+      "aspect": "trine",
+      "orb_deg": 6.44133818749998,
+      "applying": true
+    },
+    {
+      "body1": "sun",
+      "body2": "jupiter",
+      "aspect": "trine",
+      "orb_deg": 5.450662937500027,
+      "applying": true
+    },
+    {
+      "body1": "sun",
+      "body2": "saturn",
+      "aspect": "sextile",
+      "orb_deg": 7.701654968750006,
+      "applying": true
+    },
+    {
+      "body1": "sun",
+      "body2": "uranus",
+      "aspect": "trine",
+      "orb_deg": 6.44914106249999,
+      "applying": false
+    },
+    {
+      "body1": "sun",
+      "body2": "true_node",
+      "aspect": "trine",
+      "orb_deg": 6.44133818749998,
+      "applying": false
+    },
+    {
+      "body1": "sun",
+      "body2": "ascendant",
+      "aspect": "trine",
+      "orb_deg": 5.141287522557434,
+      "applying": true
+    },
+    {
+      "body1": "moon",
+      "body2": "uranus",
+      "aspect": "conjunction",
+      "orb_deg": 0.00780287500001009,
+      "applying": false
+    },
+    {
+      "body1": "moon",
+      "body2": "neptune",
+      "aspect": "opposition",
+      "orb_deg": 7.615535671875023,
+      "applying": false
+    },
+    {
+      "body1": "moon",
+      "body2": "true_node",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false
+    },
+    {
+      "body1": "moon",
+      "body2": "ascendant",
+      "aspect": "trine",
+      "orb_deg": 1.3000506649425319,
+      "applying": false
+    },
+    {
+      "body1": "venus",
+      "body2": "saturn",
+      "aspect": "square",
+      "orb_deg": 0.465721687499979,
+      "applying": true
+    },
+    {
+      "body1": "venus",
+      "body2": "pluto",
+      "aspect": "sextile",
+      "orb_deg": 4.4059819999999945,
+      "applying": true
+    },
+    {
+      "body1": "venus",
+      "body2": "chiron",
+      "aspect": "trine",
+      "orb_deg": 3.7993412343749924,
+      "applying": true
+    },
+    {
+      "body1": "venus",
+      "body2": "lilith_mean",
+      "aspect": "trine",
+      "orb_deg": 3.7993412343749924,
+      "applying": true
+    },
+    {
+      "body1": "venus",
+      "body2": "lilith_true",
+      "aspect": "trine",
+      "orb_deg": 3.7993412343749924,
+      "applying": true
+    },
+    {
+      "body1": "venus",
+      "body2": "ceres",
+      "aspect": "trine",
+      "orb_deg": 3.7993412343749924,
+      "applying": true
+    },
+    {
+      "body1": "venus",
+      "body2": "pallas",
+      "aspect": "trine",
+      "orb_deg": 3.7993412343749924,
+      "applying": true
+    },
+    {
+      "body1": "venus",
+      "body2": "juno",
+      "aspect": "trine",
+      "orb_deg": 3.7993412343749924,
+      "applying": true
+    },
+    {
+      "body1": "venus",
+      "body2": "vesta",
+      "aspect": "trine",
+      "orb_deg": 3.7993412343749924,
+      "applying": true
+    },
+    {
+      "body1": "venus",
+      "body2": "eris",
+      "aspect": "trine",
+      "orb_deg": 3.7993412343749924,
+      "applying": true
+    },
+    {
+      "body1": "venus",
+      "body2": "midheaven",
+      "aspect": "sextile",
+      "orb_deg": 4.1444535991092835,
+      "applying": true
+    },
+    {
+      "body1": "mars",
+      "body2": "saturn",
+      "aspect": "sextile",
+      "orb_deg": 5.2986019374999955,
+      "applying": true
+    },
+    {
+      "body1": "mars",
+      "body2": "neptune",
+      "aspect": "square",
+      "orb_deg": 2.942869234374996,
+      "applying": true
+    },
+    {
+      "body1": "mars",
+      "body2": "chiron",
+      "aspect": "square",
+      "orb_deg": 1.9649823906249821,
+      "applying": true
+    },
+    {
+      "body1": "mars",
+      "body2": "lilith_mean",
+      "aspect": "square",
+      "orb_deg": 1.9649823906249821,
+      "applying": true
+    },
+    {
+      "body1": "mars",
+      "body2": "lilith_true",
+      "aspect": "square",
+      "orb_deg": 1.9649823906249821,
+      "applying": true
+    },
+    {
+      "body1": "mars",
+      "body2": "ceres",
+      "aspect": "square",
+      "orb_deg": 1.9649823906249821,
+      "applying": true
+    },
+    {
+      "body1": "mars",
+      "body2": "pallas",
+      "aspect": "square",
+      "orb_deg": 1.9649823906249821,
+      "applying": true
+    },
+    {
+      "body1": "mars",
+      "body2": "juno",
+      "aspect": "square",
+      "orb_deg": 1.9649823906249821,
+      "applying": true
+    },
+    {
+      "body1": "mars",
+      "body2": "vesta",
+      "aspect": "square",
+      "orb_deg": 1.9649823906249821,
+      "applying": true
+    },
+    {
+      "body1": "mars",
+      "body2": "eris",
+      "aspect": "square",
+      "orb_deg": 1.9649823906249821,
+      "applying": true
+    },
+    {
+      "body1": "jupiter",
+      "body2": "saturn",
+      "aspect": "sextile",
+      "orb_deg": 2.250992031250007,
+      "applying": false
+    },
+    {
+      "body1": "jupiter",
+      "body2": "midheaven",
+      "aspect": "square",
+      "orb_deg": 5.929723942859312,
+      "applying": false
+    },
+    {
+      "body1": "uranus",
+      "body2": "true_node",
+      "aspect": "conjunction",
+      "orb_deg": 0.00780287500001009,
+      "applying": true
+    },
+    {
+      "body1": "uranus",
+      "body2": "ascendant",
+      "aspect": "trine",
+      "orb_deg": 1.307853539942542,
+      "applying": true
+    },
+    {
+      "body1": "neptune",
+      "body2": "pluto",
+      "aspect": "sextile",
+      "orb_deg": 4.301210859374976,
+      "applying": false
+    },
+    {
+      "body1": "neptune",
+      "body2": "chiron",
+      "aspect": "conjunction",
+      "orb_deg": 4.907851624999978,
+      "applying": true
+    },
+    {
+      "body1": "neptune",
+      "body2": "lilith_mean",
+      "aspect": "conjunction",
+      "orb_deg": 4.907851624999978,
+      "applying": true
+    },
+    {
+      "body1": "neptune",
+      "body2": "lilith_true",
+      "aspect": "conjunction",
+      "orb_deg": 4.907851624999978,
+      "applying": true
+    },
+    {
+      "body1": "neptune",
+      "body2": "ceres",
+      "aspect": "conjunction",
+      "orb_deg": 4.907851624999978,
+      "applying": true
+    },
+    {
+      "body1": "neptune",
+      "body2": "pallas",
+      "aspect": "conjunction",
+      "orb_deg": 4.907851624999978,
+      "applying": true
+    },
+    {
+      "body1": "neptune",
+      "body2": "juno",
+      "aspect": "conjunction",
+      "orb_deg": 4.907851624999978,
+      "applying": true
+    },
+    {
+      "body1": "neptune",
+      "body2": "vesta",
+      "aspect": "conjunction",
+      "orb_deg": 4.907851624999978,
+      "applying": true
+    },
+    {
+      "body1": "neptune",
+      "body2": "eris",
+      "aspect": "conjunction",
+      "orb_deg": 4.907851624999978,
+      "applying": true
+    },
+    {
+      "body1": "neptune",
+      "body2": "midheaven",
+      "aspect": "sextile",
+      "orb_deg": 4.562739260265687,
+      "applying": false
+    },
+    {
+      "body1": "pluto",
+      "body2": "chiron",
+      "aspect": "sextile",
+      "orb_deg": 0.6066407656250021,
+      "applying": true
+    },
+    {
+      "body1": "pluto",
+      "body2": "lilith_mean",
+      "aspect": "sextile",
+      "orb_deg": 0.6066407656250021,
+      "applying": true
+    },
+    {
+      "body1": "pluto",
+      "body2": "lilith_true",
+      "aspect": "sextile",
+      "orb_deg": 0.6066407656250021,
+      "applying": true
+    },
+    {
+      "body1": "pluto",
+      "body2": "ceres",
+      "aspect": "sextile",
+      "orb_deg": 0.6066407656250021,
+      "applying": true
+    },
+    {
+      "body1": "pluto",
+      "body2": "pallas",
+      "aspect": "sextile",
+      "orb_deg": 0.6066407656250021,
+      "applying": true
+    },
+    {
+      "body1": "pluto",
+      "body2": "juno",
+      "aspect": "sextile",
+      "orb_deg": 0.6066407656250021,
+      "applying": true
+    },
+    {
+      "body1": "pluto",
+      "body2": "vesta",
+      "aspect": "sextile",
+      "orb_deg": 0.6066407656250021,
+      "applying": true
+    },
+    {
+      "body1": "pluto",
+      "body2": "eris",
+      "aspect": "sextile",
+      "orb_deg": 0.6066407656250021,
+      "applying": true
+    },
+    {
+      "body1": "pluto",
+      "body2": "midheaven",
+      "aspect": "conjunction",
+      "orb_deg": 0.26152840089071105,
+      "applying": true
+    },
+    {
+      "body1": "true_node",
+      "body2": "ascendant",
+      "aspect": "trine",
+      "orb_deg": 1.3000506649425319,
+      "applying": false
+    },
+    {
+      "body1": "chiron",
+      "body2": "lilith_mean",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false
+    },
+    {
+      "body1": "chiron",
+      "body2": "lilith_true",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false
+    },
+    {
+      "body1": "chiron",
+      "body2": "ceres",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false
+    },
+    {
+      "body1": "chiron",
+      "body2": "pallas",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false
+    },
+    {
+      "body1": "chiron",
+      "body2": "juno",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false
+    },
+    {
+      "body1": "chiron",
+      "body2": "vesta",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false
+    },
+    {
+      "body1": "chiron",
+      "body2": "eris",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false
+    },
+    {
+      "body1": "chiron",
+      "body2": "midheaven",
+      "aspect": "sextile",
+      "orb_deg": 0.3451123647342911,
+      "applying": false
+    },
+    {
+      "body1": "lilith_mean",
+      "body2": "lilith_true",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false
+    },
+    {
+      "body1": "lilith_mean",
+      "body2": "ceres",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false
+    },
+    {
+      "body1": "lilith_mean",
+      "body2": "pallas",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false
+    },
+    {
+      "body1": "lilith_mean",
+      "body2": "juno",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false
+    },
+    {
+      "body1": "lilith_mean",
+      "body2": "vesta",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false
+    },
+    {
+      "body1": "lilith_mean",
+      "body2": "eris",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false
+    },
+    {
+      "body1": "lilith_mean",
+      "body2": "midheaven",
+      "aspect": "sextile",
+      "orb_deg": 0.3451123647342911,
+      "applying": false
+    },
+    {
+      "body1": "lilith_true",
+      "body2": "ceres",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false
+    },
+    {
+      "body1": "lilith_true",
+      "body2": "pallas",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false
+    },
+    {
+      "body1": "lilith_true",
+      "body2": "juno",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false
+    },
+    {
+      "body1": "lilith_true",
+      "body2": "vesta",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false
+    },
+    {
+      "body1": "lilith_true",
+      "body2": "eris",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false
+    },
+    {
+      "body1": "lilith_true",
+      "body2": "midheaven",
+      "aspect": "sextile",
+      "orb_deg": 0.3451123647342911,
+      "applying": false
+    },
+    {
+      "body1": "ceres",
+      "body2": "pallas",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false
+    },
+    {
+      "body1": "ceres",
+      "body2": "juno",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false
+    },
+    {
+      "body1": "ceres",
+      "body2": "vesta",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false
+    },
+    {
+      "body1": "ceres",
+      "body2": "eris",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false
+    },
+    {
+      "body1": "ceres",
+      "body2": "midheaven",
+      "aspect": "sextile",
+      "orb_deg": 0.3451123647342911,
+      "applying": false
+    },
+    {
+      "body1": "pallas",
+      "body2": "juno",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false
+    },
+    {
+      "body1": "pallas",
+      "body2": "vesta",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false
+    },
+    {
+      "body1": "pallas",
+      "body2": "eris",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false
+    },
+    {
+      "body1": "pallas",
+      "body2": "midheaven",
+      "aspect": "sextile",
+      "orb_deg": 0.3451123647342911,
+      "applying": false
+    },
+    {
+      "body1": "juno",
+      "body2": "vesta",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false
+    },
+    {
+      "body1": "juno",
+      "body2": "eris",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false
+    },
+    {
+      "body1": "juno",
+      "body2": "midheaven",
+      "aspect": "sextile",
+      "orb_deg": 0.3451123647342911,
+      "applying": false
+    },
+    {
+      "body1": "vesta",
+      "body2": "eris",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false
+    },
+    {
+      "body1": "vesta",
+      "body2": "midheaven",
+      "aspect": "sextile",
+      "orb_deg": 0.3451123647342911,
+      "applying": false
+    },
+    {
+      "body1": "eris",
+      "body2": "midheaven",
+      "aspect": "sextile",
+      "orb_deg": 0.3451123647342911,
+      "applying": false
+    }
+  ],
+  "patterns": {
+    "t_squares": [],
+    "grand_trines": [
+      {
+        "bodies": [
+          "sun",
+          "ascendant",
+          "moon"
+        ],
+        "trines": [
+          [
+            "sun",
+            "ascendant"
+          ],
+          [
+            "sun",
+            "moon"
+          ],
+          [
+            "ascendant",
+            "moon"
+          ]
+        ]
+      },
+      {
+        "bodies": [
+          "sun",
+          "ascendant",
+          "true_node"
+        ],
+        "trines": [
+          [
+            "sun",
+            "ascendant"
+          ],
+          [
+            "sun",
+            "true_node"
+          ],
+          [
+            "ascendant",
+            "true_node"
+          ]
+        ]
+      },
+      {
+        "bodies": [
+          "sun",
+          "ascendant",
+          "uranus"
+        ],
+        "trines": [
+          [
+            "sun",
+            "ascendant"
+          ],
+          [
+            "sun",
+            "uranus"
+          ],
+          [
+            "ascendant",
+            "uranus"
+          ]
+        ]
+      },
+      {
+        "bodies": [
+          "sun",
+          "moon",
+          "ascendant"
+        ],
+        "trines": [
+          [
+            "sun",
+            "moon"
+          ],
+          [
+            "sun",
+            "ascendant"
+          ],
+          [
+            "moon",
+            "ascendant"
+          ]
+        ]
+      },
+      {
+        "bodies": [
+          "sun",
+          "true_node",
+          "ascendant"
+        ],
+        "trines": [
+          [
+            "sun",
+            "true_node"
+          ],
+          [
+            "sun",
+            "ascendant"
+          ],
+          [
+            "true_node",
+            "ascendant"
+          ]
+        ]
+      },
+      {
+        "bodies": [
+          "sun",
+          "uranus",
+          "ascendant"
+        ],
+        "trines": [
+          [
+            "sun",
+            "uranus"
+          ],
+          [
+            "sun",
+            "ascendant"
+          ],
+          [
+            "uranus",
+            "ascendant"
+          ]
+        ]
+      },
+      {
+        "bodies": [
+          "ascendant",
+          "moon",
+          "sun"
+        ],
+        "trines": [
+          [
+            "ascendant",
+            "moon"
+          ],
+          [
+            "ascendant",
+            "sun"
+          ],
+          [
+            "moon",
+            "sun"
+          ]
+        ]
+      },
+      {
+        "bodies": [
+          "ascendant",
+          "true_node",
+          "sun"
+        ],
+        "trines": [
+          [
+            "ascendant",
+            "true_node"
+          ],
+          [
+            "ascendant",
+            "sun"
+          ],
+          [
+            "true_node",
+            "sun"
+          ]
+        ]
+      },
+      {
+        "bodies": [
+          "ascendant",
+          "uranus",
+          "sun"
+        ],
+        "trines": [
+          [
+            "ascendant",
+            "uranus"
+          ],
+          [
+            "ascendant",
+            "sun"
+          ],
+          [
+            "uranus",
+            "sun"
+          ]
+        ]
+      }
+    ],
+    "yods": [],
+    "grand_crosses": []
+  }
+}

@@ -8,13 +8,15 @@ interface LogoProps {
   size?: 'sm' | 'md' | 'lg'
   className?: string
   animated?: boolean
+  asLink?: boolean // If false, don't wrap in Link (useful when already inside a Link)
 }
 
 export default function Logo({ 
   variant = 'horizontal', 
   size = 'md',
   className = '',
-  animated = true 
+  animated = true,
+  asLink = true
 }: LogoProps) {
   const sizeClasses = {
     sm: 'h-6 w-6',
@@ -128,11 +130,25 @@ export default function Logo({
   }
 
   // Horizontal (default)
-  return (
-    <Link href="/" className={`flex items-center space-x-3 ${className}`}>
+  const content = (
+    <>
       <SymbolLogo />
       <Wordmark />
-    </Link>
+    </>
+  )
+  
+  if (asLink && variant === 'horizontal') {
+    return (
+      <Link href="/" className={`flex items-center space-x-3 ${className}`}>
+        {content}
+      </Link>
+    )
+  }
+  
+  return (
+    <div className={`flex items-center space-x-3 ${className}`}>
+      {content}
+    </div>
   )
 }
 

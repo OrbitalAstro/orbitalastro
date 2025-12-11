@@ -15,7 +15,7 @@ import {
   Menu,
   X
 } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Logo from './Logo'
 import { useTranslation } from '@/lib/useTranslation'
@@ -23,17 +23,30 @@ import { useTranslation } from '@/lib/useTranslation'
 export default function Navigation() {
   const pathname = usePathname()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const t = useTranslation()
 
-  const menuItems = [
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  // Use default English labels until mounted to prevent hydration mismatch
+  const menuItems = mounted ? [
     { href: '/dashboard', label: t.nav.dashboard || 'Dashboard', icon: Home },
-    { href: '/chart', label: t.nav.chart || 'Chart', icon: Sparkles },
     { href: '/transits', label: t.nav.transits || 'Transits', icon: Zap },
     { href: '/progressions', label: t.nav.progressions || 'Progressions', icon: TrendingUp },
     { href: '/rectification', label: t.nav.rectification || 'Rectification', icon: Wand2 },
     { href: '/stories', label: t.nav.stories || 'Stories', icon: BookOpen },
     { href: '/dialogues', label: t.nav.dialogues || 'Dialogues', icon: MessageSquare },
     { href: '/chat', label: t.nav.chat || 'Chat', icon: MessageSquare },
+  ] : [
+    { href: '/dashboard', label: 'Dashboard', icon: Home },
+    { href: '/transits', label: 'Transits', icon: Zap },
+    { href: '/progressions', label: 'Progressions', icon: TrendingUp },
+    { href: '/rectification', label: 'Rectification', icon: Wand2 },
+    { href: '/stories', label: 'Stories', icon: BookOpen },
+    { href: '/dialogues', label: 'Dialogues', icon: MessageSquare },
+    { href: '/chat', label: 'Chat', icon: MessageSquare },
   ]
 
   const isActive = (href: string) => {
@@ -50,7 +63,7 @@ export default function Navigation() {
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <Link href="/" className="flex items-center">
-              <Logo variant="horizontal" size="sm" />
+              <Logo variant="horizontal" size="sm" asLink={false} />
             </Link>
 
             {/* Desktop Menu */}
@@ -83,7 +96,7 @@ export default function Navigation() {
                       : 'text-white/70 hover:text-white hover:bg-white/10'
                     }
                   `}
-                  title={t.nav.settings || 'Settings'}
+                  title={mounted ? (t.nav.settings || 'Settings') : 'Settings'}
                 >
                   <Settings className="h-5 w-5" />
                 </Link>
@@ -97,7 +110,7 @@ export default function Navigation() {
                     }
                   `}
                 >
-                  {t.nav.about || 'About'}
+                  {mounted ? (t.nav.about || 'About') : 'About'}
                 </Link>
               </div>
             </div>
@@ -134,7 +147,7 @@ export default function Navigation() {
             >
               <div className="p-6">
                 <div className="flex items-center justify-between mb-8">
-                  <Logo variant="horizontal" size="sm" />
+                  <Logo variant="horizontal" size="sm" asLink={false} />
                   <button
                     onClick={() => setMobileMenuOpen(false)}
                     className="p-2 hover:bg-white/10 rounded-lg transition"
@@ -176,7 +189,7 @@ export default function Navigation() {
                       `}
                     >
                       <Settings className="h-5 w-5 text-cosmic-gold" />
-                      <span className="font-medium">{t.nav.settings || 'Settings'}</span>
+                      <span className="font-medium">{mounted ? (t.nav.settings || 'Settings') : 'Settings'}</span>
                     </Link>
                     <Link
                       href="/about"
@@ -190,7 +203,7 @@ export default function Navigation() {
                       `}
                     >
                       <Info className="h-5 w-5 text-cosmic-gold" />
-                      <span className="font-medium">{t.nav.about || 'About'}</span>
+                      <span className="font-medium">{mounted ? (t.nav.about || 'About') : 'About'}</span>
                     </Link>
                   </div>
                 </nav>

@@ -21,6 +21,7 @@ def build_transits_module(transits: List[Dict], config: Dict = None) -> str:
         return ""
 
     tone = config.get("tone", "mythic")
+    focus = config.get("focus", [])
 
     if tone == "psychological":
         intro = "Current transits reflect psychological shifts and developmental themes:"
@@ -29,6 +30,10 @@ def build_transits_module(transits: List[Dict], config: Dict = None) -> str:
     else:
         intro = "The transiting planets speak to current themes and opportunities:"
 
+    focus_text = ""
+    if focus:
+        focus_text = f" Focus on {', '.join(focus)}."
+
     transit_descriptions = []
     for transit in transits[:5]:  # Limit to top 5
         transiting = transit.get("transiting_body", "")
@@ -36,7 +41,12 @@ def build_transits_module(transits: List[Dict], config: Dict = None) -> str:
         aspect = transit.get("aspect", "")
         transit_descriptions.append(f"{transiting.title()} {aspect} {natal.title()}")
 
-    return f"{intro}\n" + "\n".join(f"- {desc}" for desc in transit_descriptions)
+    return f"{intro}{focus_text}\n" + "\n".join(f"- {desc}" for desc in transit_descriptions)
+
+
+
+
+
 
 
 

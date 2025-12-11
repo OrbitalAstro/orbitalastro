@@ -1,109 +1,115 @@
-# Guide de déploiement sur Vercel
-
-## Prérequis
-
-1. Installer Vercel CLI :
-```bash
-npm install -g vercel
-```
-
-2. Avoir un compte Vercel (gratuit sur https://vercel.com)
-
-## Déploiement
-
-### Option 1 : Via Vercel CLI
-
-1. Installer les dépendances (si ce n'est pas déjà fait) :
-```bash
-pip install -r requirements.txt
-```
-
-2. Connecter votre projet à Vercel :
-```bash
-vercel login
-```
-
-3. Déployer :
-```bash
-vercel
-```
-
-4. Pour déployer en production :
-```bash
-vercel --prod
-```
-
-### Option 2 : Via l'interface web Vercel
-
-1. Aller sur https://vercel.com
-2. Cliquer sur "New Project"
-3. Connecter votre dépôt GitHub/GitLab/Bitbucket
-4. Vercel détectera automatiquement la configuration Python
-5. Cliquer sur "Deploy"
+# Vercel Deployment Guide
 
 ## Configuration
 
-Le fichier `vercel.json` configure :
-- Les routes pour rediriger toutes les requêtes vers `api/index.py`
-- Le builder Python (`@vercel/python`)
-- Les variables d'environnement nécessaires
+Le projet est configuré pour être déployé sur Vercel avec le frontend Next.js dans le dossier `web/`.
 
-## Limites importantes
+## Fichiers de configuration
 
-⚠️ **Attention** : Vercel a des limites pour les fonctions serverless :
-- Timeout maximum : 60 secondes (plan gratuit) ou 300 secondes (plan Pro)
-- Taille maximale du package : 50 MB (gratuit) ou 250 MB (Pro)
+- **`vercel.json`** (racine) : Configuration principale pointant vers le dossier `web/`
+- **`web/vercel.json`** : Configuration spécifique pour Next.js
 
-**Important** : `pyswisseph` nécessite des fichiers d'éphémérides. Pour Vercel :
-1. Les fichiers d'éphémérides ne sont pas inclus par défaut
-2. Vous devrez peut-être configurer `swe.set_ephe_path()` pour pointer vers un chemin disponible
-3. Ou utiliser un chemin CDN pour les fichiers d'éphémérides
+## Étapes de déploiement
 
-## Variables d'environnement
+### 1. Se connecter à Vercel
 
-Si nécessaire, configurez des variables d'environnement via :
-- Vercel Dashboard → Settings → Environment Variables
-- Ou via CLI : `vercel env add VARIABLE_NAME`
-
-## URLs
-
-Après le déploiement, vous obtiendrez :
-- URL de déploiement : `https://your-project.vercel.app`
-- Documentation Swagger : `https://your-project.vercel.app/docs`
-
-## Mise à jour du schéma OpenAPI
-
-N'oubliez pas de mettre à jour `openapi.json` avec l'URL de production :
-
-```json
-"servers": [
-  {
-    "url": "https://your-project.vercel.app",
-    "description": "Serveur de production Vercel"
-  }
-]
+```bash
+cd web
+vercel login
 ```
 
-## Dépannage
+Suivez les instructions pour vous authentifier via le navigateur.
 
-Si vous rencontrez des erreurs :
+### 2. Lier le projet à Vercel
 
-1. Vérifier les logs : `vercel logs`
-2. Vérifier que toutes les dépendances sont dans `requirements.txt`
-3. Vérifier que `pyswisseph` compile correctement (peut nécessiter des outils de build)
-4. Pour `pyswisseph`, Vercel peut nécessiter une configuration spéciale car c'est une bibliothèque native
+```bash
+cd web
+vercel link
+```
 
-## Alternative : Utiliser un conteneur Docker sur Vercel
+Cela vous demandera :
+- **Set up and deploy?** → `Y`
+- **Which scope?** → Sélectionnez votre compte/organisation
+- **Link to existing project?** → `N` (pour créer un nouveau projet)
+- **What's your project's name?** → `orbitalastro` (ou le nom de votre choix)
+- **In which directory is your code located?** → `./` (car nous sommes déjà dans `web/`)
 
-Si vous rencontrez des problèmes avec `pyswisseph`, vous pouvez utiliser Vercel avec Docker :
-- Créer un `Dockerfile`
-- Utiliser Vercel avec le runtime Docker (nécessite un plan Pro)
+### 3. Déployer
 
-## Support
+#### Déploiement de production
 
-Pour plus d'informations :
-- Documentation Vercel Python : https://vercel.com/docs/concepts/functions/serverless-functions/runtimes/python
-- Documentation FastAPI : https://fastapi.tiangolo.com/
+```bash
+cd web
+vercel --prod
+```
 
+#### Déploiement de preview
 
+```bash
+cd web
+vercel
+```
 
+### 4. Variables d'environnement
+
+Si votre application nécessite des variables d'environnement (comme `API_URL` pour pointer vers votre backend), configurez-les via :
+
+1. **Dashboard Vercel** : https://vercel.com/dashboard → Votre projet → Settings → Environment Variables
+2. **CLI** :
+   ```bash
+   vercel env add API_URL production
+   ```
+
+Variables recommandées :
+- `API_URL` : URL de votre backend API (ex: `https://your-backend.railway.app` ou `https://your-backend.render.com`)
+
+### 5. Configuration automatique via GitHub
+
+Pour activer le déploiement automatique à chaque push :
+
+1. Allez sur https://vercel.com/dashboard
+2. Importez votre repository GitHub
+3. Vercel détectera automatiquement Next.js
+4. Configurez :
+   - **Root Directory** : `web`
+   - **Build Command** : `npm run build`
+   - **Output Directory** : `.next`
+   - **Install Command** : `npm install`
+
+### 6. Vérification
+
+Après le déploiement, Vercel vous fournira une URL comme :
+- Production : `https://orbitalastro.vercel.app`
+- Preview : `https://orbitalastro-git-<branch>-yourteam.vercel.app`
+
+## Structure du projet
+
+```
+orbitalastro/
+├── vercel.json          # Configuration racine (pointe vers web/)
+├── web/                 # Frontend Next.js
+│   ├── vercel.json      # Configuration Next.js
+│   ├── package.json
+│   └── ...
+└── ...
+```
+
+## Notes importantes
+
+- Le backend FastAPI doit être déployé séparément (Railway, Render, etc.)
+- Assurez-vous que `API_URL` dans les variables d'environnement pointe vers votre backend
+- Les builds Next.js sont optimisés automatiquement par Vercel
+- Les déploiements preview sont créés automatiquement pour chaque PR
+
+## Commandes utiles
+
+```bash
+# Voir les logs de déploiement
+vercel logs
+
+# Voir les informations du projet
+vercel inspect
+
+# Supprimer le projet
+vercel remove
+```

@@ -15,6 +15,7 @@ from astro.houses_multi import compute_houses
 from astro.julian import datetime_to_julian_day
 from astro.ephemeris_loader import EphemerisRepository
 from astro.master_prompt_builder import build_natal_reading_prompt
+from astro.chart_utils import build_chart_payload_for_narrative
 from api.schemas import NarrativeConfig
 
 router = APIRouter(prefix="/api", tags=["transits"])
@@ -78,16 +79,17 @@ async def calculate_transits(request: TransitRequest):
         )
 
     # Get transit chart data if latitude/longitude provided
-    transit_planets = None
+    transit_planets = EphemerisRepository.get_positions(target_datetime)
+    transit_jd = datetime_to_julian_day(target_datetime)
     transit_asc = None
     transit_mc = None
+    transit_cusps = None
     transit_houses = None
+    house_system = request.house_system or "placidus"
     if request.latitude is not None and request.longitude is not None:
-        transit_planets = EphemerisRepository.get_positions(target_datetime)
-        transit_jd = datetime_to_julian_day(target_datetime)
         transit_asc, transit_mc = compute_asc_mc(transit_jd, request.latitude, request.longitude)
         transit_cusps = compute_houses(
-            request.house_system or "placidus",
+            house_system,
             transit_jd,
             request.latitude,
             request.longitude,
@@ -95,6 +97,8 @@ async def calculate_transits(request: TransitRequest):
             transit_mc,
         )
         transit_houses = {str(i + 1): cusp for i, cusp in enumerate(transit_cusps)}
+    else:
+        transit_houses = {}
 
     # Detect patterns if requested
     patterns_dict = None
@@ -110,29 +114,32 @@ async def calculate_transits(request: TransitRequest):
             "depth": request.narrative.depth or "standard",
             "focus": request.narrative.focus or [],
         }
-        # Build chart dict for narrative
-        chart_dict = {
-            "planets": transit_planets or EphemerisRepository.get_positions(target_datetime),
-            "ascendant": transit_asc or request.natal_asc or 0.0,
-            "midheaven": transit_mc or request.natal_mc or 0.0,
-            "houses": transit_houses or {},
-        }
-        # Convert transits to dict format for narrative
+        chart_context_payload = build_chart_payload_for_narrative(
+            transit_planets,
+            transit_asc,
+            transit_mc,
+            transit_cusps,
+            transit_houses,
+            house_system,
+        )
         transits_for_narrative = [
             {
-                "body1": t.body1.replace("transit_", ""),
-                "body2": t.body2.replace("natal_", ""),
+                "transiting_body": t.body1.replace("transit_", ""),
+                "natal_body": t.body2.replace("natal_", ""),
                 "aspect": t.aspect,
                 "orb_deg": t.orb_deg,
+                "applying": t.applying,
+                "exact": t.exact,
             }
             for t in transits
         ]
         narrative_seed = build_natal_reading_prompt(
-            chart_dict,
-            aspects=None,  # Transits are separate from natal aspects
+            chart_context_payload,
+            aspects=None,
             transits=transits_for_narrative,
-            patterns=patterns_dict,
+            patterns=patterns_dict or {},
             narrative_config=narrative_config,
+            chart_context="transit",
         )
 
     return TransitResponse(
@@ -143,7 +150,7 @@ async def calculate_transits(request: TransitRequest):
         ascendant=transit_asc,
         midheaven=transit_mc,
         houses=transit_houses,
-        house_system=request.house_system if transit_houses else None,
+        house_system=house_system if transit_houses else None,
         patterns=patterns_dict,
         narrative_seed=narrative_seed,
     )

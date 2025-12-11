@@ -2,34 +2,34 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Calendar, MapPin, Clock, Sparkles, TrendingUp, BookOpen } from 'lucide-react'
+import { Calendar, MapPin, Clock, TrendingUp, BookOpen } from 'lucide-react'
 import { useSettingsStore } from '@/lib/store'
 import { apiClient } from '@/lib/api'
 import { useQuery } from '@tanstack/react-query'
-import ChartVisualization from '@/components/ChartVisualization'
 import InterpretationPanel from '@/components/InterpretationPanel'
+import AstrologyInterpretation from '@/components/astrology/AstrologyInterpretation'
 import TransitsTimeline from '@/components/TransitsTimeline'
-import { ChartSkeleton, InterpretationSkeleton, TransitSkeleton } from '@/components/Skeleton'
+import { InterpretationSkeleton, TransitSkeleton } from '@/components/Skeleton'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { useToast } from '@/lib/toast'
-import ChartHistory from '@/components/ChartHistory'
-import { useChartHistory } from '@/lib/store'
 import FormField from '@/components/FormField'
 import LocationInput from '@/components/LocationInput'
 import BackButton from '@/components/BackButton'
+import { signFromLongitude } from '@/components/astrology/signTranslations'
+import { useTranslation } from '@/lib/useTranslation'
 
 export default function Dashboard() {
   const settings = useSettingsStore()
   const toast = useToast()
-  const { addToHistory } = useChartHistory()
+  const t = useTranslation()
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [birthData, setBirthData] = useState({
-    birth_date: '1967-07-05',
-    birth_time: '18:40',
-    birth_place: 'Hôpital Sainte-Croix, 570, Rue Hériot, Drummondville, Drummond, Centre-du-Québec, Quebec, J2B 0A0, Canada',
-    latitude: 45.8833, // Drummondville, Quebec coordinates
-    longitude: -72.4833,
-    timezone: 'America/Montreal',
+    birth_date: settings.defaultBirthDate || '',
+    birth_time: settings.defaultBirthTime || '12:00',
+    birth_place: '',
+    latitude: settings.defaultLatitude || 0,
+    longitude: settings.defaultLongitude || 0,
+    timezone: settings.defaultTimezone || 'UTC',
   })
 
   const { data: natalChart, isLoading, error, refetch } = useQuery({
@@ -44,17 +44,16 @@ export default function Dashboard() {
           use_topocentric_moon: settings.useTopocentricMoon,
           include_aspects: settings.includeAspects,
           narrative: {
-            tone: settings.narrativeTone,
-            depth: settings.narrativeDepth,
-            focus: settings.narrativeFocus,
+            tone: settings.narrativeTone as "mythic" | "psychological" | "coaching" | "cinematic" | "soft_therapeutic" | undefined,
+            depth: settings.narrativeDepth as "short" | "standard" | "long" | "comprehensive" | undefined,
+            focus: settings.narrativeFocus as ("career" | "relationships" | "family" | "spirituality" | "creativity" | "healing")[] | undefined,
           },
         })
         const chartData = response.data
-        addToHistory(chartData, birthData)
-        toast.success('Chart calculated successfully!')
+        toast.success(t.dashboard.success)
         return chartData
       } catch (err: any) {
-        toast.error('Failed to calculate chart', err?.response?.data?.detail || 'Please check your input and try again')
+        toast.error(t.dashboard.error, err?.response?.data?.detail || t.dashboard.errorMessage)
         throw err
       }
     },
@@ -121,7 +120,7 @@ export default function Dashboard() {
         >
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <FormField
-              label="Birth Date"
+              label={t.dashboard.birthDate}
               name="birth_date"
               value={birthData.birth_date}
               onChange={(value) => {
@@ -135,10 +134,10 @@ export default function Dashboard() {
               error={errors.birth_date}
               success={!!birthData.birth_date && !errors.birth_date}
               icon={Calendar}
-              tooltip="The date of birth in local time"
+              tooltip={t.tooltips.birthDate}
             />
             <FormField
-              label="Birth Time"
+              label={t.dashboard.birthTime}
               name="birth_time"
               value={birthData.birth_time}
               onChange={(value) => {
@@ -152,10 +151,10 @@ export default function Dashboard() {
               error={errors.birth_time}
               success={!!birthData.birth_time && !errors.birth_time}
               icon={Clock}
-              tooltip="The time of birth in local time (24-hour format)"
+              tooltip={t.tooltips.birthTime}
             />
             <LocationInput
-              label="Birth Place"
+              label={t.dashboard.birthPlace}
               value={birthData.birth_place}
               onChange={(value) => {
                 setBirthData({ ...birthData, birth_place: value })
@@ -175,20 +174,20 @@ export default function Dashboard() {
                   setErrors({ ...errors, birth_place: '', timezone: '' })
                 }
               }}
-              placeholder="Search for a city or place (e.g., 'Hospital Ste-Croix Drummondville')..."
+              placeholder={t.tooltips.locationSearch}
               required
               error={errors.birth_place}
               success={!!birthData.birth_place && !errors.birth_place}
-              tooltip="Search for your birth city to automatically set coordinates and timezone"
+              tooltip={t.tooltips.birthPlace}
             />
             <div className="flex items-end">
               <button
                 onClick={handleCalculate}
                 disabled={isLoading}
                 className="w-full px-6 py-2 bg-gradient-to-r from-cosmic-pink to-cosmic-purple text-white rounded-lg font-semibold hover:shadow-lg transition disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-cosmic-gold"
-                aria-label="Calculate natal chart"
+                aria-label={t.dashboard.calculateChart}
               >
-                {isLoading ? 'Calculating...' : 'Calculate Chart'}
+                {isLoading ? t.dashboard.calculating : t.dashboard.calculateButton}
               </button>
             </div>
           </div>
@@ -197,13 +196,6 @@ export default function Dashboard() {
         {/* Loading State */}
         {isLoading && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-              <h2 className="text-2xl font-bold text-white mb-4 flex items-center">
-                <Sparkles className="h-6 w-6 mr-2 text-cosmic-gold" />
-                Natal Chart
-              </h2>
-              <ChartSkeleton />
-            </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
               <h2 className="text-2xl font-bold text-white mb-4 flex items-center">
                 <BookOpen className="h-6 w-6 mr-2 text-horizon-blue" />
@@ -224,45 +216,64 @@ export default function Dashboard() {
         {/* Error State */}
         {error && !isLoading && (
           <div className="bg-eclipse-red/20 border border-eclipse-red/50 rounded-xl p-6 text-center">
-            <p className="text-white">Failed to calculate chart. Please check your input and try again.</p>
+            <p className="text-white">{t.dashboard.errorMessage}</p>
           </div>
         )}
 
         {/* Results */}
         {natalChart && !isLoading && (
           <ErrorBoundary>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Chart Visualization */}
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 overflow-hidden relative isolate"
-              >
-                <h2 className="text-2xl font-bold text-white mb-4 flex items-center">
-                  <Sparkles className="h-6 w-6 mr-2 text-cosmic-gold" />
-                  Natal Chart
-                </h2>
-                <ChartVisualization chart={natalChart} />
-              </motion.div>
+            <div className="space-y-8">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Interpretation */}
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 overflow-hidden relative isolate"
+                >
+                  <h2 className="text-2xl font-bold text-white mb-4 flex items-center">
+                    <BookOpen className="h-6 w-6 mr-2 text-horizon-blue" />
+                    Interpretation
+                  </h2>
+                  <InterpretationPanel chart={natalChart} />
+                </motion.div>
 
-              {/* Interpretation */}
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 overflow-hidden relative isolate"
-              >
-                <h2 className="text-2xl font-bold text-white mb-4 flex items-center">
-                  <BookOpen className="h-6 w-6 mr-2 text-horizon-blue" />
-                  Interpretation
-                </h2>
-                <InterpretationPanel chart={natalChart} />
-              </motion.div>
+                {/* Astrology Interpretation */}
+                {natalChart.planets && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 overflow-hidden relative isolate"
+                  >
+                    <h2 className="text-2xl font-bold text-white mb-4 flex items-center">
+                      <BookOpen className="h-6 w-6 mr-2 text-cosmic-gold" />
+                      {t.interpretation.title}
+                    </h2>
+                    <AstrologyInterpretation
+                      planets={Object.fromEntries(
+                        Object.entries(natalChart.planets || {}).map(([key, planet]: [string, any]) => [
+                          key,
+                          { sign: planet.sign || '', house: planet.house || 0 },
+                        ])
+                      )}
+                      aspects={(natalChart.aspects || []).map((aspect: any) => ({
+                        planet1: aspect.body1 || aspect.planet1 || '',
+                        planet2: aspect.body2 || aspect.planet2 || '',
+                        type: aspect.aspect || aspect.type || '',
+                      }))}
+                      ascendant={signFromLongitude(natalChart.ascendant || 0)}
+                      sunSign={natalChart.planets?.sun?.sign || ''}
+                      moonSign={natalChart.planets?.moon?.sign || ''}
+                    />
+                  </motion.div>
+                )}
+              </div>
 
               {/* Transits Timeline */}
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="lg:col-span-2 bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20"
+                className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20"
               >
                 <h2 className="text-2xl font-bold text-white mb-4 flex items-center">
                   <TrendingUp className="h-6 w-6 mr-2 text-aurora-teal" />
@@ -274,11 +285,6 @@ export default function Dashboard() {
           </ErrorBoundary>
         )}
       </main>
-      <ChartHistory onLoadChart={(chart) => {
-        // This would need to be handled by parent state management
-        // For now, we'll just show a toast
-        toast.info('Chart loaded from history. Recalculate to view.')
-      }} />
     </div>
   )
 }

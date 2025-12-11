@@ -256,11 +256,12 @@ def alcabitius_cusps(JD: float, latitude_deg: float, longitude_deg: float) -> Li
 
     # Alcabitius uses time-based division
     # Similar to Placidus but with different time calculations
+    # Map intermediate time offsets to house indices for 11, 12, 2, 3
     h_offsets = {
-        11: 30,
-        12: 60,
-        2: 120,
-        3: 150,
+        10: 30,   # 11th house cusp
+        11: 60,   # 12th house cusp
+        1: 120,   # 2nd house cusp
+        2: 150,   # 3rd house cusp
     }
 
     for house, offset in h_offsets.items():
@@ -405,6 +406,11 @@ def compute_houses(
         return topocentric_cusps(JD, lat_deg, lon_deg)
     else:
         raise ValueError(f"Unknown house system: {system}")
+
+
+
+
+
 
 
 

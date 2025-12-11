@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from math import asin, atan2, cos, radians, sin, sqrt
+from math import asin, atan2, cos, radians, sin, sqrt, tan, degrees
 from typing import Tuple
 
 from astro.ephemeris_loader import EphemerisRepository
@@ -89,8 +89,8 @@ def correct_moon_for_parallax(
     # Ecliptic latitude
     topo_lat_rad = asin(sin_dec * cos_eps - cos_dec * sin_eps * sin_ra)
 
-    topo_lon = normalize_angle_deg(radians(topo_lon_rad) if isinstance(topo_lon_rad, float) else topo_lon_rad)
-    topo_lat = radians(topo_lat_rad) if isinstance(topo_lat_rad, float) else topo_lat_rad
+    topo_lon = normalize_angle_deg(degrees(topo_lon_rad))
+    topo_lat = degrees(topo_lat_rad)
 
     return topo_lon, topo_lat
 
@@ -130,6 +130,11 @@ def get_moon_with_parallax(
     )
 
     return topo_long
+
+
+
+
+
 
 
 

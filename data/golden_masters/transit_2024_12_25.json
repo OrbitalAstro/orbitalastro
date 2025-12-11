@@ -1,0 +1,1158 @@
+{
+  "target_datetime": "2024-12-25T12:00:00",
+  "natal_positions": {
+    "sun": 281.032442,
+    "moon": 336.081627,
+    "mercury": 295.612757,
+    "venus": 306.199148,
+    "mars": 250.151683,
+    "jupiter": 95.115032,
+    "saturn": 285.687884,
+    "uranus": 275.803734,
+    "neptune": 282.051718,
+    "pluto": 227.102336,
+    "true_node": 336.081627,
+    "chiron": 0.0,
+    "lilith_mean": 0.0,
+    "lilith_true": 0.0,
+    "ceres": 0.0,
+    "pallas": 0.0,
+    "juno": 0.0,
+    "vesta": 0.0,
+    "eris": 0.0
+  },
+  "transits": [
+    {
+      "transiting_body": "sun",
+      "natal_body": "moon",
+      "aspect": "sextile",
+      "orb_deg": 1.6762190000000032,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "sun",
+      "natal_body": "jupiter",
+      "aspect": "opposition",
+      "orb_deg": 0.7096239999999625,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "sun",
+      "natal_body": "uranus",
+      "aspect": "conjunction",
+      "orb_deg": 1.3983259999999973,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "sun",
+      "natal_body": "true_node",
+      "aspect": "sextile",
+      "orb_deg": 1.6762190000000032,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "sun",
+      "natal_body": "chiron",
+      "aspect": "square",
+      "orb_deg": 4.405408000000023,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "sun",
+      "natal_body": "lilith_mean",
+      "aspect": "square",
+      "orb_deg": 4.405408000000023,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "sun",
+      "natal_body": "lilith_true",
+      "aspect": "square",
+      "orb_deg": 4.405408000000023,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "sun",
+      "natal_body": "ceres",
+      "aspect": "square",
+      "orb_deg": 4.405408000000023,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "sun",
+      "natal_body": "pallas",
+      "aspect": "square",
+      "orb_deg": 4.405408000000023,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "sun",
+      "natal_body": "juno",
+      "aspect": "square",
+      "orb_deg": 4.405408000000023,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "sun",
+      "natal_body": "vesta",
+      "aspect": "square",
+      "orb_deg": 4.405408000000023,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "sun",
+      "natal_body": "eris",
+      "aspect": "square",
+      "orb_deg": 4.405408000000023,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "moon",
+      "natal_body": "venus",
+      "aspect": "square",
+      "orb_deg": 1.7939829999999688,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "moon",
+      "natal_body": "jupiter",
+      "aspect": "trine",
+      "orb_deg": 0.7098669999999885,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "moon",
+      "natal_body": "uranus",
+      "aspect": "sextile",
+      "orb_deg": 1.398569000000009,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "moon",
+      "natal_body": "true_node",
+      "aspect": "trine",
+      "orb_deg": 1.676462000000015,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "mercury",
+      "natal_body": "mars",
+      "aspect": "conjunction",
+      "orb_deg": 2.299802999999997,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "venus",
+      "natal_body": "pluto",
+      "aspect": "square",
+      "orb_deg": 3.7696519999999794,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "mars",
+      "natal_body": "venus",
+      "aspect": "opposition",
+      "orb_deg": 2.440508999999963,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "mars",
+      "natal_body": "chiron",
+      "aspect": "trine",
+      "orb_deg": 3.7586390000000023,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "mars",
+      "natal_body": "lilith_mean",
+      "aspect": "trine",
+      "orb_deg": 3.7586390000000023,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "mars",
+      "natal_body": "lilith_true",
+      "aspect": "trine",
+      "orb_deg": 3.7586390000000023,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "mars",
+      "natal_body": "ceres",
+      "aspect": "trine",
+      "orb_deg": 3.7586390000000023,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "mars",
+      "natal_body": "pallas",
+      "aspect": "trine",
+      "orb_deg": 3.7586390000000023,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "mars",
+      "natal_body": "juno",
+      "aspect": "trine",
+      "orb_deg": 3.7586390000000023,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "mars",
+      "natal_body": "vesta",
+      "aspect": "trine",
+      "orb_deg": 3.7586390000000023,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "mars",
+      "natal_body": "eris",
+      "aspect": "trine",
+      "orb_deg": 3.7586390000000023,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "jupiter",
+      "natal_body": "mars",
+      "aspect": "opposition",
+      "orb_deg": 3.771007999999995,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "saturn",
+      "natal_body": "sun",
+      "aspect": "sextile",
+      "orb_deg": 3.045349999999985,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "saturn",
+      "natal_body": "mars",
+      "aspect": "square",
+      "orb_deg": 3.9261089999999967,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "saturn",
+      "natal_body": "neptune",
+      "aspect": "sextile",
+      "orb_deg": 2.026073999999994,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "saturn",
+      "natal_body": "pluto",
+      "aspect": "trine",
+      "orb_deg": 3.02454400000002,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "uranus",
+      "natal_body": "mercury",
+      "aspect": "trine",
+      "orb_deg": 1.8141880000000015,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "neptune",
+      "natal_body": "mercury",
+      "aspect": "sextile",
+      "orb_deg": 1.6100610000000302,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "neptune",
+      "natal_body": "chiron",
+      "aspect": "conjunction",
+      "orb_deg": 2.777181999999982,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "neptune",
+      "natal_body": "lilith_mean",
+      "aspect": "conjunction",
+      "orb_deg": 2.777181999999982,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "neptune",
+      "natal_body": "lilith_true",
+      "aspect": "conjunction",
+      "orb_deg": 2.777181999999982,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "neptune",
+      "natal_body": "ceres",
+      "aspect": "conjunction",
+      "orb_deg": 2.777181999999982,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "neptune",
+      "natal_body": "pallas",
+      "aspect": "conjunction",
+      "orb_deg": 2.777181999999982,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "neptune",
+      "natal_body": "juno",
+      "aspect": "conjunction",
+      "orb_deg": 2.777181999999982,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "neptune",
+      "natal_body": "vesta",
+      "aspect": "conjunction",
+      "orb_deg": 2.777181999999982,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "neptune",
+      "natal_body": "eris",
+      "aspect": "conjunction",
+      "orb_deg": 2.777181999999982,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "pluto",
+      "natal_body": "mercury",
+      "aspect": "conjunction",
+      "orb_deg": 5.2676250000000095,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "pluto",
+      "natal_body": "venus",
+      "aspect": "conjunction",
+      "orb_deg": 5.318765999999982,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "pluto",
+      "natal_body": "chiron",
+      "aspect": "sextile",
+      "orb_deg": 0.8803819999999973,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "pluto",
+      "natal_body": "lilith_mean",
+      "aspect": "sextile",
+      "orb_deg": 0.8803819999999973,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "pluto",
+      "natal_body": "lilith_true",
+      "aspect": "sextile",
+      "orb_deg": 0.8803819999999973,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "pluto",
+      "natal_body": "ceres",
+      "aspect": "sextile",
+      "orb_deg": 0.8803819999999973,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "pluto",
+      "natal_body": "pallas",
+      "aspect": "sextile",
+      "orb_deg": 0.8803819999999973,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "pluto",
+      "natal_body": "juno",
+      "aspect": "sextile",
+      "orb_deg": 0.8803819999999973,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "pluto",
+      "natal_body": "vesta",
+      "aspect": "sextile",
+      "orb_deg": 0.8803819999999973,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "pluto",
+      "natal_body": "eris",
+      "aspect": "sextile",
+      "orb_deg": 0.8803819999999973,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "true_node",
+      "natal_body": "moon",
+      "aspect": "trine",
+      "orb_deg": 1.676462000000015,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "true_node",
+      "natal_body": "venus",
+      "aspect": "square",
+      "orb_deg": 1.7939829999999688,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "true_node",
+      "natal_body": "jupiter",
+      "aspect": "trine",
+      "orb_deg": 0.7098669999999885,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "true_node",
+      "natal_body": "uranus",
+      "aspect": "sextile",
+      "orb_deg": 1.398569000000009,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "chiron",
+      "natal_body": "mercury",
+      "aspect": "sextile",
+      "orb_deg": 4.387243000000012,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "chiron",
+      "natal_body": "jupiter",
+      "aspect": "square",
+      "orb_deg": 5.115031999999999,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "chiron",
+      "natal_body": "uranus",
+      "aspect": "square",
+      "orb_deg": 5.80373400000002,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "chiron",
+      "natal_body": "lilith_mean",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false,
+      "exact": true
+    },
+    {
+      "transiting_body": "chiron",
+      "natal_body": "lilith_true",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false,
+      "exact": true
+    },
+    {
+      "transiting_body": "chiron",
+      "natal_body": "ceres",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false,
+      "exact": true
+    },
+    {
+      "transiting_body": "chiron",
+      "natal_body": "pallas",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false,
+      "exact": true
+    },
+    {
+      "transiting_body": "chiron",
+      "natal_body": "juno",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false,
+      "exact": true
+    },
+    {
+      "transiting_body": "chiron",
+      "natal_body": "vesta",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false,
+      "exact": true
+    },
+    {
+      "transiting_body": "chiron",
+      "natal_body": "eris",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false,
+      "exact": true
+    },
+    {
+      "transiting_body": "lilith_mean",
+      "natal_body": "mercury",
+      "aspect": "sextile",
+      "orb_deg": 4.387243000000012,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "lilith_mean",
+      "natal_body": "jupiter",
+      "aspect": "square",
+      "orb_deg": 5.115031999999999,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "lilith_mean",
+      "natal_body": "uranus",
+      "aspect": "square",
+      "orb_deg": 5.80373400000002,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "lilith_mean",
+      "natal_body": "chiron",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false,
+      "exact": true
+    },
+    {
+      "transiting_body": "lilith_mean",
+      "natal_body": "lilith_true",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false,
+      "exact": true
+    },
+    {
+      "transiting_body": "lilith_mean",
+      "natal_body": "ceres",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false,
+      "exact": true
+    },
+    {
+      "transiting_body": "lilith_mean",
+      "natal_body": "pallas",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false,
+      "exact": true
+    },
+    {
+      "transiting_body": "lilith_mean",
+      "natal_body": "juno",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false,
+      "exact": true
+    },
+    {
+      "transiting_body": "lilith_mean",
+      "natal_body": "vesta",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false,
+      "exact": true
+    },
+    {
+      "transiting_body": "lilith_mean",
+      "natal_body": "eris",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false,
+      "exact": true
+    },
+    {
+      "transiting_body": "lilith_true",
+      "natal_body": "mercury",
+      "aspect": "sextile",
+      "orb_deg": 4.387243000000012,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "lilith_true",
+      "natal_body": "jupiter",
+      "aspect": "square",
+      "orb_deg": 5.115031999999999,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "lilith_true",
+      "natal_body": "uranus",
+      "aspect": "square",
+      "orb_deg": 5.80373400000002,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "lilith_true",
+      "natal_body": "chiron",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false,
+      "exact": true
+    },
+    {
+      "transiting_body": "lilith_true",
+      "natal_body": "lilith_mean",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false,
+      "exact": true
+    },
+    {
+      "transiting_body": "lilith_true",
+      "natal_body": "ceres",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false,
+      "exact": true
+    },
+    {
+      "transiting_body": "lilith_true",
+      "natal_body": "pallas",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false,
+      "exact": true
+    },
+    {
+      "transiting_body": "lilith_true",
+      "natal_body": "juno",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false,
+      "exact": true
+    },
+    {
+      "transiting_body": "lilith_true",
+      "natal_body": "vesta",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false,
+      "exact": true
+    },
+    {
+      "transiting_body": "lilith_true",
+      "natal_body": "eris",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false,
+      "exact": true
+    },
+    {
+      "transiting_body": "ceres",
+      "natal_body": "mercury",
+      "aspect": "sextile",
+      "orb_deg": 4.387243000000012,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "ceres",
+      "natal_body": "jupiter",
+      "aspect": "square",
+      "orb_deg": 5.115031999999999,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "ceres",
+      "natal_body": "uranus",
+      "aspect": "square",
+      "orb_deg": 5.80373400000002,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "ceres",
+      "natal_body": "chiron",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false,
+      "exact": true
+    },
+    {
+      "transiting_body": "ceres",
+      "natal_body": "lilith_mean",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false,
+      "exact": true
+    },
+    {
+      "transiting_body": "ceres",
+      "natal_body": "lilith_true",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false,
+      "exact": true
+    },
+    {
+      "transiting_body": "ceres",
+      "natal_body": "pallas",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false,
+      "exact": true
+    },
+    {
+      "transiting_body": "ceres",
+      "natal_body": "juno",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false,
+      "exact": true
+    },
+    {
+      "transiting_body": "ceres",
+      "natal_body": "vesta",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false,
+      "exact": true
+    },
+    {
+      "transiting_body": "ceres",
+      "natal_body": "eris",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false,
+      "exact": true
+    },
+    {
+      "transiting_body": "pallas",
+      "natal_body": "mercury",
+      "aspect": "sextile",
+      "orb_deg": 4.387243000000012,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "pallas",
+      "natal_body": "jupiter",
+      "aspect": "square",
+      "orb_deg": 5.115031999999999,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "pallas",
+      "natal_body": "uranus",
+      "aspect": "square",
+      "orb_deg": 5.80373400000002,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "pallas",
+      "natal_body": "chiron",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false,
+      "exact": true
+    },
+    {
+      "transiting_body": "pallas",
+      "natal_body": "lilith_mean",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false,
+      "exact": true
+    },
+    {
+      "transiting_body": "pallas",
+      "natal_body": "lilith_true",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false,
+      "exact": true
+    },
+    {
+      "transiting_body": "pallas",
+      "natal_body": "ceres",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false,
+      "exact": true
+    },
+    {
+      "transiting_body": "pallas",
+      "natal_body": "juno",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false,
+      "exact": true
+    },
+    {
+      "transiting_body": "pallas",
+      "natal_body": "vesta",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false,
+      "exact": true
+    },
+    {
+      "transiting_body": "pallas",
+      "natal_body": "eris",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false,
+      "exact": true
+    },
+    {
+      "transiting_body": "juno",
+      "natal_body": "mercury",
+      "aspect": "sextile",
+      "orb_deg": 4.387243000000012,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "juno",
+      "natal_body": "jupiter",
+      "aspect": "square",
+      "orb_deg": 5.115031999999999,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "juno",
+      "natal_body": "uranus",
+      "aspect": "square",
+      "orb_deg": 5.80373400000002,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "juno",
+      "natal_body": "chiron",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false,
+      "exact": true
+    },
+    {
+      "transiting_body": "juno",
+      "natal_body": "lilith_mean",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false,
+      "exact": true
+    },
+    {
+      "transiting_body": "juno",
+      "natal_body": "lilith_true",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false,
+      "exact": true
+    },
+    {
+      "transiting_body": "juno",
+      "natal_body": "ceres",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false,
+      "exact": true
+    },
+    {
+      "transiting_body": "juno",
+      "natal_body": "pallas",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false,
+      "exact": true
+    },
+    {
+      "transiting_body": "juno",
+      "natal_body": "vesta",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false,
+      "exact": true
+    },
+    {
+      "transiting_body": "juno",
+      "natal_body": "eris",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false,
+      "exact": true
+    },
+    {
+      "transiting_body": "vesta",
+      "natal_body": "mercury",
+      "aspect": "sextile",
+      "orb_deg": 4.387243000000012,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "vesta",
+      "natal_body": "jupiter",
+      "aspect": "square",
+      "orb_deg": 5.115031999999999,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "vesta",
+      "natal_body": "uranus",
+      "aspect": "square",
+      "orb_deg": 5.80373400000002,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "vesta",
+      "natal_body": "chiron",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false,
+      "exact": true
+    },
+    {
+      "transiting_body": "vesta",
+      "natal_body": "lilith_mean",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false,
+      "exact": true
+    },
+    {
+      "transiting_body": "vesta",
+      "natal_body": "lilith_true",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false,
+      "exact": true
+    },
+    {
+      "transiting_body": "vesta",
+      "natal_body": "ceres",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false,
+      "exact": true
+    },
+    {
+      "transiting_body": "vesta",
+      "natal_body": "pallas",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false,
+      "exact": true
+    },
+    {
+      "transiting_body": "vesta",
+      "natal_body": "juno",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false,
+      "exact": true
+    },
+    {
+      "transiting_body": "vesta",
+      "natal_body": "eris",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false,
+      "exact": true
+    },
+    {
+      "transiting_body": "eris",
+      "natal_body": "mercury",
+      "aspect": "sextile",
+      "orb_deg": 4.387243000000012,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "eris",
+      "natal_body": "jupiter",
+      "aspect": "square",
+      "orb_deg": 5.115031999999999,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "eris",
+      "natal_body": "uranus",
+      "aspect": "square",
+      "orb_deg": 5.80373400000002,
+      "applying": false,
+      "exact": false
+    },
+    {
+      "transiting_body": "eris",
+      "natal_body": "chiron",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false,
+      "exact": true
+    },
+    {
+      "transiting_body": "eris",
+      "natal_body": "lilith_mean",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false,
+      "exact": true
+    },
+    {
+      "transiting_body": "eris",
+      "natal_body": "lilith_true",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false,
+      "exact": true
+    },
+    {
+      "transiting_body": "eris",
+      "natal_body": "ceres",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false,
+      "exact": true
+    },
+    {
+      "transiting_body": "eris",
+      "natal_body": "pallas",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false,
+      "exact": true
+    },
+    {
+      "transiting_body": "eris",
+      "natal_body": "juno",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false,
+      "exact": true
+    },
+    {
+      "transiting_body": "eris",
+      "natal_body": "vesta",
+      "aspect": "conjunction",
+      "orb_deg": 0.0,
+      "applying": false,
+      "exact": true
+    }
+  ],
+  "planets": {
+    "sun": 274.405408,
+    "moon": 214.405165,
+    "mercury": 252.451486,
+    "venus": 320.871988,
+    "mars": 123.758639,
+    "jupiter": 73.922691,
+    "saturn": 344.077792,
+    "uranus": 53.798569,
+    "neptune": 357.222818,
+    "pluto": 300.880382,
+    "true_node": 214.405165,
+    "chiron": 0.0,
+    "lilith_mean": 0.0,
+    "lilith_true": 0.0,
+    "ceres": 0.0,
+    "pallas": 0.0,
+    "juno": 0.0,
+    "vesta": 0.0,
+    "eris": 0.0
+  },
+  "ascendant": 95.98795253944363,
+  "midheaven": 202.1569796208048,
+  "houses": {
+    "1": 95.98795253944363,
+    "2": 272.2053156974814,
+    "3": 332.366081216564,
+    "4": 22.156979620804805,
+    "5": 68.37421961657924,
+    "6": 126.19133082011973,
+    "7": 275.98795253944365,
+    "8": 92.20531569748141,
+    "9": 152.366081216564,
+    "10": 202.1569796208048,
+    "11": 248.37421961657927,
+    "12": 306.19133082011973
+  },
+  "house_system": "placidus",
+  "patterns": {
+    "t_squares": [],
+    "grand_trines": [],
+    "yods": [],
+    "grand_crosses": []
+  }
+}

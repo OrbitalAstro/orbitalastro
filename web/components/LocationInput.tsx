@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { MapPin, Search, X, Loader2, Globe } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useTranslation } from '@/lib/useTranslation'
 
 interface City {
   name: string
@@ -39,13 +40,16 @@ export default function LocationInput({
   value,
   onChange,
   onLocationSelect,
-  label = 'Birth Place',
-  placeholder = 'Search for a city or place (e.g., "Hospital Ste-Croix Drummondville")...',
+  label,
+  placeholder,
   error,
   success,
   required = false,
   tooltip,
 }: LocationInputProps) {
+  const t = useTranslation()
+  const defaultLabel = label || t.dashboard.birthPlace
+  const defaultPlaceholder = placeholder || t.tooltips.locationSearch
   const [cities, setCities] = useState<City[]>([])
   const [filteredCities, setFilteredCities] = useState<City[]>([])
   const [geocodedPlaces, setGeocodedPlaces] = useState<GeocodedPlace[]>([])
@@ -55,6 +59,7 @@ export default function LocationInput({
   const inputRef = useRef<HTMLInputElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const geocodeTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const abortControllerRef = useRef<AbortController | null>(null)
 
   // Load cities data
   useEffect(() => {
@@ -94,31 +99,66 @@ export default function LocationInput({
     }
 
     setIsGeocoding(true)
+    
+    // Cancel any previous request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+    }
+    
+    // Create new abort controller for this request
+    const abortController = new AbortController()
+    abortControllerRef.current = abortController
+    
+    // Set timeout to abort after 10 seconds
+    const timeoutId = setTimeout(() => {
+      abortController.abort()
+    }, 10000)
+    
     try {
       console.log('[LocationInput] Geocoding query:', query)
       // Use Nominatim API (free, no API key required)
-      // Note: Nominatim requires a User-Agent header
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?` +
+      // Note: Nominatim requires a User-Agent header and has rate limits (1 req/sec)
+      const url = `https://nominatim.openstreetmap.org/search?` +
         `q=${encodeURIComponent(query)}&` +
         `format=json&` +
         `limit=5&` +
         `addressdetails=1&` +
-        `extratags=1`,
-        {
-          headers: {
-            'User-Agent': 'OrbitalAstro/1.0 (https://orbitalastro.com)',
-          },
-        }
-      )
+        `extratags=1`
+      
+      console.log('[LocationInput] Geocoding URL:', url)
+      
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': 'OrbitalAstro/1.0 (https://orbitalastro.com)',
+          'Accept': 'application/json',
+        },
+        signal: abortController.signal,
+      })
+      
+      clearTimeout(timeoutId)
       
       if (!response.ok) {
-        console.error('[LocationInput] Geocoding failed:', response.status, response.statusText)
-        throw new Error(`Geocoding failed: ${response.status}`)
+        const errorText = await response.text().catch(() => 'Unknown error')
+        console.error('[LocationInput] Geocoding failed:', response.status, response.statusText, errorText)
+        
+        // Handle rate limiting (429)
+        if (response.status === 429) {
+          console.warn('[LocationInput] Rate limited by Nominatim, will retry later')
+          setGeocodedPlaces([])
+          return
+        }
+        
+        throw new Error(`Geocoding failed: ${response.status} ${response.statusText}`)
       }
       
       const data = await response.json()
-      console.log('[LocationInput] Geocoding results:', data.length, 'places found')
+      console.log('[LocationInput] Geocoding results:', data.length, 'places found', data)
+      
+      if (!Array.isArray(data)) {
+        console.error('[LocationInput] Invalid response format:', data)
+        setGeocodedPlaces([])
+        return
+      }
       
       const places: GeocodedPlace[] = data.map((item: any) => ({
         name: item.display_name,
@@ -128,12 +168,25 @@ export default function LocationInput({
         type: 'geocoded' as const,
       }))
       
+      console.log('[LocationInput] Processed places:', places)
       setGeocodedPlaces(places)
-    } catch (error) {
+    } catch (error: any) {
+      // Clear timeout if still active
+      clearTimeout(timeoutId)
+      
       console.error('[LocationInput] Geocoding error:', error)
+      
+      // Handle timeout or abort
+      if (error.name === 'AbortError' || error.name === 'TimeoutError') {
+        console.warn('[LocationInput] Geocoding request timed out or was aborted')
+      } else if (error.message?.includes('fetch')) {
+        console.warn('[LocationInput] Network error during geocoding')
+      }
+      
       setGeocodedPlaces([])
     } finally {
       setIsGeocoding(false)
+      abortControllerRef.current = null
     }
   }, [])
 
@@ -166,10 +219,23 @@ export default function LocationInput({
 
     // Only geocode if it looks like a specific place (not just a city name)
     // or if no cities match
-    if (filtered.length === 0 || searchTerm.length > 10 || searchTerm.includes('hospital') || searchTerm.includes('clinic') || searchTerm.includes('center') || searchTerm.includes('centre')) {
+    // Also geocode if the search term is longer (likely a specific address/place)
+    const shouldGeocode = filtered.length === 0 || 
+      searchTerm.length > 10 || 
+      searchTerm.includes('hospital') || 
+      searchTerm.includes('clinic') || 
+      searchTerm.includes('center') || 
+      searchTerm.includes('centre') ||
+      searchTerm.includes('street') ||
+      searchTerm.includes('avenue') ||
+      searchTerm.includes('road') ||
+      searchTerm.includes('rue') ||
+      searchTerm.includes('avenue')
+    
+    if (shouldGeocode) {
       geocodeTimeoutRef.current = setTimeout(() => {
         geocodePlace(value)
-      }, 500) // Debounce 500ms
+      }, 800) // Increased debounce to 800ms to respect Nominatim rate limits
     } else {
       setGeocodedPlaces([])
     }
@@ -179,6 +245,10 @@ export default function LocationInput({
     return () => {
       if (geocodeTimeoutRef.current) {
         clearTimeout(geocodeTimeoutRef.current)
+      }
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort()
+        abortControllerRef.current = null
       }
     }
   }, [value, cities, geocodePlace])
@@ -270,9 +340,9 @@ export default function LocationInput({
 
   return (
     <div className="relative">
-      {label && (
+      {defaultLabel && (
         <label className="block text-sm font-medium text-white/80 mb-2 flex items-center gap-2">
-          {label}
+          {defaultLabel}
           {required && <span className="text-eclipse-red">*</span>}
           {tooltip && (
             <span className="ml-1 text-cosmic-gold cursor-help" title={tooltip}>
@@ -295,7 +365,7 @@ export default function LocationInput({
               setIsOpen(true)
             }
           }}
-          placeholder={placeholder || 'Search for a city or place (e.g., "Hospital Ste-Croix Drummondville")...'}
+          placeholder={defaultPlaceholder}
           required={required}
           suppressHydrationWarning
           className={`
@@ -309,7 +379,7 @@ export default function LocationInput({
             }
           `}
           aria-invalid={error ? 'true' : 'false'}
-          aria-describedby={error ? `${label}-error` : undefined}
+          aria-describedby={error ? `${defaultLabel}-error` : undefined}
         />
         {value && (
           <button
@@ -337,7 +407,7 @@ export default function LocationInput({
             {filteredCities.length > 0 && (
               <>
                 <div className="px-4 py-2 text-xs font-semibold text-black/60 bg-white/50 border-b border-white/20">
-                  Cities
+                  {t.tooltips.cities}
                 </div>
                 {filteredCities.map((city, index) => (
                   <button
@@ -362,7 +432,7 @@ export default function LocationInput({
             {isGeocoding && (
               <div className="px-4 py-3 text-center text-black/60">
                 <Loader2 className="h-5 w-5 animate-spin mx-auto mb-2" />
-                <div className="text-sm">Searching for places...</div>
+                <div className="text-sm">{t.tooltips.searchingPlaces}</div>
               </div>
             )}
 
@@ -370,7 +440,7 @@ export default function LocationInput({
               <>
                 {filteredCities.length > 0 && (
                   <div className="px-4 py-2 text-xs font-semibold text-black/60 bg-white/50 border-t border-b border-white/20">
-                    Specific Places
+                    {t.tooltips.specificPlaces}
                   </div>
                 )}
                 {geocodedPlaces.map((place, index) => (
@@ -400,7 +470,7 @@ export default function LocationInput({
         <motion.p
           initial={{ opacity: 0, y: -5 }}
           animate={{ opacity: 1, y: 0 }}
-          id={`${label}-error`}
+          id={`${defaultLabel}-error`}
           className="mt-1 text-sm text-eclipse-red flex items-center gap-1"
           role="alert"
         >

@@ -209,7 +209,7 @@ Calculate planetary transits for a specific date with optional chart data and na
 - `planets`: Transit chart planetary positions (if lat/long provided)
 - `ascendant`, `midheaven`, `houses`: Transit chart data (if lat/long provided)
 - `patterns`: Aspect patterns (if `include_patterns: true`)
-- `narrative_seed`: Generated prompt for LLM interpretation (if `narrative` provided)
+- `narrative_seed`: Generated prompt (tone/depth/focus applied) ready for LLM interpretation
 
 #### Progressions (`/api/progressions`)
 Calculate secondary progressions (1 day = 1 year).
@@ -234,7 +234,7 @@ Calculate secondary progressions (1 day = 1 year).
 - `planets`, `ascendant`, `midheaven`, `houses`: Progressed chart data
 - `progressed_to_natal_aspects`: Aspects between progressed and natal positions
 - `patterns`: Aspect patterns (if `include_patterns: true`)
-- `narrative_seed`: Generated prompt (if `narrative` provided)
+- `narrative_seed`: Generated prompt (tone/depth/focus applied)
 
 #### Solar Returns (`/api/solar-return`)
 Calculate solar return chart for a specific year.
@@ -260,7 +260,7 @@ Calculate solar return chart for a specific year.
 - `sun_exactness_deg`: How close Sun is to natal position
 - `aspects`: Aspects within return chart
 - `patterns`: Aspect patterns (if `include_patterns: true`)
-- `narrative_seed`: Generated prompt (if `narrative` provided)
+- `narrative_seed`: Generated prompt (tone/depth/focus applied)
 
 #### Rectification (`/api/rectify-birth-time`)
 Rectify birth time using significant life events.
@@ -291,12 +291,21 @@ All endpoints that support narrative generation accept a `NarrativeConfig`:
 ```typescript
 interface NarrativeConfig {
   tone?: string      // "mythic" | "psychological" | "coaching" | "cinematic" | "soft_therapeutic"
-  depth?: string     // "short" | "standard" | "comprehensive"
+  depth?: string     // "short" | "standard" | "long" | "comprehensive"
   focus?: string[]   // ["career", "relationships", "family", "spirituality", "creativity", "healing"]
 }
 ```
 
 The `narrative_seed` in responses is a formatted prompt ready to be sent to an LLM (like Gemini) for interpretation generation.
+
+### Chart Export Options
+
+- **GET `/api/chart-svg`** – pass `natal_chart` and optional `aspects` as JSON strings along with query parameters:
+  - `style` (`traditional` | `modern`, defaults to `traditional`)
+  - `size` (pixel diameter, defaults to `600`)
+- **POST `/api/chart-svg`** – send `{ natal_chart, aspects, config }` in the JSON body:
+  - The `config` object can include `style`, `size`, and any custom options (e.g., `accentColor`, `strokeWidth`)
+  - Responses come back as `image/svg+xml`; you can inline them on the client or download them for sharing
 
 ## State Management
 
