@@ -64,5 +64,10 @@ dist/
 .cache/
 .turbo/
 
+# Vercel
+.vercel
 
 
+
+
+.vercel

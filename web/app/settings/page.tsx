@@ -246,6 +246,21 @@ export default function Settings() {
                     ))}
                   </div>
                 </div>
+                <div>
+                  <label className="block text-sm font-medium text-white/80 mb-2">
+                    {t.settings.interpretationPrompt}
+                  </label>
+                  <textarea
+                    value={settings.interpretationPrompt || ''}
+                    onChange={(e) => settings.updateSettings({ interpretationPrompt: e.target.value })}
+                    placeholder={t.settings.interpretationPromptPlaceholder}
+                    className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-y min-h-[200px] max-h-[400px] overflow-y-auto custom-scrollbar"
+                    rows={10}
+                  />
+                  <p className="mt-2 text-sm text-white/60">
+                    {t.settings.interpretationPromptDescription}
+                  </p>
+                </div>
               </div>
             </section>
 

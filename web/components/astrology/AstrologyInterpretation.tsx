@@ -61,7 +61,7 @@ export default function AstrologyInterpretation({
           )
           .join('\n')
 
-        const systemInstructions = "Tu es un interprète astrologique expert. Génère une interprétation narrative complète et fluide d'un thème natal. Utilise une approche symbolique et psychologique - pas de prédictions. Écris dans un style fluide et accessible aux débutants. Structure ta réponse en 6 sections : 1) Portrait général (Soleil/Ascendant/Lune), 2) Forces générales, 3) Défis potentiels, 4) Dynamique émotionnelle, 5) Relations (sans romantisme explicite), 6) Synthèse finale. Utilise des titres de section clairs avec ##."
+        const systemInstructions = settings.interpretationPrompt || "Tu es un interprète astrologique expert. Génère une interprétation narrative complète et fluide d'un thème natal. Utilise une approche symbolique et psychologique - pas de prédictions. Écris dans un style fluide et accessible aux débutants. Structure ta réponse en 6 sections : 1) Portrait général (Soleil/Ascendant/Lune), 2) Forces générales, 3) Défis potentiels, 4) Dynamique émotionnelle, 5) Relations (sans romantisme explicite), 6) Synthèse finale. Utilise des titres de section clairs avec ##."
 
         const languageInstruction = language === 'fr' 
           ? 'Écris en français.' 
@@ -101,7 +101,7 @@ Génère une interprétation narrative fluide et accessible, structurée en 6 se
     }
 
     generateInterpretation()
-  }, [planets, aspects, ascendant, sunSign, moonSign, settings.geminiApiKey, language])
+  }, [planets, aspects, ascendant, sunSign, moonSign, settings.geminiApiKey, settings.interpretationPrompt, language])
 
   if (error) {
     return (

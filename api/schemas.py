@@ -18,3 +18,4 @@ class NarrativeConfig(BaseModel):
 
 
 
+
