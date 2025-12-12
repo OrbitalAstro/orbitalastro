@@ -1,0 +1,55 @@
+warning: in the working copy of 'web/app/about/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'web/app/chart/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'web/app/dashboard/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'web/app/dialogues/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'web/app/layout.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'web/app/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'web/app/providers.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'web/app/settings/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'web/app/stories/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'web/components/AspectGrid.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'web/components/BiWheel.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'web/components/ChartHistory.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'web/components/ChartVisualization.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'web/components/ErrorBoundary.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'web/components/FormField.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'web/components/InterpretationPanel.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'web/components/Logo.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'web/components/MobileMenu.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'web/components/QuickActions.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'web/components/Skeleton.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'web/components/SynastryChart.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'web/components/Toast.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'web/components/Toaster.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'web/components/Tooltip.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'web/components/TransitCalendar.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'web/components/TransitsTimeline.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'web/tsconfig.json', LF will be replaced by CRLF the next time Git touches it
+ web/app/about/page.tsx                 |  78 [32m+++++++[m[31m----[m
+ web/app/chart/page.tsx                 |  51 [32m++++[m[31m---[m
+ web/app/dashboard/page.tsx             | 185 [32m++++++++++++++[m[31m----------[m
+ web/app/dialogues/page.tsx             |  93 [32m++++++++[m[31m-----[m
+ web/app/layout.tsx                     |  52 [32m+++[m[31m----[m
+ web/app/page.tsx                       | 212 [32m+++++++++++++++++++[m[31m---------[m
+ web/app/providers.tsx                  |  32 [32m++[m[31m---[m
+ web/app/settings/page.tsx              | 181 [32m++++++++++++++++++[m[31m------[m
+ web/app/stories/page.tsx               |  95 [32m+++++++[m[31m------[m
+ web/components/AspectGrid.tsx          |  88 [32m++++++[m[31m------[m
+ web/components/BiWheel.tsx             |  49 [32m++++[m[31m---[m
+ web/components/ChartHistory.tsx        | 196 [32m+++++++++[m[31m-----------------[m
+ web/components/ChartVisualization.tsx  | 172 [32m+++++++++++[m[31m------------[m
+ web/components/ErrorBoundary.tsx       |  74 [32m+++++[m[31m-----[m
+ web/components/FormField.tsx           | 142 [32m+++++++[m[31m------------[m
+ web/components/InterpretationPanel.tsx | 226 [32m+++++++++++++++[m[31m---------------[m
+ web/components/Logo.tsx                |  87 [32m++++++[m[31m------[m
+ web/components/MobileMenu.tsx          | 115 [32m++++++++[m[31m-------[m
+ web/components/QuickActions.tsx        | 247 [32m+++++++++++++++[m[31m------------------[m
+ web/components/Skeleton.tsx            |  59 [32m++++[m[31m----[m
+ web/components/SynastryChart.tsx       |  55 [32m++++[m[31m----[m
+ web/components/Toast.tsx               |  27 [32m++[m[31m--[m
+ web/components/Toaster.tsx             |  19 [32m++[m[31m-[m
+ web/components/Tooltip.tsx             | 133 [32m++++++++++[m[31m--------[m
+ web/components/TransitCalendar.tsx     | 115 [32m+++++++++[m[31m------[m
+ web/components/TransitsTimeline.tsx    | 134 [32m++++++++++[m[31m--------[m
+ web/tsconfig.json                      |  28 [32m+++[m[31m-[m
+ 27 files changed, 1607 insertions(+), 1338 deletions(-)

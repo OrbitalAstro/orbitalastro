@@ -1,0 +1,190 @@
+/* Import Fonts (must be at the very top) */
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --cosmic-gold: #F6C94C;
+  --nebula-pink: #E056FD;
+  --deep-space-purple: #3D1F71;
+  --void-black: #000000;
+  --star-mist-white: #FFFFFF;
+  --aurora-teal: #3EF4C5;
+  --eclipse-red: #C44747;
+  --horizon-blue: #8BA8FF;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 0, 0, 0;
+    --background-end-rgb: 0, 0, 0;
+  }
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: var(--void-black);
+  font-family: 'Inter', sans-serif;
+}
+
+/* Focus indicators for accessibility */
+*:focus-visible {
+  outline: 2px solid var(--cosmic-gold);
+  outline-offset: 2px;
+}
+
+/* Chart container styles to prevent overflow and scale to fit */
+.chart-container {
+  position: relative;
+  overflow: hidden;
+  max-width: 100%;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.chart-container svg {
+  max-width: 100%;
+  max-height: 100%;
+  width: 100%;
+  height: auto;
+  display: block;
+  position: relative;
+  z-index: 1;
+  object-fit: contain;
+}
+
+/* Skip link for keyboard navigation */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: var(--cosmic-gold);
+  color: var(--void-black);
+  padding: 8px 16px;
+  text-decoration: none;
+  z-index: 100;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  /* Brand gradient text */
+  .text-cosmic-gradient {
+    @apply bg-gradient-to-r from-cosmic-gold via-cosmic-pink to-cosmic-purple bg-clip-text text-transparent;
+  }
+  
+  .text-gold-gradient {
+    @apply bg-gradient-to-r from-cosmic-gold to-cosmic-pink bg-clip-text text-transparent;
+  }
+  
+  /* Glow effects */
+  .glow-gold {
+    box-shadow: 0 0 20px rgba(246, 201, 76, 0.3);
+  }
+  
+  .glow-pink {
+    box-shadow: 0 0 20px rgba(224, 86, 253, 0.3);
+  }
+  
+  .glow-cosmic {
+    box-shadow: 0 0 40px rgba(246, 201, 76, 0.2), 0 0 80px rgba(224, 86, 253, 0.1);
+  }
+}
+
+/* Custom scrollbar - cosmic themed */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--void-black);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--cosmic-gold), var(--nebula-pink));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, var(--nebula-pink), var(--cosmic-gold));
+}
+
+/* Custom scrollbar class for specific containers */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--cosmic-gold), var(--nebula-pink));
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, var(--nebula-pink), var(--cosmic-gold));
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
+
+/* Orbital motion */
+@keyframes orbital-float {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-20px) rotate(180deg);
+  }
+}
+
+.animate-orbital-float {
+  animation: orbital-float 6s ease-in-out infinite;
+}
+
+/* Nebula glow */
+@keyframes nebula-pulse {
+  0%, 100% {
+    opacity: 0.6;
+    filter: blur(2px);
+  }
+  50% {
+    opacity: 1;
+    filter: blur(4px);
+  }
+}
+
+.animate-nebula-pulse {
+  animation: nebula-pulse 3s ease-in-out infinite;
+}

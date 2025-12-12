@@ -1,15 +1,12 @@
 {
   "version": 2,
+  "buildCommand": "cd web && npm install && npm run build",
+  "outputDirectory": "web/.next",
+  "installCommand": "cd web && npm install",
+  "framework": "nextjs",
   "functions": {
-    "api/index.py": {
-      "runtime": "python3.10"
+    "api/**/*.py": {
+      "runtime": "python3.9"
     }
-  },
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "api/index.py"
-    }
-  ]
+  }
 }
-

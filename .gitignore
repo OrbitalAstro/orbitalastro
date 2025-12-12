@@ -49,5 +49,27 @@ Thumbs.db
 *.se2
 *.se3
 
+# Node.js / Next.js
+node_modules/
+**/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.next/
+out/
+build/
+dist/
+*.tsbuildinfo
+.cache/
+.turbo/
+
+# Vercel
+.vercel
 
 
+
+
+.vercel
+
+.vercel

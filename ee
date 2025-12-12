@@ -1,0 +1,18 @@
+[33mtag Avant-de-montrer-a-Josee[m
+Tagger: patrickd12345 <51156466+patrickd12345@users.noreply.github.com>
+Date:   Wed Dec 10 17:50:34 2025 -0500
+
+Version avant de montrer à Josée
+
+[33mcommit e3fd439ceefb097422ae6e866b58f5f605b886d2[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mPatrick[m[33m, [m[1;33mtag: [m[1;33mAvant-de-montrer-a-Josee[m[33m, [m[1;31morigin/Patrick[m[33m)[m
+Author: patrickd12345 <51156466+patrickd12345@users.noreply.github.com>
+Date:   Wed Dec 10 17:48:20 2025 -0500
+
+    Enhance project structure and update dependencies
+    
+    - Added comprehensive entries to .gitignore for Node.js and Next.js build artifacts.
+    - Updated package-lock.json to include new dependencies and versions for improved functionality.
+    - Refactored API endpoints to utilize a new chart payload structure for narrative generation in progressions and solar returns.
+    - Improved error handling and narrative generation in the transits and progressions calculations.
+    - Updated README files to reflect new features and usage instructions.
+    - Enhanced UI components with dynamic imports to prevent hydration errors and improve performance.
