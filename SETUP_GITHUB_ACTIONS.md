@@ -34,3 +34,4 @@ Après avoir ajouté le secret et poussé :
 Cette méthode utilise GitHub Actions comme intermédiaire entre GitHub et Vercel, ce qui est plus fiable que les webhooks directs.
 
 
+
