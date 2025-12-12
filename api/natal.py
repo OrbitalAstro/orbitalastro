@@ -6,9 +6,9 @@ import logging
 import time
 from datetime import date, datetime, time as dtime, timedelta, timezone
 from math import pi
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, field_validator
@@ -416,3 +416,121 @@ async def natal_chart(request: NatalRequest):
         extra_objects=extra_objects_dict,
     )
     return response
+
+# --- Legacy Endpoints for GPT Compatibility ---
+
+@app.get("/houses")
+async def get_houses(
+    date: str,
+    time: str = "12:00:00",
+    latitude: float = Query(..., description="Latitude in degrees"),
+    longitude: float = Query(..., description="Longitude in degrees"),
+    system: str = "P",
+):
+    """Legacy endpoint for GPT: Get 12 house cusps."""
+    try:
+        birth_date = datetime.strptime(date, "%Y-%m-%d").date()
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD")
+
+    # Map legacy system codes to full names
+    system_map = {
+        "P": "placidus",
+        "W": "whole_sign",
+        "E": "equal",
+        "K": "koch",
+        "R": "regiomontanus",
+        "C": "campanus",
+        "M": "meridian",
+        "T": "topocentric"
+    }
+    house_system = system_map.get(system, "placidus")
+
+    # Build request for core logic
+    # Defaulting to UTC if no timezone info provided, which is standard for simple ephemeris
+    local_dt = datetime.combine(birth_date, _parse_local_time(time)).replace(tzinfo=timezone.utc)
+    
+    chart = _build_chart_components(
+        local_dt,
+        latitude,
+        longitude,
+        house_system,
+    )
+    
+    # Format for legacy response (list of objects)
+    houses_list = []
+    cusps = chart["cusps"]
+    for i, cusp in enumerate(cusps):
+        houses_list.append({
+            "house_number": i + 1,
+            "longitude": round(cusp, 4)
+        })
+        
+    return houses_list
+
+@app.get("/planets")
+async def get_planets(
+    date: str,
+    time: str = "12:00:00",
+    planets: Optional[str] = None
+):
+    """Legacy endpoint for GPT: Get planetary positions."""
+    try:
+        birth_date = datetime.strptime(date, "%Y-%m-%d").date()
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD")
+    
+    # Default to UTC
+    local_dt = datetime.combine(birth_date, _parse_local_time(time)).replace(tzinfo=timezone.utc)
+    utc_dt = local_dt  # Assuming input is UTC for simple calc
+    
+    ephemeris = EphemerisRepository.get_positions(utc_dt)
+    
+    target_bodies = BODY_ORDER
+    if planets:
+        requested = [p.strip().lower() for p in planets.split(",")]
+        target_bodies = [b for b in requested if b in ephemeris]
+        
+    results = []
+    for body in target_bodies:
+        if body in ephemeris:
+            # We don't have speed/lat in cached ephemeris currently, only longitude
+            # For GPT legacy, we return what we have
+            results.append({
+                "planet": body.capitalize(),
+                "longitude": round(ephemeris[body], 4),
+                "latitude": 0.0, # Placeholder
+                "distance": 1.0, # Placeholder
+                "speed_longitude": 0.0 # Placeholder
+            })
+            
+    return results
+
+@app.get("/all")
+async def get_all_data(
+    date: str,
+    time: str = "12:00:00",
+    latitude: Optional[float] = None,
+    longitude: Optional[float] = None,
+    system: str = "P",
+    orb_tolerance: float = 1.0
+):
+    """Legacy endpoint for GPT: Get all data."""
+    # This is a wrapper around the components
+    houses_data = []
+    if latitude is not None and longitude is not None:
+        houses_data = await get_houses(date, time, latitude, longitude, system)
+        
+    planets_data = await get_planets(date, time)
+    
+    # Simplified aspects for legacy
+    aspects_data = []
+    
+    return {
+        "date": date,
+        "time": time,
+        "julian_day": 0.0, # Placeholder
+        "planets": planets_data,
+        "houses": houses_data,
+        "aspects": aspects_data
+    }
