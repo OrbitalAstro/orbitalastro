@@ -138,30 +138,41 @@ app = FastAPI(
     version="2.0.0",
 )
 
+# CORS configuration - allow all origins for Vercel deployments
+# In production, we allow all origins since we're behind Vercel's protection
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://localhost:3001",
-        "http://127.0.0.1:3000",
-        "http://127.0.0.1:3001",
-    ],
+    allow_origins=["*"],  # Allow all origins (Vercel frontend URLs are dynamic)
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # Exception handler to ensure CORS headers are added to all error responses
+# Note: This matches the CORS middleware configuration (allow_origins=["*"])
+# When allow_origins=["*"] with allow_credentials=True, FastAPI mirrors the request origin
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     logger.exception("Unhandled exception", exc_info=exc)
+    # Mirror the request origin to match FastAPI CORS middleware behavior
+    # Cross-origin requests always include an Origin header
+    origin = request.headers.get("origin")
+    cors_headers = {}
+    
+    # Only add CORS headers for cross-origin requests (when Origin header is present)
+    # This matches the middleware behavior when allow_origins=["*"] with credentials
+    if origin:
+        cors_headers = {
+            "Access-Control-Allow-Origin": origin,  # Mirror the request origin
+            "Access-Control-Allow-Credentials": "true",
+            "Access-Control-Allow-Methods": "*",
+            "Access-Control-Allow-Headers": "*",
+        }
+    
     return JSONResponse(
         status_code=500,
         content={"detail": str(exc)},
-        headers={
-            "Access-Control-Allow-Origin": "http://localhost:3000",
-            "Access-Control-Allow-Credentials": "true",
-        }
+        headers=cors_headers,
     )
 
 

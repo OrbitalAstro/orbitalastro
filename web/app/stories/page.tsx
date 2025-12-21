@@ -1,8 +1,10 @@
 'use client'
 
+export const dynamic = 'force-dynamic'
+
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { BookOpen, Sparkles, Calendar } from 'lucide-react'
+import { BookOpen, Calendar } from 'lucide-react'
 import { useSettingsStore } from '@/lib/store'
 import { apiClient } from '@/lib/api'
 import { useQuery } from '@tanstack/react-query'
@@ -25,7 +27,7 @@ export default function Stories() {
     timezone: settings.defaultTimezone || 'UTC',
   })
 
-  const { data: natalChart } = useQuery({
+  const { data: _natalChart } = useQuery({
     queryKey: ['natal-for-story', birthData],
     queryFn: async () => {
       const response = await apiClient.natal.calculate({

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { CheckCircle, AlertCircle } from 'lucide-react'
 import Tooltip from './Tooltip'
@@ -39,7 +39,33 @@ export default function FormField({
   max,
 }: FormFieldProps) {
   const [touched, setTouched] = useState(false)
+  const [isFocused, setIsFocused] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
   const showError = touched && error
+
+  // Pour les champs date et time, permettre la saisie textuelle
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Permettre toutes les touches, y compris "1"
+    if (type === 'date' || type === 'time') {
+      e.stopPropagation()
+      // Ne pas empêcher le comportement par défaut pour permettre la saisie
+    }
+  }
+
+  // Convertir la saisie textuelle en format date/time si nécessaire
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let newValue = e.target.value
+    
+    if (type === 'date' || type === 'time') {
+      // Laisser le navigateur gérer la conversion, mais permettre la saisie
+      onChange(newValue)
+    } else if (type === 'number') {
+      const numValue = parseFloat(newValue) || 0
+      onChange(numValue)
+    } else {
+      onChange(newValue)
+    }
+  }
 
   return (
     <div>
@@ -55,19 +81,27 @@ export default function FormField({
       </label>
       <div className="relative">
         <input
+          ref={inputRef}
           type={type}
           name={name}
           value={value}
-          onChange={(e) => {
-            const newValue = type === 'number' ? parseFloat(e.target.value) || 0 : e.target.value
-            onChange(newValue)
+          onChange={handleInputChange}
+          onKeyDown={handleKeyDown}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => {
+            setTouched(true)
+            setIsFocused(false)
           }}
-          onBlur={() => setTouched(true)}
           placeholder={placeholder}
           step={step}
           min={min}
           max={max}
           required={required}
+          // Permettre la saisie au clavier pour les champs date et time
+          // En utilisant inputMode, on force le clavier numérique sur mobile
+          // mais on permet toujours la saisie au clavier sur desktop
+          // S'assurer que le champ peut recevoir toutes les touches
+          autoComplete={type === 'date' ? 'bday' : type === 'time' ? 'off' : undefined}
           className={`
             w-full px-4 py-2 rounded-lg bg-white/10 border text-white placeholder-white/50
             focus:outline-none focus:ring-2 transition

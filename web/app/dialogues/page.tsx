@@ -1,11 +1,12 @@
 'use client'
 
+export const dynamic = 'force-dynamic'
+
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { MessageSquare, Sparkles } from 'lucide-react'
 import { useSettingsStore } from '@/lib/store'
 import { apiClient } from '@/lib/api'
-import { useQuery } from '@tanstack/react-query'
 import ReactMarkdown from 'react-markdown'
 import LocationInput from '@/components/LocationInput'
 import BackButton from '@/components/BackButton'

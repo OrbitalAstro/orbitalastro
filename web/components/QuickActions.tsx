@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Search, Home, Settings, BookOpen, Sparkles, Calendar, Command, TrendingUp, Zap, Wand2, MessageSquare } from 'lucide-react'
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useKeyboardShortcuts } from '@/lib/keyboard'
 import { useTranslation } from '@/lib/useTranslation'

@@ -42,7 +42,7 @@ export default function TransitCalendar({ natalChart, selectedDate, onDateSelect
     enabled: !!natalChart && !!targetDate,
   })
 
-  const hasTransits = (date: Date) => {
+  const hasTransits = (_date: Date) => {
     // Simplified: check if date has significant transits
     // In a real implementation, you'd pre-calculate all transits for the month
     return Math.random() > 0.7 // Placeholder

@@ -1,8 +1,10 @@
 'use client'
 
+export const dynamic = 'force-dynamic'
+
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Wand2, Calendar, MapPin, Plus, X } from 'lucide-react'
+import { Wand2, Calendar, Plus, X } from 'lucide-react'
 import { useSettingsStore, useChartHistory } from '@/lib/store'
 import { apiClient } from '@/lib/api'
 import { useToast } from '@/lib/toast'

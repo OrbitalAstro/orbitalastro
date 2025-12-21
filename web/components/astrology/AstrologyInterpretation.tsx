@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useSettingsStore } from '@/lib/store'
 import { callGemini } from '@/lib/gemini'
-import { signFromLongitude, translateSign } from './signTranslations'
+import { translateSign } from './signTranslations'
 import { useTranslation } from '@/lib/useTranslation'
 
 interface AstrologyInterpretationProps {
@@ -127,7 +127,7 @@ Génère une interprétation narrative fluide et accessible, structurée en 6 se
   const convertMarkdownToHTML = (text: string): string => {
     if (!text) return ''
     
-    let html = text
+    const html = text
     // Split by double newlines first to preserve paragraph structure
     const paragraphs = html.split(/\n\n+/)
     

@@ -1,5 +1,7 @@
 'use client'
 
+export const dynamic = 'force-dynamic'
+
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { MessageSquare, Send, Sparkles, User, Bot, Key, Settings } from 'lucide-react'
@@ -83,8 +85,8 @@ export default function ChatPage() {
     },
   }
 
-  const lang = settings.language
-  const t = translations[lang]
+  const lang = settings.language || 'en'
+  const t = translations[lang as keyof typeof translations] || translations.en
   const hasApiKey = !!settings.geminiApiKey?.trim()
 
   const scrollToBottom = () => {
@@ -159,8 +161,9 @@ export default function ChatPage() {
 
     try {
       // Check if question is about another person
-      const chartToUse = await getChartForQuestion(input.trim(), latestChart?.chart)
-      const response = await generateResponse(input.trim(), chartToUse, latestChart?.chart)
+      const latestChartData = latestChart as { chart?: unknown } | null
+      const chartToUse = await getChartForQuestion(input.trim(), latestChartData?.chart)
+      const response = await generateResponse(input.trim(), chartToUse, latestChartData?.chart)
       
       // Remove thinking message and add response
       setMessages((prev) => {
@@ -408,8 +411,9 @@ export default function ChatPage() {
         include_angles: true,
       })
 
-      const transits = transitResponse.data.transits || []
-      const transitsToAngles = transitResponse.data.transits_to_angles || []
+      const transitData = transitResponse.data || {}
+      const transits = transitData.transits || []
+      const transitsToAngles = transitData.transits_to_angles || []
 
       if (transits.length === 0 && transitsToAngles.length === 0) {
         return lang === 'fr'
@@ -479,7 +483,8 @@ export default function ChatPage() {
         include_angles: true,
       })
 
-      const transits = transitResponse.data.transits || []
+      const transitData = transitResponse.data || {}
+      const transits = transitData.transits || []
 
       if (transits.length === 0) {
         return lang === 'fr'

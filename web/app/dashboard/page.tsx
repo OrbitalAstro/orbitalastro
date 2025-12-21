@@ -1,8 +1,10 @@
 'use client'
 
+export const dynamic = 'force-dynamic'
+
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Calendar, MapPin, Clock, TrendingUp, BookOpen } from 'lucide-react'
+import { Calendar, Clock, TrendingUp, BookOpen } from 'lucide-react'
 import { useSettingsStore } from '@/lib/store'
 import { apiClient } from '@/lib/api'
 import { useQuery } from '@tanstack/react-query'
@@ -35,29 +37,36 @@ export default function Dashboard() {
   const { data: natalChart, isLoading, error, refetch } = useQuery({
     queryKey: ['natal', birthData],
     queryFn: async () => {
-      try {
-        const response = await apiClient.natal.calculate({
-          ...birthData,
-          birth_city: birthData.birth_place || undefined,
-          house_system: settings.houseSystem,
-          include_extra_objects: settings.includeExtraObjects,
-          use_topocentric_moon: settings.useTopocentricMoon,
-          include_aspects: settings.includeAspects,
-          narrative: {
-            tone: settings.narrativeTone as "mythic" | "psychological" | "coaching" | "cinematic" | "soft_therapeutic" | undefined,
-            depth: settings.narrativeDepth as "short" | "standard" | "long" | "comprehensive" | undefined,
-            focus: settings.narrativeFocus as ("career" | "relationships" | "family" | "spirituality" | "creativity" | "healing")[] | undefined,
-          },
-        })
-        const chartData = response.data
-        toast.success(t.dashboard.success)
-        return chartData
-      } catch (err: any) {
-        toast.error(t.dashboard.error, err?.response?.data?.detail || t.dashboard.errorMessage)
-        throw err
+      const response = await apiClient.natal.calculate({
+        ...birthData,
+        birth_city: birthData.birth_place || undefined,
+        house_system: settings.houseSystem,
+        include_extra_objects: settings.includeExtraObjects,
+        use_topocentric_moon: settings.useTopocentricMoon,
+        include_aspects: settings.includeAspects,
+        narrative: {
+          tone: settings.narrativeTone as "mythic" | "psychological" | "coaching" | "cinematic" | "soft_therapeutic" | undefined,
+          depth: settings.narrativeDepth as "short" | "standard" | "long" | "comprehensive" | undefined,
+          focus: settings.narrativeFocus as ("career" | "relationships" | "family" | "spirituality" | "creativity" | "healing")[] | undefined,
+        },
+      })
+      
+      if (response.error) {
+        throw new Error(response.error)
       }
+      
+      if (!response.data) {
+        throw new Error(t.dashboard.errorMessage)
+      }
+      
+      toast.success(t.dashboard.success)
+      return response.data
     },
     enabled: false,
+    retry: false,
+    onError: (err: Error) => {
+      toast.error(t.dashboard.error, err.message || t.dashboard.errorMessage)
+    },
   })
 
   const validateForm = () => {

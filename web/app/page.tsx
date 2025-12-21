@@ -2,10 +2,12 @@
 
 'use client'
 
+export const dynamic = 'force-dynamic'
+
 import { useState, useEffect } from 'react'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import {
-  Sparkles, BarChart3, BookOpen, Calendar, Star,
+  Sparkles, Star,
   ArrowRight, Eye, Scroll, Wand2, Zap, Heart
 } from 'lucide-react'
 import Link from 'next/link'
@@ -20,7 +22,6 @@ export default function LandingPage() {
   const { scrollY } = useScroll()
   const y1 = useTransform(scrollY, [0, 300], [0, 200])
   const y2 = useTransform(scrollY, [0, 300], [0, -100])
-  const opacity = useTransform(scrollY, [0, 300], [1, 0])
 
   return (
     <div className="min-h-screen bg-cosmic-black text-cosmic-white relative">

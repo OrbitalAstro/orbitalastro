@@ -1,8 +1,10 @@
 'use client'
 
+export const dynamic = 'force-dynamic'
+
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { TrendingUp, Calendar, MapPin } from 'lucide-react'
+import { TrendingUp, Calendar } from 'lucide-react'
 import { useSettingsStore, useChartHistory } from '@/lib/store'
 import { apiClient } from '@/lib/api'
 import { useToast } from '@/lib/toast'

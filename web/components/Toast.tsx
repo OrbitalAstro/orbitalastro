@@ -1,6 +1,6 @@
 'use client'
 
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { X, CheckCircle, AlertCircle, Info, AlertTriangle } from 'lucide-react'
 import { useToastStore, Toast } from '@/lib/toast'
 
@@ -32,10 +32,7 @@ export default function ToastComponent({ toast }: { toast: Toast }) {
     >
       <Icon className="h-5 w-5 mt-0.5 flex-shrink-0" />
       <div className="flex-1">
-        <p className="font-semibold text-sm">{toast.title}</p>
-        {toast.message && (
-          <p className="text-xs mt-1 opacity-90">{toast.message}</p>
-        )}
+        <p className="font-semibold text-sm">{toast.message}</p>
       </div>
       <button
         onClick={() => removeToast(toast.id)}

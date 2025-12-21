@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { Download, Share2, Copy } from 'lucide-react'
+import { Download, Share2 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { apiClient } from '@/lib/api'
 import { useSettingsStore } from '@/lib/store'
@@ -69,7 +69,7 @@ export default function ChartVisualization({ chart }: ChartVisualizationProps) {
         filename: `orbitalastro-chart-${Date.now()}.png`,
       })
       toast.success('Chart exported successfully!')
-    } catch (error) {
+    } catch {
       toast.error('Failed to export chart')
     } finally {
       setExporting(false)
@@ -80,7 +80,7 @@ export default function ChartVisualization({ chart }: ChartVisualizationProps) {
     try {
       await copyShareableLink(chart)
       toast.success('Shareable link copied to clipboard!')
-    } catch (error) {
+    } catch {
       toast.error('Failed to generate shareable link')
     }
   }
