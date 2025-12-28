@@ -10,10 +10,10 @@ from pydantic import BaseModel, Field
 
 from astro.aspects import AspectConfig, Aspect, find_aspects, detect_patterns
 from astro.transits import compute_transits, compute_transits_to_angles
-from astro.houses import compute_asc_mc
 from astro.houses_multi import compute_houses
 from astro.julian import datetime_to_julian_day
-from astro.ephemeris_loader import EphemerisRepository
+from astro.swisseph_positions import get_positions_from_swisseph
+from astro.julian import datetime_to_julian_day
 from astro.master_prompt_builder import build_natal_reading_prompt
 from astro.chart_utils import build_chart_payload_for_narrative
 from api.schemas import NarrativeConfig
@@ -79,23 +79,28 @@ async def calculate_transits(request: TransitRequest):
         )
 
     # Get transit chart data if latitude/longitude provided
-    transit_planets = EphemerisRepository.get_positions(target_datetime)
     transit_jd = datetime_to_julian_day(target_datetime)
+    transit_planets = get_positions_from_swisseph(target_datetime, transit_jd)
     transit_asc = None
     transit_mc = None
     transit_cusps = None
     transit_houses = None
     house_system = request.house_system or "placidus"
     if request.latitude is not None and request.longitude is not None:
-        transit_asc, transit_mc = compute_asc_mc(transit_jd, request.latitude, request.longitude)
-        transit_cusps = compute_houses(
+        # compute_houses now returns (cusps, ascendant, midheaven)
+        # All values are calculated by Swiss Ephemeris exclusively
+        cusps_tuple = compute_houses(
             house_system,
             transit_jd,
             request.latitude,
             request.longitude,
-            transit_asc,
-            transit_mc,
+            None,
+            None,
         )
+        if isinstance(cusps_tuple, tuple) and len(cusps_tuple) == 3:
+            transit_cusps, transit_asc, transit_mc = cusps_tuple
+        else:
+            raise ValueError(f"Invalid return format from compute_houses: expected tuple of 3, got {type(cusps_tuple)}")
         transit_houses = {str(i + 1): cusp for i, cusp in enumerate(transit_cusps)}
     else:
         transit_houses = {}

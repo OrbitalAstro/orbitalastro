@@ -6,7 +6,8 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple
 
-from astro.ephemeris_loader import EphemerisRepository
+from astro.swisseph_positions import get_positions_from_swisseph
+from astro.julian import datetime_to_julian_day
 from astro.utils import normalize_angle_deg
 
 
@@ -72,15 +73,19 @@ def _get_orb(body: str, config: AspectConfig) -> float:
 def _compute_velocity(
     body: str, position: float, target_datetime: datetime, delta_hours: float = 1.0
 ) -> float:
-    """Compute the velocity of a body in degrees per hour."""
+    """Compute the velocity of a body in degrees per hour using Swiss Ephemeris."""
     future_time = target_datetime + timedelta(hours=delta_hours)
     try:
-        future_pos = EphemerisRepository.get_positions(future_time)[body]
+        future_jd = datetime_to_julian_day(future_time)
+        future_positions = get_positions_from_swisseph(future_time, future_jd)
+        if body not in future_positions:
+            return 0.0
+        future_pos = future_positions[body]
         delta_pos = (future_pos - position) % 360.0
         if delta_pos > 180.0:
             delta_pos -= 360.0
         return delta_pos / delta_hours
-    except (FileNotFoundError, KeyError):
+    except (KeyError, Exception):
         return 0.0
 
 

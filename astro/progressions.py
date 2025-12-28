@@ -5,8 +5,7 @@ from __future__ import annotations
 from datetime import date, datetime, timedelta
 from typing import Dict, Optional, Union
 
-from astro.ephemeris_loader import EphemerisRepository
-from astro.houses import compute_asc_mc
+from astro.swisseph_positions import get_positions_from_swisseph
 from astro.houses_multi import compute_houses
 from astro.julian import datetime_to_julian_day
 
@@ -53,16 +52,22 @@ def compute_progressed_chart(
     if progressed_datetime.year < 1900 or progressed_datetime.year > 2100:
         raise ValueError(f"Progressed datetime ({progressed_datetime.year}) is outside ephemeris range (1900-2100)")
 
-    # Get progressed planetary positions
+    # Get progressed planetary positions using Swiss Ephemeris
+    progressed_jd = datetime_to_julian_day(progressed_datetime)
     try:
-        progressed_positions = EphemerisRepository.get_positions(progressed_datetime)
-    except FileNotFoundError as e:
-        raise ValueError(f"Ephemeris data not available for year {progressed_datetime.year}. {str(e)}")
+        progressed_positions = get_positions_from_swisseph(progressed_datetime, progressed_jd)
+    except Exception as e:
+        raise ValueError(f"Failed to calculate progressed positions for year {progressed_datetime.year}: {str(e)}")
 
     # Compute progressed angles and houses
     progressed_jd = datetime_to_julian_day(progressed_datetime)
-    progressed_asc, progressed_mc = compute_asc_mc(progressed_jd, latitude_deg, longitude_deg)
-    progressed_cusps = compute_houses(house_system, progressed_jd, latitude_deg, longitude_deg, progressed_asc, progressed_mc)
+    # compute_houses now returns (cusps, ascendant, midheaven)
+    # All values are calculated by Swiss Ephemeris exclusively
+    cusps_tuple = compute_houses(house_system, progressed_jd, latitude_deg, longitude_deg, None, None)
+    if isinstance(cusps_tuple, tuple) and len(cusps_tuple) == 3:
+        progressed_cusps, progressed_asc, progressed_mc = cusps_tuple
+    else:
+        raise ValueError(f"Invalid return format from compute_houses: expected tuple of 3, got {type(cusps_tuple)}")
 
     return {
         "progressed_datetime_utc": progressed_datetime.isoformat(),
@@ -103,10 +108,11 @@ def compute_progressed_to_natal_aspects(
     else:
         progressed_date_only = progressed_date
 
-    # Get progressed positions
+    # Get progressed positions using Swiss Ephemeris
     age_years = (progressed_date_only - birth_datetime_utc.date()).days / 365.25
     progressed_datetime = birth_datetime_utc + timedelta(days=age_years)
-    progressed_positions = EphemerisRepository.get_positions(progressed_datetime)
+    progressed_jd = datetime_to_julian_day(progressed_datetime)
+    progressed_positions = get_positions_from_swisseph(progressed_datetime, progressed_jd)
 
     # Find aspects between progressed and natal
     all_positions = {}
@@ -118,10 +124,10 @@ def compute_progressed_to_natal_aspects(
     aspects = find_aspects(all_positions, AspectConfig(), progressed_datetime)
 
     # Also check progressed angles to natal planets
-    progressed_jd = datetime_to_julian_day(progressed_datetime)
-    progressed_asc, progressed_mc = compute_asc_mc(
-        progressed_jd, 0.0, 0.0
-    )  # Would need actual lat/lon
+    # Note: This would need actual lat/lon for accurate calculation
+    # For now, we skip this as it's not properly implemented
+    progressed_asc = None
+    progressed_mc = None
 
     return {
         "progressed_to_natal_aspects": [

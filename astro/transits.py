@@ -6,7 +6,8 @@ from datetime import datetime
 from typing import Dict, List, Optional
 
 from astro.aspects import Aspect, AspectConfig, find_aspects
-from astro.ephemeris_loader import EphemerisRepository
+from astro.swisseph_positions import get_positions_from_swisseph
+from astro.julian import datetime_to_julian_day
 
 
 def compute_transits(
@@ -25,8 +26,9 @@ def compute_transits(
     Returns:
         List of Aspect objects representing transits
     """
-    # Get transiting positions at target datetime
-    transiting_positions = EphemerisRepository.get_positions(target_datetime_utc)
+    # Get transiting positions at target datetime using Swiss Ephemeris
+    transit_jd = datetime_to_julian_day(target_datetime_utc)
+    transiting_positions = get_positions_from_swisseph(target_datetime_utc, transit_jd)
 
     # Build combined positions dict for aspect finding
     # We'll compare transiting bodies to natal bodies
@@ -97,7 +99,8 @@ def compute_transits_to_angles(
     Returns:
         List of transit dictionaries with angle, transiting body, aspect, orb
     """
-    transiting_positions = EphemerisRepository.get_positions(target_datetime_utc)
+    transit_jd = datetime_to_julian_day(target_datetime_utc)
+    transiting_positions = get_positions_from_swisseph(target_datetime_utc, transit_jd)
     angles = {
         "asc": natal_asc,
         "mc": natal_mc,
