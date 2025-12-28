@@ -109,3 +109,4 @@ def get_positions_from_swisseph(target_datetime: datetime, jd: float) -> Dict[st
     except Exception as e:
         raise RuntimeError(f"Failed to calculate positions with Swiss Ephemeris: {e}")
 
+
