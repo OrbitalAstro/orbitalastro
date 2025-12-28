@@ -191,3 +191,121 @@ body {
 .animate-nebula-pulse {
   animation: nebula-pulse 3s ease-in-out infinite;
 }
+
+/* Dialogue rich text styling */
+.dialogue-prose {
+  font-family: 'Inter', sans-serif;
+  line-height: 1.85;
+  letter-spacing: 0.01em;
+  text-align: justify;
+  color: var(--cosmic-gold);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(228, 181, 160, 0.18);
+  border-radius: 1rem;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+}
+
+.dialogue-prose p {
+  margin: 0 0 1.1em;
+  text-indent: 1.25em;
+}
+
+.dialogue-prose p:first-child {
+  text-indent: 0;
+}
+
+.dialogue-prose strong {
+  color: var(--cosmic-gold);
+  letter-spacing: 0.05em;
+}
+
+.dialogue-prose em {
+  color: var(--rose-gold);
+}
+
+.dialogue-center {
+  text-align: center;
+  text-indent: 0;
+  letter-spacing: 0.08em;
+}
+
+.dialogue-prose hr {
+  border: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--cosmic-gold), transparent);
+  margin: 1.6em 0;
+}
+
+.dialogue-prose h1,
+.dialogue-prose h2,
+.dialogue-prose h3 {
+  font-family: 'Cinzel', serif;
+  letter-spacing: 0.08em;
+  text-align: center;
+  margin: 0 0 0.9em;
+}
+
+.dialogue-prose blockquote {
+  border-left: 3px solid var(--cosmic-gold);
+  padding-left: 1em;
+  margin: 0 0 1.2em;
+  color: rgba(228, 181, 160, 0.9);
+}
+
+/* PDF export card */
+.pdf-card {
+  background: radial-gradient(120% 120% at 20% 20%, #7a4f85 0%, #5b3365 45%, #3a1e4c 100%);
+  border-radius: 18px;
+  border: 1px solid rgba(228, 181, 160, 0.25);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+  position: relative;
+  padding: 32px 28px 36px;
+}
+
+.pdf-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(60% 60% at 80% 10%, rgba(255, 255, 255, 0.15), transparent);
+  pointer-events: none;
+}
+
+.pdf-header {
+  text-align: center;
+  margin-bottom: 18px;
+  position: relative;
+  z-index: 1;
+}
+
+.pdf-logo {
+  height: 72px;
+  margin: 0 auto 8px;
+  filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.35));
+}
+
+.pdf-brand {
+  font-family: 'Great Vibes', cursive;
+  font-size: 32px;
+  color: var(--cosmic-gold);
+  letter-spacing: 0.04em;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+}
+
+.pdf-subtitle {
+  font-family: 'Cinzel', serif;
+  font-size: 14px;
+  letter-spacing: 0.2em;
+  color: rgba(255, 255, 255, 0.85);
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+.pdf-scroll {
+  max-height: 70vh;
+  overflow-y: auto;
+  padding-right: 12px;
+}
+
+.pdf-body {
+  font-size: 12pt;
+}
