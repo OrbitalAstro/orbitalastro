@@ -48,3 +48,4 @@ Les fichiers suivants contiennent encore des références à l'ancien système m
 ✅ **Précision**: Résultats alignés avec les standards astrologiques
 ✅ **Ascendant corrigé**: Calculs corrects (ex: Gémeaux au lieu de Taureau)
 
+

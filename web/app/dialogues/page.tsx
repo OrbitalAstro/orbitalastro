@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { MessageSquare, Sparkles } from 'lucide-react'
 import { useSettingsStore } from '@/lib/store'
@@ -14,10 +14,13 @@ import BackButton from '@/components/BackButton'
 import { useTranslation } from '@/lib/useTranslation'
 import { generateDialoguePrompt } from './generatePrompt'
 import { formatBirthDateInput } from '@/lib/sanitizeBirthDateYear'
+import html2canvas from 'html2canvas'
+import jsPDF from 'jspdf'
 
 export default function Dialogues() {
   const settings = useSettingsStore()
   const t = useTranslation()
+  const exportRef = useRef<HTMLDivElement>(null)
   const [birthData, setBirthData] = useState({
     birth_date: settings.defaultBirthDate || '',
     birth_time: settings.defaultBirthTime || '12:00',
@@ -30,6 +33,7 @@ export default function Dialogues() {
 
   const [dialogue, setDialogue] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [downloading, setDownloading] = useState(false)
 
   const resetForm = () => {
     setBirthData({
@@ -42,6 +46,80 @@ export default function Dialogues() {
       timezone: settings.defaultTimezone || 'UTC',
     })
     setDialogue(null)
+  }
+
+  const handleDownloadPdf = async () => {
+    if (!dialogue || !exportRef.current) return
+    setDownloading(true)
+    try {
+      const node = exportRef.current
+      const previousMaxHeight = node.style.maxHeight
+      const previousOverflow = node.style.overflow
+      node.style.maxHeight = 'none'
+      node.style.overflow = 'visible'
+
+      const canvas = await html2canvas(node, {
+        scale: 2,
+        backgroundColor: null,
+        useCORS: true,
+        logging: false,
+        height: node.scrollHeight,
+        windowHeight: node.scrollHeight,
+      })
+
+      // Restore styles
+      node.style.maxHeight = previousMaxHeight
+      node.style.overflow = previousOverflow
+
+      const imgData = canvas.toDataURL('image/png')
+      const pdf = new jsPDF('p', 'pt', 'a4')
+      const pageWidth = pdf.internal.pageSize.getWidth()
+      const pageHeight = pdf.internal.pageSize.getHeight()
+      // Scale to page width only, keep height for multipage
+      const ratio = pageWidth / canvas.width
+      const pageCanvasHeight = pageHeight / ratio
+      let renderedHeight = 0
+      let pageIndex = 0
+
+      while (renderedHeight < canvas.height) {
+        const canvasPage = document.createElement('canvas')
+        canvasPage.width = canvas.width
+        canvasPage.height = Math.min(pageCanvasHeight, canvas.height - renderedHeight)
+
+        const ctx = canvasPage.getContext('2d')
+        if (ctx) {
+          ctx.drawImage(
+            canvas,
+            0,
+            renderedHeight,
+            canvas.width,
+            canvasPage.height,
+            0,
+            0,
+            canvas.width,
+            canvasPage.height
+          )
+        }
+
+        const imgPageData = canvasPage.toDataURL('image/png')
+        if (pageIndex > 0) pdf.addPage()
+        const pageImgHeight = canvasPage.height * ratio
+        const x = (pageWidth - canvas.width * ratio) / 2
+        const y = 20
+        pdf.addImage(imgPageData, 'PNG', x, y, canvas.width * ratio, pageImgHeight)
+
+        renderedHeight += pageCanvasHeight
+        pageIndex += 1
+      }
+
+      const filename = `dialogue-pre-incarnation-${birthData.firstName || 'lecture'}.pdf`
+      pdf.save(filename)
+    } catch (err) {
+      console.error('Error generating PDF', err)
+      alert("Échec de la génération du PDF. Réessaie ou vérifie que l'image/logo est accessible.")
+    } finally {
+      setDownloading(false)
+    }
   }
 
   const handleGenerateDialogue = async () => {
@@ -250,12 +328,60 @@ export default function Dialogues() {
               animate={{ opacity: 1, y: 0 }}
               className="bg-gradient-to-br from-cosmic-purple/40 to-magenta-purple/40 rounded-xl p-6 border border-cosmic-gold/20"
             >
-              <div className="prose prose-invert max-w-none max-h-[70vh] overflow-y-auto pr-4 custom-scrollbar text-cosmic-gold/90">
-                <ReactMarkdown>{dialogue}</ReactMarkdown>
+              <div className="pdf-card max-w-3xl mx-auto">
+                <div className="pdf-header">
+                  <img
+                    src="/orbital-astro-logo.png"
+                    alt="Orbital Astro"
+                    className="pdf-logo"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement
+                      if (target) target.style.display = 'none'
+                    }}
+                  />
+                  <div className="pdf-brand">Orbital Astro</div>
+                  <div className="pdf-subtitle">Dialogue pré-incarnation</div>
+                </div>
+                <div
+                  ref={exportRef}
+                  className="pdf-scroll custom-scrollbar text-cosmic-gold/90"
+                >
+                  <div className="dialogue-prose px-6 py-4 pdf-body">
+                    <ReactMarkdown
+                    components={{
+                      p: ({ node, ...props }) => {
+                        const rawText = Array.isArray(props.children)
+                          ? props.children.map((c: any) => (typeof c === 'string' ? c : '')).join('').trim()
+                          : (props.children as any)?.toString().trim()
+                          const isCountdown = /\d\s*[–-]\s*\d/.test(rawText || '')
+                          const isDate = /\d{1,2}\s+\w+\s+\d{2,4}/i.test(rawText || '')
+                          const isPlace = (rawText || '').includes(',') && (rawText || '').length < 80
+                          const center = (rawText || '').length < 90 && (isCountdown || isDate || isPlace)
+                          return <p {...props} className={`dialogue-paragraph ${center ? 'dialogue-center' : ''}`} />
+                        },
+                        strong: ({ node, ...props }) => <strong {...props} className="dialogue-strong" />,
+                        em: ({ node, ...props }) => <em {...props} className="dialogue-em" />,
+                        hr: () => null,
+                      }}
+                    >
+                      {dialogue}
+                    </ReactMarkdown>
+                  </div>
+                </div>
               </div>
               {/* Note de bas de page */}
               <div className="mt-6 pt-4 border-t border-cosmic-gold/20 text-sm text-cosmic-gold/70 italic text-center">
                 L'astrologie ici est offerte comme un divertissement, une manière légère de réfléchir, sans valeur de vérité absolue.
+              </div>
+              <div className="flex flex-col sm:flex-row sm:justify-end sm:items-center gap-2 mt-4">
+                <button
+                  type="button"
+                  onClick={handleDownloadPdf}
+                  disabled={downloading}
+                  className="px-4 py-2 bg-cosmic-gold/20 text-cosmic-gold rounded-lg border border-cosmic-gold/40 hover:bg-cosmic-gold/30 transition disabled:opacity-50"
+                >
+                  {downloading ? 'Création du PDF...' : 'Télécharger en PDF'}
+                </button>
               </div>
             </motion.div>
           )}
