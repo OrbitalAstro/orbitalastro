@@ -10,8 +10,9 @@ import { apiClient } from '@/lib/api'
 import ReactMarkdown from 'react-markdown'
 import LocationInput from '@/components/LocationInput'
 import BackButton from '@/components/BackButton'
-import { generateDialogue } from '@/lib/gemini'
+// Removed generateDialogue import
 import { useTranslation } from '@/lib/useTranslation'
+import { generateDialoguePrompt } from './generatePrompt'
 
 export default function Dialogues() {
   const settings = useSettingsStore()
@@ -30,10 +31,7 @@ export default function Dialogues() {
   const [loading, setLoading] = useState(false)
 
   const handleGenerateDialogue = async () => {
-    if (!settings.geminiApiKey?.trim()) {
-      alert(t.dialogues.apiKeyRequired)
-      return
-    }
+    // API key check moved to backend
 
     setLoading(true)
     try {
@@ -72,42 +70,49 @@ export default function Dialogues() {
         include_extra_objects: settings.includeExtraObjects ?? true,
       })
       
+      if (chartResponse.error) {
+        throw new Error(chartResponse.error)
+      }
+      
       const chart = chartResponse.data
+      
+      if (!chart) {
+        throw new Error('Chart response is empty')
+      }
+      
       console.log('Chart received:', {
-        hasPlanets: !!chart.planets,
-        hasAspects: !!chart.aspects,
-        planetCount: chart.planets ? Object.keys(chart.planets).length : 0,
-        aspectCount: chart.aspects ? chart.aspects.length : 0,
+        hasPlanets: !!chart?.planets,
+        hasAspects: !!chart?.aspects,
+        planetCount: chart?.planets ? Object.keys(chart.planets).length : 0,
+        aspectCount: chart?.aspects ? chart.aspects.length : 0,
       })
 
       if (!chart.planets) {
         throw new Error('Chart response missing planets data')
       }
       
-      // Generate pre-incarnation dialogue using Gemini
-      console.log('Generating dialogue with Gemini...')
-      const dialogueText = await generateDialogue(
-        settings.geminiApiKey,
-        chart,
-        {
-          birth_date: birthData.birth_date,
-          birth_time: birthData.birth_time,
-          birth_place: birthData.birth_place,
-          firstName: birthData.firstName,
-        },
-        (settings.language || 'fr') as 'en' | 'fr' | 'es'
-      )
+      // Generate pre-incarnation dialogue using backend AI endpoint
+      console.log('Generating dialogue with AI...')
+      
+      // Generate the structured prompts with all rules
+      const { systemPrompt, userPrompt } = generateDialoguePrompt(birthData, chart)
+      
+      const response = await apiClient.ai.interpret(userPrompt, systemPrompt)
+      
+      if (response.error) {
+        throw new Error(response.error)
+      }
+      
+      const dialogueText = response.data?.content || ''
       
       console.log('Dialogue generated successfully')
       setDialogue(dialogueText)
     } catch (error: any) {
       console.error('Error generating dialogue:', error)
-      const errorMsg = error.response?.data?.detail || error.message || 'Erreur inconnue'
+      const errorMsg = error.message || 'Erreur inconnue'
       const userFriendlyMsg = errorMsg.includes('Rate limit') || errorMsg.includes('429')
         ? (t.dialogues.rateLimitError || 'Limite de requêtes atteinte. Veuillez attendre quelques instants et réessayer.')
-        : errorMsg.includes('API key') || errorMsg.includes('401')
-          ? 'Clé API Gemini invalide ou manquante. Vérifiez vos paramètres.'
-          : `Erreur lors de la génération du dialogue: ${errorMsg}`
+        : `Erreur lors de la génération du dialogue: ${errorMsg}`
       alert(userFriendlyMsg)
     } finally {
       setLoading(false)
@@ -115,65 +120,65 @@ export default function Dialogues() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <BackButton href="/" />
+    <div className="min-h-screen bg-gradient-to-br from-cosmic-purple via-magenta-purple to-cosmic-purple relative">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
+        <BackButton />
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white/10 backdrop-blur-sm rounded-xl p-8 border border-white/20"
+          className="bg-gradient-to-br from-cosmic-purple/60 to-magenta-purple/60 backdrop-blur-sm rounded-xl p-8 border border-cosmic-gold/20 relative z-10"
         >
-          <h1 className="text-3xl font-bold text-white mb-8 flex items-center">
-            <MessageSquare className="h-8 w-8 mr-3 text-yellow-400" />
-            {t.dialogues.title}
+          <h1 className="text-3xl font-bold text-cosmic-gold mb-8 flex items-center">
+            <MessageSquare className="h-8 w-8 mr-3 text-cosmic-gold" />
+            Dialogue Pré-incarnation
           </h1>
 
-          <p className="text-white/70 mb-6">
-            {t.dialogues.description}
+          <p className="text-cosmic-gold/90 mb-6">
+            Découvrez le dialogue de votre âme avant l'incarnation. Une expérience profonde et transformative qui révèle votre mission de vie.
           </p>
 
           {/* Input Form */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 relative z-20">
             <div>
-              <label className="block text-sm font-medium text-white/80 mb-2">
-                {t.dialogues.firstName}
+              <label className="block text-sm font-medium text-cosmic-gold mb-2">
+                Prénom
               </label>
               <input
                 type="text"
                 value={birthData.firstName}
                 onChange={(e) => setBirthData({ ...birthData, firstName: e.target.value })}
-                placeholder={t.dialogues.firstNamePlaceholder}
-                className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                placeholder="Votre prénom"
+                className="w-full px-4 py-2 rounded-lg bg-white/10 border border-cosmic-gold/30 text-cosmic-gold placeholder-cosmic-gold/50 focus:outline-none focus:border-cosmic-gold relative z-20"
                 suppressHydrationWarning
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-white/80 mb-2">
-                {t.dialogues.birthDate}
+              <label className="block text-sm font-medium text-cosmic-gold mb-2">
+                Date de naissance
               </label>
               <input
                 type="date"
                 value={birthData.birth_date}
                 onChange={(e) => setBirthData({ ...birthData, birth_date: e.target.value })}
-                className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="w-full px-4 py-2 rounded-lg bg-white/10 border border-cosmic-gold/30 text-cosmic-gold focus:outline-none focus:border-cosmic-gold relative z-20"
                 suppressHydrationWarning
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-white/80 mb-2">
-                {t.dialogues.birthTime}
+              <label className="block text-sm font-medium text-cosmic-gold mb-2">
+                Heure de naissance
               </label>
               <input
                 type="time"
                 value={birthData.birth_time}
                 onChange={(e) => setBirthData({ ...birthData, birth_time: e.target.value })}
-                className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="w-full px-4 py-2 rounded-lg bg-white/10 border border-cosmic-gold/30 text-cosmic-gold focus:outline-none focus:border-cosmic-gold relative z-20"
                 suppressHydrationWarning
               />
             </div>
             <div className="md:col-span-2">
               <LocationInput
-                label={t.dialogues.birthPlace}
+                label="Lieu de naissance"
                 value={birthData.birth_place}
                 onChange={(value) => setBirthData({ ...birthData, birth_place: value })}
                 onLocationSelect={(location) => {
@@ -185,31 +190,26 @@ export default function Dialogues() {
                     timezone: location.timezone || settings.defaultTimezone || '',
                   })
                 }}
-                placeholder={t.tooltips.locationSearch}
+                placeholder="Rechercher un lieu..."
               />
             </div>
           </div>
 
-          {!settings.geminiApiKey?.trim() && (
-            <div className="mb-6 p-4 bg-yellow-500/20 border border-yellow-500/50 rounded-lg">
-              <p className="text-sm text-yellow-400">
-                {t.dialogues.apiKeyRequired}
-              </p>
-            </div>
-          )}
-
           <button
             onClick={handleGenerateDialogue}
-            disabled={loading || !birthData.birth_date || !settings.geminiApiKey?.trim()}
-            className="w-full px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:shadow-lg transition disabled:opacity-50 mb-8 flex items-center justify-center"
+            disabled={loading || !birthData.birth_date}
+            className="w-full px-6 py-3 bg-gradient-to-r from-cosmic-gold via-rose-gold to-cosmic-gold text-cosmic-purple rounded-lg font-semibold hover:shadow-lg transition disabled:opacity-50 mb-8 flex items-center justify-center"
           >
             {loading ? (
               <>
                 <Sparkles className="h-5 w-5 mr-2 animate-spin" />
-                {t.dialogues.generating}
+                Génération en cours...
               </>
             ) : (
-              t.dialogues.generate
+              <>
+                <MessageSquare className="h-5 w-5 mr-2" />
+                Générer mon dialogue
+              </>
             )}
           </button>
 
@@ -218,10 +218,14 @@ export default function Dialogues() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-white/5 rounded-xl p-6 border border-white/10"
+              className="bg-gradient-to-br from-cosmic-purple/40 to-magenta-purple/40 rounded-xl p-6 border border-cosmic-gold/20"
             >
-              <div className="prose prose-invert max-w-none max-h-[70vh] overflow-y-auto pr-4 custom-scrollbar">
+              <div className="prose prose-invert max-w-none max-h-[70vh] overflow-y-auto pr-4 custom-scrollbar text-cosmic-gold/90">
                 <ReactMarkdown>{dialogue}</ReactMarkdown>
+              </div>
+              {/* Note de bas de page */}
+              <div className="mt-6 pt-4 border-t border-cosmic-gold/20 text-sm text-cosmic-gold/70 italic text-center">
+                L'astrologie ici est offerte comme un divertissement, une manière légère de réfléchir, sans valeur de vérité absolue.
               </div>
             </motion.div>
           )}
