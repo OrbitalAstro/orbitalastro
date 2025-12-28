@@ -6,8 +6,7 @@ import json
 from datetime import datetime
 from pathlib import Path
 
-from astro.ephemeris_loader import EphemerisRepository
-from astro.houses import compute_asc_mc
+from astro.swisseph_positions import get_positions_from_swisseph
 from astro.houses_multi import compute_houses
 from astro.julian import datetime_to_julian_day
 from astro.aspects import AspectConfig, find_aspects, detect_patterns
@@ -57,18 +56,17 @@ def generate_natal_golden_master(test_case: dict) -> dict:
     birth_dt = test_case["birth_datetime"]
     jd = datetime_to_julian_day(birth_dt)
     
-    # Get planetary positions
-    positions = EphemerisRepository.get_positions(birth_dt)
+    # Get planetary positions using Swiss Ephemeris
+    positions = get_positions_from_swisseph(birth_dt, jd)
     
-    # Compute angles and houses
-    asc, mc = compute_asc_mc(jd, test_case["latitude"], test_case["longitude"])
-    cusps = compute_houses(
+    # Compute angles and houses (compute_houses now returns tuple)
+    cusps, asc, mc = compute_houses(
         test_case["house_system"],
         jd,
         test_case["latitude"],
         test_case["longitude"],
-        asc,
-        mc,
+        None,
+        None,
     )
     
     # Compute aspects
@@ -102,32 +100,27 @@ def generate_natal_golden_master(test_case: dict) -> dict:
 
 def generate_transit_golden_master(test_case: dict) -> dict:
     """Generate golden master for transits with chart data and patterns."""
-    from astro.houses import compute_asc_mc
-    from astro.houses_multi import compute_houses
-    
     natal_dt = test_case["natal_datetime"]
     target_dt = test_case["target_datetime"]
     
-    # Get natal positions
-    natal_positions = EphemerisRepository.get_positions(natal_dt)
+    # Get natal positions using Swiss Ephemeris
+    natal_jd = datetime_to_julian_day(natal_dt)
+    natal_positions = get_positions_from_swisseph(natal_dt, natal_jd)
     
     # Compute transits
     config = AspectConfig()
     transits = compute_transits(natal_positions, target_dt, config)
     
-    # Get transit chart data
-    transit_positions = EphemerisRepository.get_positions(target_dt)
+    # Get transit chart data using Swiss Ephemeris
     transit_jd = datetime_to_julian_day(target_dt)
-    transit_asc, transit_mc = compute_asc_mc(
-        transit_jd, test_case["latitude"], test_case["longitude"]
-    )
-    transit_cusps = compute_houses(
+    transit_positions = get_positions_from_swisseph(target_dt, transit_jd)
+    transit_cusps, transit_asc, transit_mc = compute_houses(
         "placidus",
         transit_jd,
         test_case["latitude"],
         test_case["longitude"],
-        transit_asc,
-        transit_mc,
+        None,
+        None,
     )
     
     # Detect patterns
@@ -198,7 +191,8 @@ def generate_progression_golden_master(test_case: dict) -> dict:
 def generate_solar_return_golden_master(test_case: dict) -> dict:
     """Generate golden master for solar return with aspects and patterns."""
     birth_dt = test_case["birth_date"]
-    natal_positions = EphemerisRepository.get_positions(birth_dt)
+    birth_jd = datetime_to_julian_day(birth_dt)
+    natal_positions = get_positions_from_swisseph(birth_dt, birth_jd)
     natal_sun_long = natal_positions["sun"]
     
     return_dt, return_chart = find_solar_return(

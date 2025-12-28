@@ -5,7 +5,8 @@ from datetime import datetime
 from astro.transits import compute_transits, compute_transits_to_angles
 from astro.progressions import compute_progressed_chart
 from astro.aspects import AspectConfig, detect_patterns
-from astro.ephemeris_loader import EphemerisRepository
+from astro.swisseph_positions import get_positions_from_swisseph
+from astro.julian import datetime_to_julian_day
 
 
 def test_compute_transits():
@@ -124,7 +125,8 @@ def test_solar_return():
     from astro.aspects import find_aspects, AspectConfig, detect_patterns
     
     birth_date = datetime(1990, 1, 1, 12, 0, 0)
-    natal_positions = EphemerisRepository.get_positions(birth_date)
+    birth_jd = datetime_to_julian_day(birth_date)
+    natal_positions = get_positions_from_swisseph(birth_date, birth_jd)
     natal_sun_long = natal_positions["sun"]
     
     try:
