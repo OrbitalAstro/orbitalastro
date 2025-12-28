@@ -131,6 +131,38 @@ function getMainAspect(aspects: any[] | undefined, planetName: string): string |
 }
 
 /**
+ * Format birth place to show only city, province/state, and country
+ * Example: "Saint-Jean-sur-Richelieu, Le Haut-Richelieu, Montérégie, Québec, Canada" 
+ *          -> "Saint-Jean-sur-Richelieu, Québec, Canada"
+ */
+function formatBirthPlace(birthPlace: string): string {
+  if (!birthPlace) return ''
+  
+  // Split by comma and trim each part
+  const parts = birthPlace.split(',').map(p => p.trim()).filter(p => p.length > 0)
+  
+  if (parts.length === 0) return birthPlace
+  
+  // If we have at least 3 parts, take first (city), second-to-last (province), and last (country)
+  // If we have 2 parts, assume city and country
+  // If we have 1 part, return as is
+  
+  if (parts.length >= 3) {
+    // Take first part (city), second-to-last (province/state), and last (country)
+    const city = parts[0]
+    const province = parts[parts.length - 2]
+    const country = parts[parts.length - 1]
+    return `${city}, ${province}, ${country}`
+  } else if (parts.length === 2) {
+    // Assume city and country
+    return `${parts[0]}, ${parts[1]}`
+  } else {
+    // Single part, return as is
+    return parts[0]
+  }
+}
+
+/**
  * Generate the complete system prompt for pre-incarnation dialogue
  */
 export function generateDialoguePrompt(
@@ -148,6 +180,9 @@ export function generateDialoguePrompt(
     day: 'numeric'
   })
   const formattedTime = birthData.birth_time
+  
+  // Format birth place to show only city, province, and country
+  const formattedBirthPlace = formatBirthPlace(birthData.birth_place)
   
   // Extract planet data
   const sun = chart.planets?.sun
@@ -323,7 +358,7 @@ Astrologie : Ça, ce sera le Nœud Nord en [NoeudNord_Signe] (Maison [NoeudNord_
 
 Les énergies se rassemblent, les vibrations se calibrent et ta matière prend forme
 
-5 – 4 – 3 – 2 – 1 … Atterrissage : [date, heure] — [ville, pays]
+5 – 4 – 3 – 2 – 1 … Atterrissage : [date, heure] — [ville, province, pays]
 
 [VERBATIM – Retour]
 
@@ -362,7 +397,7 @@ INPUT (à fournir par l'utilisateur à chaque lecture)
 
 [Prénom] : ${birthData.firstName || 'Non spécifié'}
 
-Naissance : ${formattedDate}, ${formattedTime} — ${birthData.birth_place}
+Naissance : ${formattedDate}, ${formattedTime} — ${formattedBirthPlace}
 
 [Aspects et placements fournis par l'utilisateur — à insérer ici]
 
@@ -398,7 +433,7 @@ PointChance_Maison : ${jupiter ? getHouse(jupiter) : 'Non spécifié'}
 [ASCENDANT_SIGNE] : ${ascendantSign ? getSignInFrench(ascendantSign) : 'Non spécifié'}
 [Date atterrissage] : ${formattedDate}
 [Heure atterrissage] : ${formattedTime}
-[Lieu atterrissage] : ${birthData.birth_place}
+[Lieu atterrissage] : ${formattedBirthPlace}
 
 ====================================================
 

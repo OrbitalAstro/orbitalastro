@@ -401,7 +401,7 @@ export default function LocationInput({
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="absolute z-50 w-full mt-1 bg-white/95 backdrop-blur-sm rounded-lg border border-white/20 shadow-xl max-h-80 overflow-y-auto"
+            className="absolute z-50 w-full mt-1 bg-white text-black rounded-lg border border-black/10 shadow-2xl max-h-80 overflow-y-auto"
           >
             {/* Cities Section */}
             {filteredCities.length > 0 && (

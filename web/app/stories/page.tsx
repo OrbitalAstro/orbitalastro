@@ -13,6 +13,7 @@ import LocationInput from '@/components/LocationInput'
 import { useToast } from '@/lib/toast'
 import BackButton from '@/components/BackButton'
 import { useTranslation } from '@/lib/useTranslation'
+import { formatBirthDateInput } from '@/lib/sanitizeBirthDateYear'
 
 export default function Stories() {
   const settings = useSettingsStore()
@@ -167,9 +168,15 @@ ${t.journeyText(ascSign)}
                  : 'Birth Date'}
               </label>
               <input
-                type="date"
+                type="text"
+                inputMode="numeric"
+                pattern="\\d{4}-\\d{2}-\\d{2}"
                 value={birthData.birth_date}
-                onChange={(e) => setBirthData({ ...birthData, birth_date: e.target.value })}
+                onChange={(e) => {
+                  const value = formatBirthDateInput(e.target.value)
+                  setBirthData({ ...birthData, birth_date: value })
+                }}
+                placeholder="AAAA-MM-JJ"
                 className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
             </div>
@@ -271,4 +278,3 @@ ${t.journeyText(ascSign)}
     </div>
   )
 }
-

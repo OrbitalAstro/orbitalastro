@@ -36,7 +36,7 @@ def test_placidus_accuracy():
         return False
 
     try:
-        cusps = compute_houses("placidus", jd, lat, lon)
+        cusps, asc, mc = compute_houses("placidus", jd, lat, lon, None, None)
         print("\n--- Calculated Cusps (Placidus via Swiss Ephemeris) ---")
         for i, cusp in enumerate(cusps):
             print(f"House {i+1}: {cusp:.4f} deg")
@@ -59,5 +59,6 @@ def test_placidus_accuracy():
 
 if __name__ == "__main__":
     test_placidus_accuracy()
+
 
 

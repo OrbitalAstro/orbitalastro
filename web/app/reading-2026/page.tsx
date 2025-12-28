@@ -11,6 +11,7 @@ import ReactMarkdown from 'react-markdown'
 import LocationInput from '@/components/LocationInput'
 import BackButton from '@/components/BackButton'
 import { generateReadingPrompt } from './generateReadingPrompt'
+import { formatBirthDateInput } from '@/lib/sanitizeBirthDateYear'
 
 export default function Reading2026Page() {
   const settings = useSettingsStore()
@@ -26,6 +27,19 @@ export default function Reading2026Page() {
 
   const [reading, setReading] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+
+  const resetForm = () => {
+    setBirthData({
+      birth_date: settings.defaultBirthDate || '',
+      birth_time: settings.defaultBirthTime || '12:00',
+      birth_place: '',
+      firstName: settings.defaultFirstName || '',
+      latitude: settings.defaultLatitude || 0,
+      longitude: settings.defaultLongitude || 0,
+      timezone: settings.defaultTimezone || 'UTC',
+    })
+    setReading(null)
+  }
 
   const handleGenerateReading = async () => {
     setLoading(true)
@@ -195,16 +209,16 @@ export default function Reading2026Page() {
           {!reading ? (
             <>
               {/* Input Form */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8 relative z-20">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8 relative z-40">
                 <div>
                   <label className="block text-sm font-medium text-cosmic-gold mb-2">
-                    Prénom
+                    Prénom ou surnom
                   </label>
                   <input
                     type="text"
                     value={birthData.firstName}
                     onChange={(e) => setBirthData({ ...birthData, firstName: e.target.value })}
-                    placeholder="Votre prénom"
+                    placeholder="Votre prénom ou surnom"
                     className="w-full px-4 py-2 rounded-lg bg-white/10 border border-cosmic-gold/30 text-cosmic-gold placeholder-cosmic-gold/50 focus:outline-none focus:border-cosmic-gold relative z-20"
                     suppressHydrationWarning
                   />
@@ -214,10 +228,16 @@ export default function Reading2026Page() {
                     Date de naissance
                   </label>
                   <input
-                    type="date"
+                    type="text"
+                    inputMode="numeric"
+                    pattern="\\d{4}-\\d{2}-\\d{2}"
                     value={birthData.birth_date}
-                    onChange={(e) => setBirthData({ ...birthData, birth_date: e.target.value })}
-                    className="w-full px-4 py-2 rounded-lg bg-white/10 border border-cosmic-gold/30 text-cosmic-gold focus:outline-none focus:border-cosmic-gold relative z-20"
+                    onChange={(e) => {
+                      const value = formatBirthDateInput(e.target.value)
+                      setBirthData({ ...birthData, birth_date: value })
+                    }}
+                    placeholder="AAAA-MM-JJ"
+                    className="w-full px-4 py-2 rounded-lg bg-white/10 border border-cosmic-gold/30 text-cosmic-gold placeholder-cosmic-gold/50 focus:outline-none focus:border-cosmic-gold relative z-20"
                     suppressHydrationWarning
                   />
                 </div>
@@ -270,6 +290,16 @@ export default function Reading2026Page() {
                   </>
                 )}
                 </button>
+                <div className="flex justify-end mt-2">
+                  <button
+                    type="button"
+                    onClick={resetForm}
+                    className="text-sm text-cosmic-gold/80 hover:text-cosmic-gold underline"
+                    disabled={loading}
+                  >
+                    Réinitialiser le formulaire
+                  </button>
+                </div>
               </div>
             </>
           ) : (

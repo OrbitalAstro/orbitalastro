@@ -81,6 +81,38 @@ function getHouse(planet: any): number {
   return 0
 }
 
+/**
+ * Format birth place to show only city, province/state, and country
+ * Example: "Saint-Jean-sur-Richelieu, Le Haut-Richelieu, Montérégie, Québec, Canada" 
+ *          -> "Saint-Jean-sur-Richelieu, Québec, Canada"
+ */
+function formatBirthPlace(birthPlace: string): string {
+  if (!birthPlace) return ''
+  
+  // Split by comma and trim each part
+  const parts = birthPlace.split(',').map(p => p.trim()).filter(p => p.length > 0)
+  
+  if (parts.length === 0) return birthPlace
+  
+  // If we have at least 3 parts, take first (city), second-to-last (province), and last (country)
+  // If we have 2 parts, assume city and country
+  // If we have 1 part, return as is
+  
+  if (parts.length >= 3) {
+    // Take first part (city), second-to-last (province/state), and last (country)
+    const city = parts[0]
+    const province = parts[parts.length - 2]
+    const country = parts[parts.length - 1]
+    return `${city}, ${province}, ${country}`
+  } else if (parts.length === 2) {
+    // Assume city and country
+    return `${parts[0]}, ${parts[1]}`
+  } else {
+    // Single part, return as is
+    return parts[0]
+  }
+}
+
 function getMainAspect(aspects: any[] | undefined, planetName: string): string | null {
   if (!aspects) return null
   const planetAspects = aspects.filter(
@@ -193,6 +225,9 @@ export function generateReadingPrompt(
       ascendantSign = chart.ascendant.sign
     }
   }
+  
+  // Format birth place to show only city, province, and country
+  const formattedBirthPlace = formatBirthPlace(birthData.birth_place)
   
   const systemPrompt = `[RÔLE]
 Tu es une astrologue psychologique, douce et nuancée. Tu écris en français québécois neutre, dans un style chaleureux, clair et accessible pour des non-astrologues.
@@ -315,7 +350,7 @@ DONNÉES NATALES ET TRANSITS POUR LA LECTURE 2026
 
 [PRÉNOM] : ${birthData.firstName}
 Date de naissance : ${birthData.birth_date}, ${birthData.birth_time}
-Lieu : ${birthData.birth_place}
+Lieu : ${formattedBirthPlace}
 
 [DONNÉES NATALES]
 

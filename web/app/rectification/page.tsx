@@ -12,6 +12,7 @@ import BackButton from '@/components/BackButton'
 import LocationInput from '@/components/LocationInput'
 import ReactMarkdown from 'react-markdown'
 import { useTranslation } from '@/lib/useTranslation'
+import { formatBirthDateInput } from '@/lib/sanitizeBirthDateYear'
 
 interface RectificationEvent {
   type: string
@@ -131,10 +132,13 @@ export default function RectificationPage() {
                 {t.rectification.birthDate}
               </label>
               <input
-                type="date"
+                type="text"
+                inputMode="numeric"
+                pattern="\\d{4}-\\d{2}-\\d{2}"
                 value={birthDate}
-                onChange={(e) => setBirthDate(e.target.value)}
-                className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                onChange={(e) => setBirthDate(formatBirthDateInput(e.target.value))}
+                placeholder="AAAA-MM-JJ"
+                className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
             </div>
             <div>
@@ -304,4 +308,3 @@ export default function RectificationPage() {
     </div>
   )
 }
-

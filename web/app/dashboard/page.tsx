@@ -19,6 +19,7 @@ import LocationInput from '@/components/LocationInput'
 import BackButton from '@/components/BackButton'
 import { signFromLongitude } from '@/components/astrology/signTranslations'
 import { useTranslation } from '@/lib/useTranslation'
+import { formatBirthDateInput } from '@/lib/sanitizeBirthDateYear'
 
 export default function Dashboard() {
   const settings = useSettingsStore()
@@ -146,12 +147,15 @@ export default function Dashboard() {
               name="birth_date"
               value={birthData.birth_date}
               onChange={(value) => {
-                setBirthData({ ...birthData, birth_date: value })
+                const sanitized = formatBirthDateInput(value)
+                setBirthData({ ...birthData, birth_date: sanitized })
                 if (errors.birth_date) {
                   setErrors({ ...errors, birth_date: '' })
                 }
               }}
-              type="date"
+              type="text"
+              inputMode="numeric"
+              pattern="\\d{4}-\\d{2}-\\d{2}"
               required
               error={errors.birth_date}
               success={!!birthData.birth_date && !errors.birth_date}
@@ -310,4 +314,3 @@ export default function Dashboard() {
     </div>
   )
 }
-

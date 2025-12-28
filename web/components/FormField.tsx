@@ -11,6 +11,8 @@ interface FormFieldProps {
   value: string | number
   onChange: (value: any) => void
   type?: string
+  inputMode?: string
+  pattern?: string
   placeholder?: string
   error?: string
   success?: boolean
@@ -28,6 +30,8 @@ export default function FormField({
   value,
   onChange,
   type = 'text',
+  inputMode,
+  pattern,
   placeholder,
   error,
   success,
@@ -84,6 +88,8 @@ export default function FormField({
           type={type}
           name={name}
           value={value}
+          inputMode={inputMode}
+          pattern={pattern}
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
           onFocus={() => setIsFocused(true)}
@@ -152,4 +158,3 @@ export default function FormField({
     </div>
   )
 }
-
