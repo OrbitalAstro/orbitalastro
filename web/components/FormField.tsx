@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { CheckCircle, AlertCircle } from 'lucide-react'
 import Tooltip from './Tooltip'
@@ -40,15 +40,15 @@ export default function FormField({
 }: FormFieldProps) {
   const [touched, setTouched] = useState(false)
   const [isFocused, setIsFocused] = useState(false)
-  const inputRef = useRef<HTMLInputElement>(null)
   const showError = touched && error
 
   // Pour les champs date et time, permettre la saisie textuelle
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    // Permettre toutes les touches, y compris "1"
+    // Arrêter la propagation pour empêcher les handlers globaux d'intercepter les touches
+    // Cela permet notamment d'éviter que les raccourcis clavier n'interfèrent avec la saisie
     if (type === 'date' || type === 'time') {
       e.stopPropagation()
-      // Ne pas empêcher le comportement par défaut pour permettre la saisie
+      // Ne pas appeler preventDefault() pour permettre la saisie normale
     }
   }
 
@@ -57,7 +57,7 @@ export default function FormField({
     let newValue = e.target.value
     
     if (type === 'date' || type === 'time') {
-      // Laisser le navigateur gérer la conversion, mais permettre la saisie
+      // Laisser le navigateur gérer complètement la conversion et la validation
       onChange(newValue)
     } else if (type === 'number') {
       const numValue = parseFloat(newValue) || 0
@@ -81,7 +81,6 @@ export default function FormField({
       </label>
       <div className="relative">
         <input
-          ref={inputRef}
           type={type}
           name={name}
           value={value}

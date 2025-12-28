@@ -339,7 +339,7 @@ export default function LocationInput({
   }, [])
 
   return (
-    <div className="relative">
+    <div className="relative z-20">
       {defaultLabel && (
         <label className="block text-sm font-medium text-white/80 mb-2 flex items-center gap-2">
           {defaultLabel}
@@ -368,9 +368,9 @@ export default function LocationInput({
           placeholder={defaultPlaceholder}
           required={required}
           suppressHydrationWarning
-          className={`
+          className={` 
             w-full pl-10 pr-10 py-2 rounded-lg bg-white/10 border text-white placeholder-white/50
-            focus:outline-none focus:ring-2 transition
+            focus:outline-none focus:ring-2 transition relative z-20
             ${error
               ? 'border-eclipse-red focus:ring-eclipse-red'
               : success
