@@ -1,14 +1,54 @@
 FROM python:3.11-slim
 
 WORKDIR /app
+
+# Installer les dépendances système nécessaires pour compiler pyswisseph
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    gcc \
+    g++ \
+    make \
+    wget \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copier requirements
 COPY requirements.txt ./
 
-RUN python -m pip install --upgrade pip \
- && python -m pip install -r requirements.txt
+# Installer pyswisseph en premier (le plus critique)
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir pyswisseph
 
+# Installer les autres dépendances Python
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Créer le dossier pour les fichiers éphémérides
+RUN mkdir -p /app/api/ephe
+
+# Copier tout le code de l'application (inclut api/ephe si présent)
 COPY . .
 
-EXPOSE 10000
-HEALTHCHECK CMD curl --fail http://localhost:10000/ || exit 0
+# Si les fichiers éphémérides n'existent pas, les télécharger
+RUN if [ ! -f /app/api/ephe/seas_18.se1 ]; then \
+        cd /app/api/ephe && \
+        wget -q https://www.astro.com/ftp/swisseph/ephe/seas_18.se1 || true; \
+    fi && \
+    if [ ! -f /app/api/ephe/semo_18.se1 ]; then \
+        cd /app/api/ephe && \
+        wget -q https://www.astro.com/ftp/swisseph/ephe/semo_18.se1 || true; \
+    fi && \
+    if [ ! -f /app/api/ephe/sepl_18.se1 ]; then \
+        cd /app/api/ephe && \
+        wget -q https://www.astro.com/ftp/swisseph/ephe/sepl_18.se1 || true; \
+    fi
 
-CMD ["uvicorn", "api.index:app", "--host", "0.0.0.0", "--port", "10000"]
+# Exposer le port (Fly.io utilise 8080 par défaut, mais on garde 10000 pour compatibilité)
+EXPOSE 8080
+EXPOSE 10000
+
+# Healthcheck
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl --fail http://localhost:8080/ || exit 1
+
+# Commande de démarrage - utiliser le port depuis l'environnement ou 8080 par défaut
+CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8080}"]
