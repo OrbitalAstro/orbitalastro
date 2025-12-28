@@ -48,62 +48,6 @@ export default function Settings() {
           </div>
 
           <div className="space-y-8">
-            {/* Gemini AI */}
-            <section>
-              <h2 className="text-xl font-semibold text-white mb-4 flex items-center">
-                <Key className="h-5 w-5 mr-2 text-aurora-teal" />
-                {t.settings.geminiAI}
-              </h2>
-              <input
-                type="password"
-                value={settings.geminiApiKey}
-                onChange={(e) => settings.updateSettings({ geminiApiKey: e.target.value })}
-                placeholder={t.settings.apiKeyPlaceholder}
-                className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500"
-              />
-              <p className="mt-2 text-sm text-white/60">
-                {settings.language === 'en' && (
-                  <>
-                    Get your <span className="text-aurora-teal font-semibold">FREE</span> API key from{' '}
-                    <a
-                      href="https://makersuite.google.com/app/apikey"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-aurora-teal hover:text-aurora-teal/80 underline"
-                    >
-                      https://makersuite.google.com/app/apikey
-                    </a>
-                  </>
-                )}
-                {settings.language === 'fr' && (
-                  <>
-                    Obtenez votre clé API <span className="text-aurora-teal font-semibold">GRATUITE</span> sur{' '}
-                    <a
-                      href="https://makersuite.google.com/app/apikey"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-aurora-teal hover:text-aurora-teal/80 underline"
-                    >
-                      https://makersuite.google.com/app/apikey
-                    </a>
-                  </>
-                )}
-                {settings.language === 'es' && (
-                  <>
-                    Obtén tu clave API <span className="text-aurora-teal font-semibold">GRATIS</span> en{' '}
-                    <a
-                      href="https://makersuite.google.com/app/apikey"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-aurora-teal hover:text-aurora-teal/80 underline"
-                    >
-                      https://makersuite.google.com/app/apikey
-                    </a>
-                  </>
-                )}
-              </p>
-            </section>
-
             {/* Language */}
             <section>
               <h2 className="text-xl font-semibold text-white mb-4 flex items-center">
@@ -366,7 +310,7 @@ export default function Settings() {
                         <option value="America/Anchorage">Alaska Time - Anchorage</option>
                         <option value="America/Toronto">Eastern Time - Toronto</option>
                         <option value="America/Vancouver">Pacific Time - Vancouver</option>
-                        <option value="America/Montreal">Eastern Time - Montreal</option>
+                        <option value="America/Toronto">Eastern Time - Toronto/Montreal</option>
                         <option value="America/Mexico_City">Central Time - Mexico City</option>
                         <option value="America/Sao_Paulo">Brasília Time - São Paulo</option>
                         <option value="America/Buenos_Aires">Argentina Time - Buenos Aires</option>

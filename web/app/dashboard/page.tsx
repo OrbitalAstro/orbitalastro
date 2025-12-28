@@ -37,35 +37,48 @@ export default function Dashboard() {
   const { data: natalChart, isLoading, error, refetch } = useQuery({
     queryKey: ['natal', birthData],
     queryFn: async () => {
-      const response = await apiClient.natal.calculate({
-        ...birthData,
-        birth_city: birthData.birth_place || undefined,
-        house_system: settings.houseSystem,
-        include_extra_objects: settings.includeExtraObjects,
-        use_topocentric_moon: settings.useTopocentricMoon,
-        include_aspects: settings.includeAspects,
-        narrative: {
-          tone: settings.narrativeTone as "mythic" | "psychological" | "coaching" | "cinematic" | "soft_therapeutic" | undefined,
-          depth: settings.narrativeDepth as "short" | "standard" | "long" | "comprehensive" | undefined,
-          focus: settings.narrativeFocus as ("career" | "relationships" | "family" | "spirituality" | "creativity" | "healing")[] | undefined,
-        },
-      })
-      
-      if (response.error) {
-        throw new Error(response.error)
+      try {
+        const requestBody = {
+          ...birthData,
+          birth_city: birthData.birth_place || undefined,
+          house_system: settings.houseSystem,
+          include_extra_objects: settings.includeExtraObjects,
+          use_topocentric_moon: settings.useTopocentricMoon,
+          include_aspects: settings.includeAspects,
+          narrative: {
+            tone: settings.narrativeTone as "mythic" | "psychological" | "coaching" | "cinematic" | "soft_therapeutic" | undefined,
+            depth: settings.narrativeDepth as "short" | "standard" | "long" | "comprehensive" | undefined,
+            focus: settings.narrativeFocus as ("career" | "relationships" | "family" | "spirituality" | "creativity" | "healing")[] | undefined,
+          },
+        };
+        console.log('[Dashboard] Sending request:', requestBody);
+        const response = await apiClient.natal.calculate(requestBody);
+        console.log('[Dashboard] Received response:', response);
+        
+        if (response.error) {
+          const errorMsg = response.error.includes('fetch') || response.error.includes('Failed to fetch')
+            ? 'Cannot connect to backend API. Make sure the backend is running on http://localhost:8000'
+            : response.error;
+          throw new Error(errorMsg);
+        }
+        
+        if (!response.data) {
+          throw new Error(t.dashboard.errorMessage)
+        }
+        
+        toast.success(t.dashboard.success)
+        return response.data
+      } catch (err: any) {
+        console.error('[Dashboard] Error calculating chart:', err);
+        throw err;
       }
-      
-      if (!response.data) {
-        throw new Error(t.dashboard.errorMessage)
-      }
-      
-      toast.success(t.dashboard.success)
-      return response.data
     },
     enabled: false,
     retry: false,
     onError: (err: Error) => {
-      toast.error(t.dashboard.error, err.message || t.dashboard.errorMessage)
+      console.error('[Dashboard] Query error:', err);
+      const errorMessage = err.message || t.dashboard.errorMessage;
+      toast.error(t.dashboard.error, errorMessage);
     },
   })
 
