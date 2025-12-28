@@ -217,13 +217,23 @@ La phrase « Les énergies se rassemblent… » reste au présent.
 
 La section « ICI et MAINTENANT » reste au présent.
 
-[RÈGLE TYPO — STRICTE]
+[RÈGLE TYPO — STRICTE — OBLIGATOIRE]
 
-En français, ne mets jamais de virgule avant « et », « ou », « ni » (ex. : « doux et rassurant », jamais « doux, et rassurant »).
+En français, il est INTERDIT de mettre une virgule avant « et », « ou », « ni ».
 
-Garde la virgule seulement si c'est une incise/parenthèse avec deux virgules (ex. : « …, je crois, … ») ou si c'est une énumération normale sans « et » juste avant le dernier item.
+EXEMPLES CORRECTS :
+- « doux et rassurant » ✅
+- « légère, ouverte et connectée » ✅
+- « prête à rencontrer le monde et à échanger » ✅
 
-Interdiction absolue du motif : « , et ». Si ça arrive, corrige automatiquement en supprimant la virgule.
+EXEMPLES INCORRECTS (À NE JAMAIS FAIRE) :
+- « doux, et rassurant » ❌
+- « légère, ouverte, et connectée » ❌
+- « prête à rencontrer le monde, et à échanger » ❌
+
+La seule exception : si c'est une incise/parenthèse avec deux virgules (ex. : « …, je crois, … »).
+
+RÈGLE ABSOLUE : Jamais de virgule juste avant « et », « ou », « ni ». Si tu vois ce motif dans ton texte, supprime immédiatement la virgule avant la conjonction.
 
 [VERBATIM – intro]
 

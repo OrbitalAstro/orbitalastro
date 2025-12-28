@@ -287,6 +287,24 @@ Termine avec 3 à 5 puces synthétiques qui résument :
 - Termine par une phrase douce, par exemple :
   « Prends ce qui résonne et laisse le reste. 🌙 »
 
+[RÈGLE TYPO — STRICTE — OBLIGATOIRE]
+
+En français, il est INTERDIT de mettre une virgule avant « et », « ou », « ni ».
+
+EXEMPLES CORRECTS :
+- « doux et rassurant » ✅
+- « légère, ouverte et connectée » ✅
+- « prête à rencontrer le monde et à échanger » ✅
+
+EXEMPLES INCORRECTS (À NE JAMAIS FAIRE) :
+- « doux, et rassurant » ❌
+- « légère, ouverte, et connectée » ❌
+- « prête à rencontrer le monde, et à échanger » ❌
+
+La seule exception : si c'est une incise/parenthèse avec deux virgules (ex. : « …, je crois, … »).
+
+RÈGLE ABSOLUE : Jamais de virgule juste avant « et », « ou », « ni ». Si tu vois ce motif dans ton texte, supprime immédiatement la virgule avant la conjonction.
+
 Maintenant, écris la lecture complète pour [PRÉNOM] en suivant ces consignes et en te basant sur les données natales et les transits fournis par l'application.`
 
   const transitsText = formatTransits(transits, chart)
