@@ -2,16 +2,19 @@
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --cosmic-gold: #F6C94C;
-  --nebula-pink: #E056FD;
-  --deep-space-purple: #3D1F71;
-  --void-black: #000000;
+  --cosmic-gold: #E4B5A0;
+  --rose-gold: #F5D4C1;
+  --nebula-pink: #9B59B6;
+  --deep-space-purple: #2D1A4F;
+  --magenta-purple: #6B2D7D;
+  --void-black: #1A0D2E;
   --star-mist-white: #FFFFFF;
   --aurora-teal: #3EF4C5;
   --eclipse-red: #C44747;
@@ -28,7 +31,7 @@
 
 body {
   color: rgb(var(--foreground-rgb));
-  background: var(--void-black);
+  background: linear-gradient(135deg, var(--deep-space-purple) 0%, var(--magenta-purple) 100%);
   font-family: 'Inter', sans-serif;
 }
 
@@ -83,24 +86,24 @@ body {
   
   /* Brand gradient text */
   .text-cosmic-gradient {
-    @apply bg-gradient-to-r from-cosmic-gold via-cosmic-pink to-cosmic-purple bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-cosmic-gold via-rose-gold to-cosmic-gold bg-clip-text text-transparent;
   }
   
   .text-gold-gradient {
-    @apply bg-gradient-to-r from-cosmic-gold to-cosmic-pink bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-cosmic-gold to-rose-gold bg-clip-text text-transparent;
   }
   
   /* Glow effects */
   .glow-gold {
-    box-shadow: 0 0 20px rgba(246, 201, 76, 0.3);
+    box-shadow: 0 0 20px rgba(228, 181, 160, 0.4);
   }
   
   .glow-pink {
-    box-shadow: 0 0 20px rgba(224, 86, 253, 0.3);
+    box-shadow: 0 0 20px rgba(155, 89, 182, 0.3);
   }
   
   .glow-cosmic {
-    box-shadow: 0 0 40px rgba(246, 201, 76, 0.2), 0 0 80px rgba(224, 86, 253, 0.1);
+    box-shadow: 0 0 40px rgba(228, 181, 160, 0.3), 0 0 80px rgba(245, 212, 193, 0.2);
   }
 }
 
@@ -111,16 +114,16 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--void-black);
+  background: var(--deep-space-purple);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, var(--cosmic-gold), var(--nebula-pink));
+  background: linear-gradient(180deg, var(--cosmic-gold), var(--rose-gold));
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, var(--nebula-pink), var(--cosmic-gold));
+  background: linear-gradient(180deg, var(--rose-gold), var(--cosmic-gold));
 }
 
 /* Custom scrollbar class for specific containers */
@@ -135,12 +138,12 @@ body {
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, var(--cosmic-gold), var(--nebula-pink));
+  background: linear-gradient(180deg, var(--cosmic-gold), var(--rose-gold));
   border-radius: 4px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, var(--nebula-pink), var(--cosmic-gold));
+  background: linear-gradient(180deg, var(--rose-gold), var(--cosmic-gold));
 }
 
 /* Animations */

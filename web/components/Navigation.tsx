@@ -3,12 +3,8 @@
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { 
-  Home, 
-  Zap, 
-  TrendingUp, 
-  Wand2, 
-  BookOpen, 
   MessageSquare, 
+  Calendar,
   Settings, 
   Info,
   Menu,
@@ -31,21 +27,11 @@ export default function Navigation() {
 
   // Use default English labels until mounted to prevent hydration mismatch
   const menuItems = mounted ? [
-    { href: '/dashboard', label: t.nav.dashboard || 'Dashboard', icon: Home },
-    { href: '/transits', label: t.nav.transits || 'Transits', icon: Zap },
-    { href: '/progressions', label: t.nav.progressions || 'Progressions', icon: TrendingUp },
-    { href: '/rectification', label: t.nav.rectification || 'Rectification', icon: Wand2 },
-    { href: '/stories', label: t.nav.stories || 'Stories', icon: BookOpen },
-    { href: '/dialogues', label: t.nav.dialogues || 'Dialogues', icon: MessageSquare },
-    { href: '/chat', label: t.nav.chat || 'Chat', icon: MessageSquare },
+    { href: '/dialogues', label: 'Dialogue Pré-incarnation', icon: MessageSquare },
+    { href: '/reading-2026', label: 'Lecture 2026', icon: Calendar },
   ] : [
-    { href: '/dashboard', label: 'Dashboard', icon: Home },
-    { href: '/transits', label: 'Transits', icon: Zap },
-    { href: '/progressions', label: 'Progressions', icon: TrendingUp },
-    { href: '/rectification', label: 'Rectification', icon: Wand2 },
-    { href: '/stories', label: 'Stories', icon: BookOpen },
-    { href: '/dialogues', label: 'Dialogues', icon: MessageSquare },
-    { href: '/chat', label: 'Chat', icon: MessageSquare },
+    { href: '/dialogues', label: 'Dialogue Pré-incarnation', icon: MessageSquare },
+    { href: '/reading-2026', label: 'Lecture 2026', icon: Calendar },
   ]
 
   const isActive = (href: string) => {
