@@ -161,8 +161,10 @@ export default function DialoguePdf({ dialogue }: DialoguePdfProps) {
         continue
       }
       
-      // Détecter les astérisques seuls sur une ligne
-      if (line === '***' || line === '* * *' || /^\*{3,}$/.test(line)) {
+      // Détecter les astérisques seuls sur une ligne (plusieurs variantes)
+      // Supporte: ***, * * *, *** avec espaces, etc.
+      const asteriskPattern = /^\s*\*{3,}\s*$|^\s*\*\s*\*\s*\*\s*$/
+      if (asteriskPattern.test(line)) {
         if (currentParagraph) {
           result.push(currentParagraph)
           currentParagraph = ''
@@ -229,8 +231,12 @@ export default function DialoguePdf({ dialogue }: DialoguePdfProps) {
             const lower = p.toLowerCase()
             const trimmed = p.trim()
             
-            // Détecter les astérisques (***) - centrer
-            const isAsterisks = trimmed === '***' || trimmed === '* * *' || /^\*{3,}$/.test(trimmed)
+            // Détecter les astérisques (***) - centrer (plusieurs variantes)
+            const isAsterisks = 
+              trimmed === '***' || 
+              trimmed === '* * *' || 
+              /^\s*\*{3,}\s*$/.test(trimmed) ||
+              /^\s*\*\s*\*\s*\*\s*$/.test(trimmed)
             
             // Détecter "ICI ET MAINTENANT" ou "ICI et MAINTENANT" - centrer (plusieurs variantes)
             const isIciMaintenant = 

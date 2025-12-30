@@ -367,6 +367,8 @@ Les énergies se rassemblent, les vibrations se calibrent et ta matière prend f
 
 La section "ICI et MAINTENANT" doit être écrite au présent.
 
+AVANT le titre "ICI et MAINTENANT", tu DOIS écrire exactement "***" (trois astérisques) sur une ligne séparée, centrée.
+
 Sous le titre ICI et MAINTENANT, tu dois écrire exactement les 2 phrases ci-dessous, verbatim (aucune reformulation, aucun ajout, aucune phrase avant/après, aucun autre paragraphe).
 
 Seules substitutions permises :
