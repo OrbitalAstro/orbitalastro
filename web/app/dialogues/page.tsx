@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic'
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { MessageSquare, Sparkles } from 'lucide-react'
 import { useSettingsStore } from '@/lib/store'
@@ -16,6 +16,8 @@ import { generateDialoguePrompt } from './generatePrompt'
 import { formatBirthDateInput } from '@/lib/sanitizeBirthDateYear'
 import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
+import { pdf } from '@react-pdf/renderer'
+import DialoguePdf from './DialoguePdf'
 
 export default function Dialogues() {
   const settings = useSettingsStore()
@@ -49,74 +51,34 @@ export default function Dialogues() {
   }
 
   const handleDownloadPdf = async () => {
-    if (!dialogue || !exportRef.current) return
+    if (!dialogue) return
     setDownloading(true)
     try {
-      const node = exportRef.current
-      const previousMaxHeight = node.style.maxHeight
-      const previousOverflow = node.style.overflow
-      node.style.maxHeight = 'none'
-      node.style.overflow = 'visible'
-
-      const canvas = await html2canvas(node, {
-        scale: 2,
-        backgroundColor: null,
-        useCORS: true,
-        logging: false,
-        height: node.scrollHeight,
-        windowHeight: node.scrollHeight,
-      })
-
-      // Restore styles
-      node.style.maxHeight = previousMaxHeight
-      node.style.overflow = previousOverflow
-
-      const imgData = canvas.toDataURL('image/png')
-      const pdf = new jsPDF('p', 'pt', 'a4')
-      const pageWidth = pdf.internal.pageSize.getWidth()
-      const pageHeight = pdf.internal.pageSize.getHeight()
-      // Scale to page width only, keep height for multipage
-      const ratio = pageWidth / canvas.width
-      const pageCanvasHeight = pageHeight / ratio
-      let renderedHeight = 0
-      let pageIndex = 0
-
-      while (renderedHeight < canvas.height) {
-        const canvasPage = document.createElement('canvas')
-        canvasPage.width = canvas.width
-        canvasPage.height = Math.min(pageCanvasHeight, canvas.height - renderedHeight)
-
-        const ctx = canvasPage.getContext('2d')
-        if (ctx) {
-          ctx.drawImage(
-            canvas,
-            0,
-            renderedHeight,
-            canvas.width,
-            canvasPage.height,
-            0,
-            0,
-            canvas.width,
-            canvasPage.height
-          )
-        }
-
-        const imgPageData = canvasPage.toDataURL('image/png')
-        if (pageIndex > 0) pdf.addPage()
-        const pageImgHeight = canvasPage.height * ratio
-        const x = (pageWidth - canvas.width * ratio) / 2
-        const y = 20
-        pdf.addImage(imgPageData, 'PNG', x, y, canvas.width * ratio, pageImgHeight)
-
-        renderedHeight += pageCanvasHeight
-        pageIndex += 1
+      // Précharger la police Great Vibes avant de générer le PDF
+      const { Font } = await import('@react-pdf/renderer')
+      const fontUrl = `${window.location.origin}/fonts/GreatVibes-Regular.ttf`
+      try {
+        Font.register({
+          family: 'GreatVibes',
+          src: fontUrl,
+        })
+      } catch (fontError) {
+        console.warn('Font registration failed, using fallback:', fontError)
       }
-
-      const filename = `dialogue-pre-incarnation-${birthData.firstName || 'lecture'}.pdf`
-      pdf.save(filename)
-    } catch (err) {
+      
+      const blob = await pdf(
+        <DialoguePdf dialogue={dialogue} />
+      ).toBlob()
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `Dialogue-pre-incarnation-${birthData.firstName || 'lecture'}.pdf`
+      link.click()
+      URL.revokeObjectURL(url)
+    } catch (err: any) {
       console.error('Error generating PDF', err)
-      alert("Échec de la génération du PDF. Réessaie ou vérifie que l'image/logo est accessible.")
+      const errorMessage = err?.message || err?.toString() || 'Erreur inconnue'
+      alert(`Échec de la génération du PDF: ${errorMessage}`)
     } finally {
       setDownloading(false)
     }
@@ -213,12 +175,13 @@ export default function Dialogues() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-cosmic-purple via-magenta-purple to-cosmic-purple relative">
+      <Starfield />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
         <BackButton />
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-gradient-to-br from-cosmic-purple/60 to-magenta-purple/60 backdrop-blur-sm rounded-xl p-8 border border-cosmic-gold/20 relative z-10"
+          className="bg-gradient-to-br from-cosmic-purple to-magenta-purple rounded-xl p-8 border border-cosmic-gold/35 shadow-[0_28px_70px_rgba(0,0,0,0.55)] relative z-10"
         >
           <h1 className="text-3xl font-bold text-cosmic-gold mb-8 flex items-center">
             <MessageSquare className="h-8 w-8 mr-3 text-cosmic-gold" />
@@ -240,7 +203,7 @@ export default function Dialogues() {
                 value={birthData.firstName}
                 onChange={(e) => setBirthData({ ...birthData, firstName: e.target.value })}
                 placeholder="Votre prénom ou surnom"
-                className="w-full px-4 py-2 rounded-lg bg-white/10 border border-cosmic-gold/30 text-cosmic-gold placeholder-cosmic-gold/50 focus:outline-none focus:border-cosmic-gold relative z-20"
+                className="w-full px-4 py-2 rounded-lg bg-white/15 border border-cosmic-gold/20 text-cosmic-gold placeholder-cosmic-gold/60 focus:outline-none focus:border-cosmic-gold/70 relative z-20"
                 suppressHydrationWarning
               />
             </div>
@@ -258,9 +221,10 @@ export default function Dialogues() {
                   setBirthData({ ...birthData, birth_date: value })
                 }}
                 placeholder="AAAA-MM-JJ"
-                className="w-full px-4 py-2 rounded-lg bg-white/10 border border-cosmic-gold/30 text-cosmic-gold placeholder-cosmic-gold/50 focus:outline-none focus:border-cosmic-gold relative z-20"
+                className="w-full px-4 py-2 rounded-lg bg-white/15 border border-cosmic-gold/20 text-cosmic-gold placeholder-cosmic-gold/60 focus:outline-none focus:border-cosmic-gold/70 relative z-20"
                 suppressHydrationWarning
               />
+              <p className="mt-1 text-xs text-cosmic-gold/70">Format: AAAA-MM-JJ (ex: 1976-10-26)</p>
             </div>
             <div>
               <label className="block text-sm font-medium text-cosmic-gold mb-2">
@@ -270,7 +234,7 @@ export default function Dialogues() {
                 type="time"
                 value={birthData.birth_time}
                 onChange={(e) => setBirthData({ ...birthData, birth_time: e.target.value })}
-                className="w-full px-4 py-2 rounded-lg bg-white/10 border border-cosmic-gold/30 text-cosmic-gold focus:outline-none focus:border-cosmic-gold relative z-20"
+                className="w-full px-4 py-2 rounded-lg bg-white/15 border border-cosmic-gold/20 text-cosmic-gold focus:outline-none focus:border-cosmic-gold/70 relative z-20"
                 suppressHydrationWarning
               />
             </div>
@@ -278,7 +242,21 @@ export default function Dialogues() {
               <LocationInput
                 label="Lieu de naissance"
                 value={birthData.birth_place}
-                onChange={(value) => setBirthData({ ...birthData, birth_place: value })}
+                variant="gold"
+                onChange={(value) => {
+                  // Si la valeur est vide, réinitialiser aussi les coordonnées
+                  if (!value || value.trim() === '') {
+                    setBirthData({
+                      ...birthData,
+                      birth_place: '',
+                      latitude: 0,
+                      longitude: 0,
+                      timezone: settings.defaultTimezone || '',
+                    })
+                  } else {
+                    setBirthData({ ...birthData, birth_place: value })
+                  }
+                }}
                 onLocationSelect={(location) => {
                   setBirthData({
                     ...birthData,
@@ -328,7 +306,7 @@ export default function Dialogues() {
               animate={{ opacity: 1, y: 0 }}
               className="bg-gradient-to-br from-cosmic-purple/40 to-magenta-purple/40 rounded-xl p-6 border border-cosmic-gold/20"
             >
-              <div className="pdf-card max-w-3xl mx-auto">
+              <div className="pdf-card max-w-3xl mx-auto" ref={exportRef}>
                 <div className="pdf-header">
                   <img
                     src="/orbital-astro-logo.png"
@@ -339,26 +317,35 @@ export default function Dialogues() {
                       if (target) target.style.display = 'none'
                     }}
                   />
-                  <div className="pdf-brand">Orbital Astro</div>
+                  <div className="pdf-brand">
+                    <span className="brand-script">Orbital</span>
+                    <span className="brand-sans">Astro</span>
+                  </div>
                   <div className="pdf-subtitle">Dialogue pré-incarnation</div>
                 </div>
-                <div
-                  ref={exportRef}
-                  className="pdf-scroll custom-scrollbar text-cosmic-gold/90"
-                >
-                  <div className="dialogue-prose px-6 py-4 pdf-body">
+                <div className="pdf-scroll custom-scrollbar text-cosmic-gold/90">
+                  <div className="dialogue-prose px-6 py-4 pdf-body pdf-panel">
                     <ReactMarkdown
                     components={{
                       p: ({ node, ...props }) => {
                         const rawText = Array.isArray(props.children)
                           ? props.children.map((c: any) => (typeof c === 'string' ? c : '')).join('').trim()
                           : (props.children as any)?.toString().trim()
-                          const isCountdown = /\d\s*[–-]\s*\d/.test(rawText || '')
-                          const isDate = /\d{1,2}\s+\w+\s+\d{2,4}/i.test(rawText || '')
-                          const isPlace = (rawText || '').includes(',') && (rawText || '').length < 80
-                          const center = (rawText || '').length < 90 && (isCountdown || isDate || isPlace)
-                          return <p {...props} className={`dialogue-paragraph ${center ? 'dialogue-center' : ''}`} />
-                        },
+                        const isCountdown = /\d\s*[–-]\s*\d/.test(rawText || '')
+                        const isDate = /\d{1,2}\s+\w+\s+\d{2,4}/i.test(rawText || '')
+                        const isPlace = (rawText || '').includes(',') && (rawText || '').length < 80
+                        const isLandingPhrase = (rawText || '').toLowerCase().includes('les énergies se rassemblent')
+                        const center = (rawText || '').length < 120 && (isCountdown || isDate || isPlace || isLandingPhrase)
+                        const isLanding = isLandingPhrase || (rawText || '').toLowerCase().includes('atterrissage')
+                        const isFootnote = (rawText || '').toLowerCase().startsWith('ce dialogue est symbolique')
+                        const cls = [
+                          'dialogue-paragraph',
+                          center ? 'dialogue-center' : '',
+                          isLanding ? 'landing-block' : '',
+                          isFootnote ? 'footnote-small' : ''
+                        ].filter(Boolean).join(' ')
+                        return <p {...props} className={cls} />
+                      },
                         strong: ({ node, ...props }) => <strong {...props} className="dialogue-strong" />,
                         em: ({ node, ...props }) => <em {...props} className="dialogue-em" />,
                         hr: () => null,
@@ -368,9 +355,10 @@ export default function Dialogues() {
                     </ReactMarkdown>
                   </div>
                 </div>
+                <div className="pdf-footnote">Dialogue pré-incarnation</div>
               </div>
               {/* Note de bas de page */}
-              <div className="mt-6 pt-4 border-t border-cosmic-gold/20 text-sm text-cosmic-gold/70 italic text-center">
+              <div className="mt-6 pt-4 border-t border-cosmic-gold/20 text-xs text-cosmic-gold/60 italic text-center footnote-small">
                 L'astrologie ici est offerte comme un divertissement, une manière légère de réfléchir, sans valeur de vérité absolue.
               </div>
               <div className="flex flex-col sm:flex-row sm:justify-end sm:items-center gap-2 mt-4">
@@ -387,6 +375,54 @@ export default function Dialogues() {
           )}
         </motion.div>
       </div>
+    </div>
+  )
+}
+
+function Starfield() {
+  const [stars, setStars] = useState<Array<{
+    id: number
+    x: number
+    y: number
+    size: number
+    duration: number
+  }>>([])
+
+  useEffect(() => {
+    setStars(
+      Array.from({ length: 100 }).map((_, i) => ({
+        id: i,
+        x: Math.random() * 100,
+        y: Math.random() * 100,
+        size: Math.random() * 2 + 1,
+        duration: Math.random() * 3 + 2,
+      }))
+    )
+  }, [])
+
+  return (
+    <div className="fixed inset-0 pointer-events-none z-0">
+      {stars.map((star) => (
+        <motion.div
+          key={star.id}
+          className="absolute rounded-full bg-white"
+          style={{
+            left: `${star.x}%`,
+            top: `${star.y}%`,
+            width: star.size,
+            height: star.size,
+          }}
+          animate={{
+            opacity: [0.3, 1, 0.3],
+            scale: [1, 1.2, 1],
+          }}
+          transition={{
+            duration: star.duration,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
+      ))}
     </div>
   )
 }
