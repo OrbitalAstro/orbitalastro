@@ -142,26 +142,30 @@ export default function Dashboard() {
           className="bg-white/10 backdrop-blur-sm rounded-xl p-6 mb-8 border border-white/20"
         >
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <FormField
-              label={t.dashboard.birthDate}
-              name="birth_date"
-              value={birthData.birth_date}
-              onChange={(value) => {
-                const sanitized = formatBirthDateInput(value)
-                setBirthData({ ...birthData, birth_date: sanitized })
-                if (errors.birth_date) {
-                  setErrors({ ...errors, birth_date: '' })
-                }
-              }}
-              type="text"
-              inputMode="numeric"
-              pattern="\\d{4}-\\d{2}-\\d{2}"
-              required
-              error={errors.birth_date}
-              success={!!birthData.birth_date && !errors.birth_date}
-              icon={Calendar}
-              tooltip={t.tooltips.birthDate}
-            />
+            <div>
+              <FormField
+                label={t.dashboard.birthDate}
+                name="birth_date"
+                value={birthData.birth_date}
+                onChange={(value) => {
+                  const sanitized = formatBirthDateInput(value)
+                  setBirthData({ ...birthData, birth_date: sanitized })
+                  if (errors.birth_date) {
+                    setErrors({ ...errors, birth_date: '' })
+                  }
+                }}
+                type="text"
+                inputMode="numeric"
+                pattern="\\d{4}-\\d{2}-\\d{2}"
+                placeholder="AAAA-MM-JJ"
+                required
+                error={errors.birth_date}
+                success={!!birthData.birth_date && !errors.birth_date}
+                icon={Calendar}
+                tooltip={t.tooltips.birthDate}
+              />
+              <p className="mt-1 text-xs text-white/60">Format: AAAA-MM-JJ (ex: 1976-10-26)</p>
+            </div>
             <FormField
               label={t.dashboard.birthTime}
               name="birth_time"

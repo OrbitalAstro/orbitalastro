@@ -240,6 +240,7 @@ export default function Reading2026Page() {
                     className="w-full px-4 py-2 rounded-lg bg-white/10 border border-cosmic-gold/30 text-cosmic-gold placeholder-cosmic-gold/50 focus:outline-none focus:border-cosmic-gold relative z-20"
                     suppressHydrationWarning
                   />
+                  <p className="mt-1 text-xs text-cosmic-gold/70">Format: AAAA-MM-JJ (ex: 1976-10-26)</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-cosmic-gold mb-2">
@@ -257,6 +258,7 @@ export default function Reading2026Page() {
                   <LocationInput
                     label="Lieu de naissance"
                     value={birthData.birth_place}
+                    variant="gold"
                     onChange={(value) => setBirthData({ ...birthData, birth_place: value })}
                     onLocationSelect={(location) => {
                       setBirthData({
