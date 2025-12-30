@@ -34,6 +34,7 @@ interface LocationInputProps {
   success?: boolean
   required?: boolean
   tooltip?: string
+  variant?: 'default' | 'gold'
 }
 
 export default function LocationInput({
@@ -46,10 +47,12 @@ export default function LocationInput({
   success,
   required = false,
   tooltip,
+  variant = 'default',
 }: LocationInputProps) {
   const t = useTranslation()
   const defaultLabel = label || t.dashboard.birthPlace
   const defaultPlaceholder = placeholder || t.tooltips.locationSearch
+  const isGold = variant === 'gold'
   const [cities, setCities] = useState<City[]>([])
   const [filteredCities, setFilteredCities] = useState<City[]>([])
   const [geocodedPlaces, setGeocodedPlaces] = useState<GeocodedPlace[]>([])
@@ -341,18 +344,26 @@ export default function LocationInput({
   return (
     <div className="relative z-20">
       {defaultLabel && (
-        <label className="block text-sm font-medium text-white/80 mb-2 flex items-center gap-2">
+        <label
+          className={`block text-sm font-medium mb-2 flex items-center gap-2 ${
+            isGold ? 'text-cosmic-gold' : 'text-white/80'
+          }`}
+        >
           {defaultLabel}
           {required && <span className="text-eclipse-red">*</span>}
           {tooltip && (
-            <span className="ml-1 text-cosmic-gold cursor-help" title={tooltip}>
+            <span className={`ml-1 cursor-help ${isGold ? 'text-cosmic-gold' : 'text-cosmic-gold'}`} title={tooltip}>
               ?
             </span>
           )}
         </label>
       )}
       <div className="relative">
-        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-white/50">
+        <div
+          className={`absolute left-3 top-1/2 -translate-y-1/2 ${
+            isGold ? 'text-cosmic-gold/60' : 'text-white/50'
+          }`}
+        >
           <Search className="h-5 w-5" />
         </div>
         <input
@@ -369,14 +380,18 @@ export default function LocationInput({
           required={required}
           suppressHydrationWarning
           className={` 
-            w-full pl-10 pr-10 py-2 rounded-lg bg-white/10 border text-white placeholder-white/50
+            w-full pl-10 pr-10 py-2 rounded-lg bg-white/15 border
             focus:outline-none focus:ring-2 transition relative z-20
-            ${error
-              ? 'border-eclipse-red focus:ring-eclipse-red'
-              : success
-              ? 'border-aurora-teal focus:ring-aurora-teal'
-              : 'border-white/20 focus:ring-cosmic-pink'
+            ${
+              error
+                ? 'border-eclipse-red focus:ring-eclipse-red'
+                : success
+                ? 'border-aurora-teal focus:ring-aurora-teal'
+                : isGold
+                ? 'border-cosmic-gold/20 focus:ring-cosmic-gold/50'
+                : 'border-white/20 focus:ring-cosmic-pink/40'
             }
+            ${isGold ? 'text-cosmic-gold placeholder-cosmic-gold/60' : 'text-white placeholder-white/60'}
           `}
           aria-invalid={error ? 'true' : 'false'}
           aria-describedby={error ? `${defaultLabel}-error` : undefined}
@@ -385,7 +400,9 @@ export default function LocationInput({
           <button
             type="button"
             onClick={handleClear}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white transition"
+            className={`absolute right-3 top-1/2 -translate-y-1/2 transition ${
+              isGold ? 'text-cosmic-gold/60 hover:text-cosmic-gold' : 'text-white/50 hover:text-white'
+            }`}
             aria-label="Clear location"
           >
             <X className="h-5 w-5" />
@@ -483,7 +500,7 @@ export default function LocationInput({
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="mt-1 text-xs text-white/60 flex items-center gap-1"
+          className={`mt-1 text-xs flex items-center gap-1 ${isGold ? "text-cosmic-gold/70" : "text-white/60"}`}
         >
           <MapPin className="h-3 w-3" />
           {selectedLocation.latitude.toFixed(6)}, {selectedLocation.longitude.toFixed(6)}
@@ -495,4 +512,3 @@ export default function LocationInput({
     </div>
   )
 }
-
