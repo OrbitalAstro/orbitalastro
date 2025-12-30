@@ -3,6 +3,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playwrite+NZ:wght@300;400;500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -236,6 +237,15 @@ body {
   margin: 1.6em 0;
 }
 
+.landing-block {
+  font-family: 'Playwrite NZ', cursive;
+  text-align: center;
+  text-indent: 0;
+  letter-spacing: 0.05em;
+  margin: 0.6em 0;
+  line-height: 1.6;
+}
+
 .dialogue-prose h1,
 .dialogue-prose h2,
 .dialogue-prose h3 {
@@ -254,12 +264,12 @@ body {
 
 /* PDF export card */
 .pdf-card {
-  background: radial-gradient(120% 120% at 20% 20%, #7a4f85 0%, #5b3365 45%, #3a1e4c 100%);
+  background: radial-gradient(140% 130% at 20% 15%, #a17ab1 0%, #7c4f90 45%, #4c2c62 100%);
   border-radius: 18px;
   border: 1px solid rgba(228, 181, 160, 0.25);
   box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
   position: relative;
-  padding: 32px 28px 36px;
+  padding: 24px 28px 36px;
 }
 
 .pdf-card::after {
@@ -278,26 +288,40 @@ body {
 }
 
 .pdf-logo {
-  height: 72px;
-  margin: 0 auto 8px;
+  height: 64px;
+  margin: 0 auto 6px;
   filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.35));
 }
 
 .pdf-brand {
-  font-family: 'Great Vibes', cursive;
-  font-size: 32px;
+  display: inline-flex;
+  gap: 6px;
+  align-items: baseline;
+  justify-content: center;
   color: var(--cosmic-gold);
-  letter-spacing: 0.04em;
   text-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
 }
 
 .pdf-subtitle {
   font-family: 'Cinzel', serif;
-  font-size: 14px;
-  letter-spacing: 0.2em;
-  color: rgba(255, 255, 255, 0.85);
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  color: rgba(255, 255, 255, 0.75);
   text-transform: uppercase;
   margin-top: 4px;
+}
+
+.brand-script {
+  font-family: 'Great Vibes', cursive;
+  font-size: 32px;
+  letter-spacing: 0.04em;
+}
+
+.brand-sans {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 18px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
 }
 
 .pdf-scroll {
@@ -308,4 +332,29 @@ body {
 
 .pdf-body {
   font-size: 12pt;
+}
+
+.pdf-panel {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(228, 181, 160, 0.35);
+  border-radius: 14px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.pdf-footnote {
+  margin-top: 10px;
+  text-align: center;
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: rgba(255, 255, 255, 0.65);
+  text-transform: uppercase;
+}
+
+.footnote-small {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.7);
+  text-align: center;
+  text-indent: 0;
+  margin-top: 8px;
 }
