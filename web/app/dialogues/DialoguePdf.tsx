@@ -173,14 +173,31 @@ export default function DialoguePdf({ dialogue }: DialoguePdfProps) {
         continue
       }
       
-      // Détecter "ICI ET MAINTENANT" ou "ICI et MAINTENANT"
+      // Détecter "ICI ET MAINTENANT" ou "ICI et MAINTENANT" (peut être suivi de texte)
       const lower = line.toLowerCase()
-      if (lower.includes('ici et maintenant') || lower === 'ici et maintenant') {
+      if (lower.includes('ici et maintenant')) {
         if (currentParagraph) {
           result.push(currentParagraph)
           currentParagraph = ''
         }
-        result.push(line) // Garder la ligne telle quelle
+        // Si la ligne commence par "ICI et MAINTENANT", on la garde telle quelle
+        // Sinon, on extrait juste la partie "ICI et MAINTENANT"
+        if (/^ici\s+et\s+maintenant/i.test(line.trim())) {
+          result.push(line) // Garder la ligne complète si elle commence par ICI et MAINTENANT
+        } else {
+          // Extraire juste "ICI et MAINTENANT" de la ligne
+          const match = line.match(/^(.*?ici\s+et\s+maintenant[^\s]*)/i)
+          if (match) {
+            result.push(match[1].trim())
+            // Si il y a du texte après, l'ajouter comme paragraphe séparé
+            const rest = line.substring(match[0].length).trim()
+            if (rest) {
+              result.push(rest)
+            }
+          } else {
+            result.push(line)
+          }
+        }
         continue
       }
       
@@ -263,10 +280,21 @@ export default function DialoguePdf({ dialogue }: DialoguePdfProps) {
             }
 
             if (isIciMaintenant) {
+              // Extraire juste "ICI et MAINTENANT" si suivi de texte
+              const iciMatch = p.match(/^(.*?ici\s+et\s+maintenant[^\s]*)/i)
+              const iciText = iciMatch ? iciMatch[1].trim() : p
+              
               return (
-                <Text key={idx} style={styles.iciMaintenant}>
-                  {p}
-                </Text>
+                <View key={idx} style={{ marginBottom: 10 }}>
+                  <Text style={styles.iciMaintenant}>
+                    {iciText}
+                  </Text>
+                  {iciMatch && p.length > iciMatch[0].length && (
+                    <Text style={styles.paragraph}>
+                      {p.substring(iciMatch[0].length).trim()}
+                    </Text>
+                  )}
+                </View>
               )
             }
 

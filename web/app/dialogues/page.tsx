@@ -360,7 +360,7 @@ export default function Dialogues() {
                           lower === 'ici et maintenant' ||
                           lower.startsWith('ici et maintenant') ||
                           /^ici\s+et\s+maintenant/i.test(rawText || '') ||
-                          (lower.includes('ici et maintenant') && rawText && rawText.length < 200)
+                          (lower.includes('ici et maintenant') && rawText && rawText.length < 200 && /ici\s+et\s+maintenant/i.test(rawText || ''))
                         
                         const isCountdown = /\d\s*[–-]\s*\d/.test(rawText || '')
                         const isDate = /\d{1,2}\s+\w+\s+\d{2,4}/i.test(rawText || '')
