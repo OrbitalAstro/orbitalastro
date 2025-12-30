@@ -8,6 +8,7 @@ import { MessageSquare, Sparkles } from 'lucide-react'
 import { useSettingsStore } from '@/lib/store'
 import { apiClient } from '@/lib/api'
 import ReactMarkdown from 'react-markdown'
+import { Fragment } from 'react'
 import LocationInput from '@/components/LocationInput'
 import BackButton from '@/components/BackButton'
 // Removed generateDialogue import
@@ -377,8 +378,8 @@ export default function Dialogues() {
                             const iciText = iciMatch[1].trim()
                             const restText = rawText.substring(iciMatch[0].length).trim()
                             return (
-                              <>
-                                <p {...props} className="ici-maintenant" style={{ marginBottom: '0.5em' }}>
+                              <Fragment key={props.key}>
+                                <p className="ici-maintenant" style={{ marginBottom: '0.5em' }}>
                                   {iciText}
                                 </p>
                                 {restText && (
@@ -386,7 +387,7 @@ export default function Dialogues() {
                                     {restText}
                                   </p>
                                 )}
-                              </>
+                              </Fragment>
                             )
                           }
                         }
