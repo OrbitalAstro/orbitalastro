@@ -1,0 +1,5 @@
+first_name,birth_date,birth_time,city,province,country,birth_place,latitude,longitude,timezone,house_system
+Jean,1976-10-26,14:30,Montréal,Québec,Canada,,,,"",placidus
+Marie,1990-05-15,09:00,Paris,,France,,,,"",placidus
+Pierre,1985-12-01,18:45,Québec,Québec,Canada,,,,"",placidus
+
