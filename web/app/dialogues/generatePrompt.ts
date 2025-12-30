@@ -358,7 +358,8 @@ Astrologie : Ça, ce sera le Nœud Nord en [NoeudNord_Signe] (Maison [NoeudNord_
 
 Les énergies se rassemblent, les vibrations se calibrent et ta matière prend forme
 
-5 – 4 – 3 – 2 – 1 … Atterrissage : [date, heure] — [ville, province, pays]
+5 – 4 – 3 – 2 – 1 … Atterrissage : [date, heure]
+[ville, province, pays]
 
 [VERBATIM – Retour]
 
