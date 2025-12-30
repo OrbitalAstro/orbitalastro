@@ -38,10 +38,21 @@ if (Test-Port -Port 8000) {
 } else {
     Write-Host "Demarrage de l'API sur http://localhost:8000..." -ForegroundColor Yellow
     $currentDir = Get-Location
-    $apiCmd = "cd '$currentDir'; .\.venv\Scripts\python.exe -m uvicorn main:app --reload --host 0.0.0.0 --port 8000"
+    $apiCmd = @"
+cd '$currentDir'
+Write-Host '=== BACKEND ORBITALASTRO ===' -ForegroundColor Cyan
+Write-Host 'Port: http://localhost:8000' -ForegroundColor Green
+Write-Host ''
+if (Test-Path '.\.venv\Scripts\Activate.ps1') {
+    & .\.venv\Scripts\Activate.ps1
+    Write-Host 'Virtualenv active' -ForegroundColor Gray
+}
+python -m uvicorn main:app --reload --host 127.0.0.1 --port 8000
+"@
     Start-Process powershell -ArgumentList "-NoExit", "-Command", $apiCmd
-    Start-Sleep -Seconds 3
+    Start-Sleep -Seconds 5
     Write-Host "API demarree" -ForegroundColor Green
+    Write-Host "   Attendez 5-10 secondes que le backend soit pret..." -ForegroundColor Yellow
 }
 
 # Vérifier le port 3000 (Frontend)
@@ -51,10 +62,17 @@ if (Test-Port -Port 3000) {
     Write-Host "Demarrage du frontend sur http://localhost:3000..." -ForegroundColor Yellow
     $currentDir = Get-Location
     $webPath = Join-Path $currentDir "web"
-    $frontendCmd = "cd '$webPath'; npm run dev"
+    $frontendCmd = @"
+cd '$webPath'
+Write-Host '=== FRONTEND ORBITALASTRO ===' -ForegroundColor Cyan
+Write-Host 'Port: http://localhost:3000' -ForegroundColor Green
+Write-Host ''
+npm run dev
+"@
     Start-Process powershell -ArgumentList "-NoExit", "-Command", $frontendCmd
     Start-Sleep -Seconds 5
     Write-Host "Frontend demarre" -ForegroundColor Green
+    Write-Host "   Attendez 10-15 secondes que le frontend soit pret..." -ForegroundColor Yellow
 }
 
 Write-Host ""
