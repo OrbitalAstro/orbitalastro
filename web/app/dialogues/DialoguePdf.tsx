@@ -239,10 +239,12 @@ export default function DialoguePdf({ dialogue }: DialoguePdfProps) {
               /^\s*\*\s*\*\s*\*\s*$/.test(trimmed)
             
             // Détecter "ICI ET MAINTENANT" ou "ICI et MAINTENANT" - centrer (plusieurs variantes)
+            // Peut être suivi de texte, donc on vérifie si ça commence par "ICI et MAINTENANT"
             const isIciMaintenant = 
               lower === 'ici et maintenant' ||
               lower.startsWith('ici et maintenant') ||
-              /^ici\s+et\s+maintenant/i.test(trimmed)
+              /^ici\s+et\s+maintenant/i.test(trimmed) ||
+              (lower.includes('ici et maintenant') && trimmed.length < 200 && trimmed.split('\n').length <= 3)
             
             const isLanding =
               lower.includes('les énergies se rassemblent') ||

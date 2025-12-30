@@ -350,18 +350,33 @@ export default function Dialogues() {
                         const rawText = Array.isArray(props.children)
                           ? props.children.map((c: any) => (typeof c === 'string' ? c : '')).join('').trim()
                           : (props.children as any)?.toString().trim()
+                        const lower = (rawText || '').toLowerCase()
+                        
+                        // Détecter les astérisques (***)
+                        const isAsterisks = rawText === '***' || rawText === '* * *' || /^\s*\*{3,}\s*$/.test(rawText || '')
+                        
+                        // Détecter "ICI ET MAINTENANT" ou "ICI et MAINTENANT" (peut être suivi de texte)
+                        const isIciMaintenant = 
+                          lower === 'ici et maintenant' ||
+                          lower.startsWith('ici et maintenant') ||
+                          /^ici\s+et\s+maintenant/i.test(rawText || '') ||
+                          (lower.includes('ici et maintenant') && rawText && rawText.length < 200)
+                        
                         const isCountdown = /\d\s*[–-]\s*\d/.test(rawText || '')
                         const isDate = /\d{1,2}\s+\w+\s+\d{2,4}/i.test(rawText || '')
                         const isPlace = (rawText || '').includes(',') && (rawText || '').length < 80
-                        const isLandingPhrase = (rawText || '').toLowerCase().includes('les énergies se rassemblent')
+                        const isLandingPhrase = lower.includes('les énergies se rassemblent')
                         const center = (rawText || '').length < 120 && (isCountdown || isDate || isPlace || isLandingPhrase)
-                        const isLanding = isLandingPhrase || (rawText || '').toLowerCase().includes('atterrissage')
-                        const isFootnote = (rawText || '').toLowerCase().startsWith('ce dialogue est symbolique')
+                        const isLanding = isLandingPhrase || lower.includes('atterrissage')
+                        const isFootnote = lower.startsWith('ce dialogue est symbolique')
+                        
                         const cls = [
                           'dialogue-paragraph',
-                          center ? 'dialogue-center' : '',
+                          (center || isAsterisks || isIciMaintenant) ? 'dialogue-center' : '',
                           isLanding ? 'landing-block' : '',
-                          isFootnote ? 'footnote-small' : ''
+                          isFootnote ? 'footnote-small' : '',
+                          isIciMaintenant ? 'ici-maintenant' : '',
+                          isAsterisks ? 'asterisks' : ''
                         ].filter(Boolean).join(' ')
                         return <p {...props} className={cls} />
                       },
