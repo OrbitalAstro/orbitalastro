@@ -57,18 +57,31 @@ export default function Dialogues() {
       // Précharger la police Great Vibes avant de générer le PDF
       const { Font } = await import('@react-pdf/renderer')
       const fontUrl = `${window.location.origin}/fonts/GreatVibes-Regular.ttf`
+      
+      // Vérifier que la police est accessible avant de l'enregistrer
       try {
-        Font.register({
-          family: 'GreatVibes',
-          src: fontUrl,
-        })
+        const fontResponse = await fetch(fontUrl, { method: 'HEAD' })
+        if (fontResponse.ok) {
+          Font.register({
+            family: 'GreatVibes',
+            src: fontUrl,
+          })
+          console.log('Great Vibes font registered successfully')
+        } else {
+          console.warn('Font file not accessible, using fallback')
+        }
       } catch (fontError) {
         console.warn('Font registration failed, using fallback:', fontError)
+        // Continue sans la police personnalisée, le PDF utilisera une police par défaut
       }
       
-      const blob = await pdf(
-        <DialoguePdf dialogue={dialogue} />
-      ).toBlob()
+      // Générer le PDF avec un timeout pour éviter les blocages
+      const pdfPromise = pdf(<DialoguePdf dialogue={dialogue} />).toBlob()
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('PDF generation timeout')), 30000)
+      )
+      
+      const blob = await Promise.race([pdfPromise, timeoutPromise]) as Blob
       const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
@@ -78,7 +91,13 @@ export default function Dialogues() {
     } catch (err: any) {
       console.error('Error generating PDF', err)
       const errorMessage = err?.message || err?.toString() || 'Erreur inconnue'
-      alert(`Échec de la génération du PDF: ${errorMessage}`)
+      // Message d'erreur plus informatif
+      const userMessage = errorMessage.includes('timeout') 
+        ? 'La génération du PDF prend trop de temps. Veuillez réessayer.'
+        : errorMessage.includes('fetch') || errorMessage.includes('Failed to fetch')
+        ? 'Impossible de charger les ressources nécessaires. Vérifiez votre connexion et réessayez.'
+        : `Échec de la génération du PDF: ${errorMessage}`
+      alert(userMessage)
     } finally {
       setDownloading(false)
     }
