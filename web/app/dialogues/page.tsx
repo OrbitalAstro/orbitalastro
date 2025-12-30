@@ -370,6 +370,27 @@ export default function Dialogues() {
                         const isLanding = isLandingPhrase || lower.includes('atterrissage')
                         const isFootnote = lower.startsWith('ce dialogue est symbolique')
                         
+                        // Si c'est ICI et MAINTENANT suivi de texte, on doit le séparer
+                        if (isIciMaintenant && rawText && rawText.length > 20) {
+                          const iciMatch = rawText.match(/^(.*?ici\s+et\s+maintenant[^\s]*)/i)
+                          if (iciMatch) {
+                            const iciText = iciMatch[1].trim()
+                            const restText = rawText.substring(iciMatch[0].length).trim()
+                            return (
+                              <>
+                                <p {...props} className="ici-maintenant" style={{ marginBottom: '0.5em' }}>
+                                  {iciText}
+                                </p>
+                                {restText && (
+                                  <p className="dialogue-paragraph" style={{ marginTop: '0.5em' }}>
+                                    {restText}
+                                  </p>
+                                )}
+                              </>
+                            )
+                          }
+                        }
+                        
                         const cls = [
                           'dialogue-paragraph',
                           (center || isAsterisks || isIciMaintenant) ? 'dialogue-center' : '',
