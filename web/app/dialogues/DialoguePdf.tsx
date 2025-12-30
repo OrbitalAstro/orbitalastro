@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
     left: 20,
     right: 20,
     bottom: 20,
-    border: '2 solid #b8860b', // Doré plus foncé pour le cadre
+    border: '2 solid #000000', // Noir temporairement (original: '#b8860b' - Doré plus foncé)
     borderRadius: 8,
   },
   pageContent: {
@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: 'transparent',
     padding: 20,
-    color: '#b8860b', // Doré plus foncé pour meilleure visibilité sur fond blanc
+    color: '#000000', // Noir temporairement (original: '#b8860b' - Doré plus foncé)
     flex: 1,
   },
   pagination: {
@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontFamily: 'Helvetica',
     fontSize: 10,
-    color: '#b8860b', // Doré plus foncé
+    color: '#000000', // Noir temporairement (original: '#b8860b' - Doré plus foncé)
   },
   header: {
     textAlign: 'center',
@@ -74,14 +74,14 @@ const styles = StyleSheet.create({
   brandScript: {
     fontFamily: greatVibesLoaded ? 'GreatVibes' : 'Times-Italic',
     fontSize: greatVibesLoaded ? 34 : 40,
-    color: '#b8860b', // Doré plus foncé
+    color: '#000000', // Noir temporairement (original: '#b8860b' - Doré plus foncé)
     letterSpacing: greatVibesLoaded ? 0.5 : 1.5,
     fontStyle: greatVibesLoaded ? 'normal' : 'italic',
   },
   brandSans: {
     fontFamily: 'Times-Roman',
     fontSize: 16,
-    color: '#8b6914', // Doré foncé
+    color: '#000000', // Noir temporairement (original: '#8b6914' - Doré foncé)
     letterSpacing: 6,
     textTransform: 'uppercase',
     fontWeight: 'bold',
@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
   subtitle: {
     fontFamily: 'Times-Roman',
     fontSize: 9,
-    color: '#8b6914', // Doré foncé
+    color: '#000000', // Noir temporairement (original: '#8b6914' - Doré foncé)
     letterSpacing: 4,
     textTransform: 'uppercase',
     marginTop: 6,
@@ -119,9 +119,22 @@ const styles = StyleSheet.create({
   footnote: {
     fontFamily: 'Helvetica',
     fontSize: 9,
-    color: '#8b6914', // Doré foncé
+    color: '#000000', // Noir temporairement (original: '#8b6914' - Doré foncé)
     textAlign: 'center',
     marginTop: 10,
+  },
+  asterisks: {
+    textAlign: 'center',
+    marginBottom: 6,
+    fontFamily: 'Helvetica',
+    fontSize: 12,
+  },
+  iciMaintenant: {
+    textAlign: 'center',
+    marginBottom: 10,
+    fontFamily: 'Helvetica',
+    fontSize: 14,
+    fontWeight: 'bold',
   },
 })
 
@@ -153,8 +166,8 @@ export default function DialoguePdf({ dialogue }: DialoguePdfProps) {
           <View style={styles.header}>
             {/* Lignes décoratives en haut */}
             <View style={{ marginBottom: 8 }}>
-              <View style={{ height: 1, backgroundColor: '#b8860b', width: '100%', marginBottom: 2 }} />
-              <View style={{ height: 1, backgroundColor: '#8b6914', width: '100%' }} />
+              <View style={{ height: 1, backgroundColor: '#000000', width: '100%', marginBottom: 2 }} />
+              <View style={{ height: 1, backgroundColor: '#000000', width: '100%' }} />
             </View>
             
             <View style={styles.brandLine}>
@@ -166,6 +179,14 @@ export default function DialoguePdf({ dialogue }: DialoguePdfProps) {
 
           {paragraphs.map((p, idx) => {
             const lower = p.toLowerCase()
+            const trimmed = p.trim()
+            
+            // Détecter les astérisques (***) - centrer
+            const isAsterisks = trimmed === '***' || trimmed === '* * *' || /^\*{3,}$/.test(trimmed)
+            
+            // Détecter "ICI ET MAINTENANT" ou "ICI et MAINTENANT" - centrer
+            const isIciMaintenant = lower.includes('ici et maintenant') || lower.includes('ici et maintenan')
+            
             const isLanding =
               lower.includes('les énergies se rassemblent') ||
               lower.includes('les vibrations se calibrent') ||
@@ -173,6 +194,22 @@ export default function DialoguePdf({ dialogue }: DialoguePdfProps) {
               lower.includes('atterrissage')
             const isFootnote =
               lower.startsWith('ce dialogue est symbolique')
+
+            if (isAsterisks) {
+              return (
+                <Text key={idx} style={styles.asterisks}>
+                  ***
+                </Text>
+              )
+            }
+
+            if (isIciMaintenant) {
+              return (
+                <Text key={idx} style={styles.iciMaintenant}>
+                  {p}
+                </Text>
+              )
+            }
 
             if (isLanding) {
               return (
@@ -191,7 +228,7 @@ export default function DialoguePdf({ dialogue }: DialoguePdfProps) {
             }
 
             // Exclure les phrases de dialogue (qui commencent par "Astrologie" ou un prénom suivi de ":")
-            const isDialogue = /^(Astrologie|Isa|Isabelle|[\w]+\s*):/.test(p.trim())
+            const isDialogue = /^(Astrologie|Isa|Isabelle|[\w]+\s*):/.test(trimmed)
             
             const isCenter =
               !isDialogue &&
