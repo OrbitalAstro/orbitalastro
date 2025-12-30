@@ -114,8 +114,9 @@ $webPath = Join-Path $projectPath "web"
 
 # Démarrer le backend dans un nouveau terminal
 Write-Host "🔧 Démarrage du backend (port 8000)..." -ForegroundColor Cyan
+$projectPathEscaped = $projectPath -replace "'", "''"
 $backendScript = @"
-Set-Location -LiteralPath '$projectPath'
+Set-Location -LiteralPath '$projectPathEscaped'
 if (Test-Path '.\.venv\Scripts\Activate.ps1') {
     & .\.venv\Scripts\Activate.ps1
 } else {
@@ -132,8 +133,9 @@ Start-Sleep -Seconds 3
 
 # Démarrer le frontend dans un nouveau terminal
 Write-Host "🌐 Démarrage du frontend (port 3000)..." -ForegroundColor Cyan
+$webPathEscaped = $webPath -replace "'", "''"
 $frontendScript = @"
-Set-Location -LiteralPath '$webPath'
+Set-Location -LiteralPath '$webPathEscaped'
 Write-Host 'Frontend demarre sur http://localhost:3000' -ForegroundColor Green
 npm run dev
 "@
