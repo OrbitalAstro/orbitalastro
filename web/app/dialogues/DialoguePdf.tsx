@@ -144,15 +144,63 @@ interface DialoguePdfProps {
 
 export default function DialoguePdf({ dialogue }: DialoguePdfProps) {
   const paragraphs = useMemo(() => {
-    return (dialogue || '')
-      .split(/\n\s*\n/)
-      .map((p) => {
-        // Retirer les marqueurs Markdown (####, ###, ##, #) au début des paragraphes
-        let cleaned = p.trim()
-        cleaned = cleaned.replace(/^#{1,6}\s+/, '') // Retire #, ##, ###, ####, #####, ###### suivi d'un espace
-        return cleaned
-      })
-      .filter(Boolean)
+    // Diviser par double retour à la ligne, mais aussi traiter les lignes individuelles
+    const lines = (dialogue || '').split(/\n/)
+    const result: string[] = []
+    let currentParagraph = ''
+    
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim()
+      
+      // Si la ligne est vide, on termine le paragraphe courant
+      if (!line) {
+        if (currentParagraph) {
+          result.push(currentParagraph)
+          currentParagraph = ''
+        }
+        continue
+      }
+      
+      // Détecter les astérisques seuls sur une ligne
+      if (line === '***' || line === '* * *' || /^\*{3,}$/.test(line)) {
+        if (currentParagraph) {
+          result.push(currentParagraph)
+          currentParagraph = ''
+        }
+        result.push('***') // Marqueur spécial pour les astérisques
+        continue
+      }
+      
+      // Détecter "ICI ET MAINTENANT" ou "ICI et MAINTENANT"
+      const lower = line.toLowerCase()
+      if (lower.includes('ici et maintenant') || lower === 'ici et maintenant') {
+        if (currentParagraph) {
+          result.push(currentParagraph)
+          currentParagraph = ''
+        }
+        result.push(line) // Garder la ligne telle quelle
+        continue
+      }
+      
+      // Sinon, ajouter à la ligne courante
+      if (currentParagraph) {
+        currentParagraph += '\n' + line
+      } else {
+        currentParagraph = line
+      }
+    }
+    
+    // Ajouter le dernier paragraphe
+    if (currentParagraph) {
+      result.push(currentParagraph)
+    }
+    
+    return result.map((p) => {
+      // Retirer les marqueurs Markdown (####, ###, ##, #) au début des paragraphes
+      let cleaned = p.trim()
+      cleaned = cleaned.replace(/^#{1,6}\s+/, '') // Retire #, ##, ###, ####, #####, ###### suivi d'un espace
+      return cleaned
+    }).filter(Boolean)
   }, [dialogue])
 
   return (
@@ -184,8 +232,11 @@ export default function DialoguePdf({ dialogue }: DialoguePdfProps) {
             // Détecter les astérisques (***) - centrer
             const isAsterisks = trimmed === '***' || trimmed === '* * *' || /^\*{3,}$/.test(trimmed)
             
-            // Détecter "ICI ET MAINTENANT" ou "ICI et MAINTENANT" - centrer
-            const isIciMaintenant = lower.includes('ici et maintenant') || lower.includes('ici et maintenan')
+            // Détecter "ICI ET MAINTENANT" ou "ICI et MAINTENANT" - centrer (plusieurs variantes)
+            const isIciMaintenant = 
+              lower === 'ici et maintenant' ||
+              lower.startsWith('ici et maintenant') ||
+              /^ici\s+et\s+maintenant/i.test(trimmed)
             
             const isLanding =
               lower.includes('les énergies se rassemblent') ||
