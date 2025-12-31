@@ -318,6 +318,17 @@ La phrase « Les énergies se rassemblent… » reste au présent.
 
 La section « ICI et MAINTENANT » reste au présent.
 
+[RÈGLE DE LONGUEUR — CIBLE]
+
+Le dialogue final doit faire environ 1700 mots (idéalement 1600–1800).
+Pour y arriver, vise le haut des fourchettes de phrases indiquées (ex: 2–5 -> plutôt 4–5) sans ajouter de nouvelles sections et sans changer la structure.
+
+[RÈGLE DE DENSITÉ — CONTENU]
+
+Chaque volet doit avoir de la matière : évite les généralités et le remplissage.
+Dans chaque section, ajoute au moins 2 éléments concrets et incarnés (exemples de situations, types de rencontres, contextes, gestes, choix, rythmes, sensations, lieux, façons de parler/agir), tout en restant fidèle au placement (signe + maison).
+Ne répète pas la même idée d’un volet à l’autre : chaque section apporte une nuance nouvelle.
+
 [RÈGLE TYPO — STRICTE — OBLIGATOIRE]
 
 En français, il est INTERDIT de mettre une virgule avant « et », « ou », « ni ».

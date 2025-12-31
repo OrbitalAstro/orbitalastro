@@ -70,13 +70,13 @@ def geocode_location(city: str, province: str = "", country: str = "") -> Option
             "User-Agent": "OrbitalAstro-BatchGenerator/1.0"
         }
         
-        print(f"  🔍 Géocodage de: {query}")
+        print(f"  [GEOCODE] Géocodage de: {query}")
         response = requests.get(url, params=params, headers=headers, timeout=10)
         response.raise_for_status()
         
         data = response.json()
         if not data:
-            print(f"  ⚠️  Aucun résultat trouvé pour: {query}")
+            print(f"  [WARN] Aucun résultat trouvé pour: {query}")
             return None
         
         result = data[0]
@@ -91,7 +91,7 @@ def geocode_location(city: str, province: str = "", country: str = "") -> Option
             # Fallback: estimation basée sur la longitude
             timezone_str = estimate_timezone_from_longitude(lon)
         
-        print(f"  ✅ Trouvé: {lat:.6f}, {lon:.6f}, {timezone_str}")
+        print(f"  [OK] Trouvé: {lat:.6f}, {lon:.6f}, {timezone_str}")
         
         # Respecter les limites de taux de Nominatim (1 req/sec)
         time.sleep(1.1)
@@ -99,7 +99,7 @@ def geocode_location(city: str, province: str = "", country: str = "") -> Option
         return (lat, lon, timezone_str)
         
     except Exception as e:
-        print(f"  ❌ Erreur de géocodage: {e}")
+        print(f"  [ERROR] Erreur de géocodage: {e}")
         return None
 
 def estimate_timezone_from_longitude(longitude: float) -> str:
@@ -171,7 +171,7 @@ def get_natal_chart(birth_data: Dict) -> Dict:
         "include_extra_objects": True,
     }
     
-    response = requests.post(url, json=payload)
+    response = requests.post(url, json=payload, timeout=30)
     response.raise_for_status()
     return response.json()
 
@@ -197,31 +197,74 @@ def get_house(planet_data: Dict) -> int:
     """Extrait le numéro de la maison d'une planète."""
     return planet_data.get("house", 0)
 
-def find_house_for_longitude(longitude: float, houses: List[Dict]) -> int:
-    """Trouve dans quelle maison se trouve une longitude donnée."""
+def _coerce_house_cusps(houses) -> List[Dict]:
+    """
+    Normalise les maisons pour accepter plusieurs formats de backend.
+
+    Formats acceptés:
+    - dict { "1": 123.4, "2": 150.0, ... } (format actuel de l'API)
+    - list[dict] avec clés "cusp"/"longitude" (ancien format)
+    - list[float] ou tuple[float] (cusps)
+    """
     if not houses:
+        return []
+
+    if isinstance(houses, dict):
+        out: List[Dict] = []
+        for k, v in houses.items():
+            try:
+                house_num = int(k)
+                lon = float(v)
+            except (TypeError, ValueError):
+                continue
+            out.append({"house": house_num, "longitude": lon})
+        out.sort(key=lambda item: item["house"])
+        return out
+
+    if isinstance(houses, (list, tuple)):
+        if not houses:
+            return []
+        if all(isinstance(h, (int, float)) for h in houses):
+            return [{"house": i + 1, "longitude": float(lon)} for i, lon in enumerate(houses)]
+        if all(isinstance(h, dict) for h in houses):
+            out: List[Dict] = []
+            for i, h in enumerate(houses):
+                cusp = h.get("cusp") or h.get("longitude")
+                if cusp is None:
+                    continue
+                try:
+                    out.append({"house": int(h.get("house", i + 1)), "longitude": float(cusp)})
+                except (TypeError, ValueError):
+                    continue
+            out.sort(key=lambda item: item["house"])
+            return out
+
+    return []
+
+
+def find_house_for_longitude(longitude: float, houses) -> int:
+    """Trouve dans quelle maison se trouve une longitude donnée."""
+    cusps = _coerce_house_cusps(houses)
+    if not cusps:
         return 0
     
     # Normaliser la longitude à 0-360
-    normalized_long = longitude % 360
+    normalized_long = float(longitude) % 360.0
     
-    # Trouver la maison qui contient cette longitude
-    for i, house in enumerate(houses):
-        cusp_long = house.get("cusp") or house.get("longitude") or 0
-        next_house_index = (i + 1) % len(houses)
-        next_house = houses[next_house_index]
-        next_cusp_long = next_house.get("cusp") or next_house.get("longitude") or 0
+    for i, house in enumerate(cusps):
+        start_long = float(house["longitude"]) % 360.0
+        next_house = cusps[(i + 1) % len(cusps)]
+        end_long = float(next_house["longitude"]) % 360.0
         
-        # Gérer le wrap-around
-        start_long = cusp_long % 360
-        end_long = next_cusp_long % 360
-        if end_long < start_long:
-            end_long += 360
-        
-        if normalized_long >= start_long and normalized_long < end_long:
-            return house.get("house", i + 1)
+        if start_long <= end_long:
+            if start_long <= normalized_long < end_long:
+                return int(house.get("house", i + 1))
+        else:
+            # Wrap-around (ex: 350 -> 10)
+            if normalized_long >= start_long or normalized_long < end_long:
+                return int(house.get("house", i + 1))
     
-    return 0
+    return int(cusps[-1].get("house", 12))
 
 def get_main_aspect(aspects: List[Dict], planet_name: str) -> Optional[str]:
     """Trouve le premier aspect significatif d'une planète."""
@@ -389,6 +432,15 @@ L'incarné demande au présent et accepte sa vie au futur.
 La phrase « Les énergies se rassemblent… » reste au présent.
 La section « ICI et MAINTENANT » reste au présent.
 
+[RÈGLE DE LONGUEUR — CIBLE]
+Le dialogue final doit faire environ 1700 mots (idéalement 1600–1800).
+Pour y arriver, vise le haut des fourchettes de phrases indiquées (ex: 2–5 -> plutôt 4–5) sans ajouter de nouvelles sections et sans changer la structure.
+
+[RÈGLE DE DENSITÉ — CONTENU]
+Chaque volet doit avoir de la matière : évite les généralités et le remplissage.
+Dans chaque section, ajoute au moins 2 éléments concrets et incarnés (exemples de situations, types de rencontres, contextes, gestes, choix, rythmes, sensations, lieux, façons de parler/agir), tout en restant fidèle au placement (signe + maison).
+Ne répète pas la même idée d’un volet à l’autre : chaque section apporte une nuance nouvelle.
+
 [VERBATIM – intro]
 [Prénom], à un moment avant ton arrivée sur Terre, entre un [élément qui convient à la personnalité de la carte] et une [intensité qui convient à la personnalité de la carte] lumière, ton âme s'arrête un instant. L'Astrologie se tient devant toi comme une présence calme et bienveillante, prête à éclairer le choix de ta prochaine aventure. Ce dialogue n'est pas une prédiction : ton libre arbitre fera toujours autorité — au-dessus de toute tendance et de tout symbole — il aura le dernier mot, à chaque instant. C'est un échange symbolique pour éclairer les élans et les tendances de ton plan de jeu astrologique, celui qui influencera ta manière de vivre, de choisir, de grandir. Ici, tu alignes les vibrations que tu calibreras tout au long de ta prochaine vie.
 
@@ -442,7 +494,7 @@ Astrologie : Et ta chance, comment pourrait-elle te surprendre?
 
 [Prénom] : (1–3 phrases. "J'aimerais que ma chance…" sans astrologie, au présent)
 
-Astrologie : D'abord, l'alignement qui te rend "rencontrable" par la chance sera ta {chance_pof_text}, (1–3 phrases simples et concrètes, au futur, sans astrologie : ce que tu cultiveras en toi, comment tu te placeras intérieurement, quels choix et attitudes ouvriront la porte).
+Astrologie : D’abord, l’alignement qui permettra à ta chance de te rencontrer sera ta {chance_pof_text}, (1–3 phrases simples et concrètes, au futur, sans astrologie : ce que tu cultiveras en toi, comment tu te placeras intérieurement, quels choix et attitudes ouvriront la porte).
 
 Astrologie : Ensuite, pour les formes par lesquelles la chance viendra vers toi je t'offre {chance_vertex_text}, (1–3 phrases simples et concrètes, au futur, sans astrologie : à quoi ça ressemblera quand ça arrivera — types de rencontres, contextes, invitations, lieux, timing, synchronicités).
 
@@ -601,7 +653,7 @@ def generate_dialogue(birth_data: Dict, chart: Dict) -> str:
         "Referer": "http://localhost:3000"
     }
     
-    response = requests.post(url, json=payload, headers=headers)
+    response = requests.post(url, json=payload, headers=headers, timeout=120)
     response.raise_for_status()
     result = response.json()
     return result.get("content", "")
@@ -934,30 +986,30 @@ def process_person(birth_data: Dict, output_dir: Path) -> bool:
     """Traite une personne : génère le thème, le dialogue et le PDF."""
     try:
         first_name = birth_data.get('first_name', 'lecture')
-        print(f"\n📝 Traitement de {first_name}...")
+        print(f"\n[PROCESS] Traitement de {first_name}...")
         
         # 1. Obtenir le thème natal
-        print("  ⏳ Calcul du thème natal...")
+        print("  [WORK] Calcul du thème natal...")
         chart = get_natal_chart(birth_data)
-        print("  ✅ Thème natal calculé")
+        print("  [OK] Thème natal calculé")
         
         # 2. Générer le dialogue
-        print("  ⏳ Génération du dialogue...")
+        print("  [WORK] Génération du dialogue...")
         dialogue = generate_dialogue(birth_data, chart)
-        print("  ✅ Dialogue généré")
+        print("  [OK] Dialogue généré")
         
         # 3. Créer le PDF
-        print("  ⏳ Création du PDF...")
+        print("  [WORK] Création du PDF...")
         safe_name = "".join(c for c in first_name if c.isalnum() or c in (' ', '-', '_')).strip()
         pdf_filename = f"Dialogue-pre-incarnation-{safe_name}.pdf"
         pdf_path = output_dir / pdf_filename
         
         create_pdf(dialogue, birth_data, pdf_path)
-        print(f"  ✅ PDF créé : {pdf_path}")
+        print(f"  [OK] PDF créé : {pdf_path}")
         
         return True
     except Exception as e:
-        print(f"  ❌ Erreur : {e}")
+        print(f"  [ERROR] Erreur : {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -996,7 +1048,7 @@ def normalize_time(time_str: str) -> str:
         pass
     
     # Par défaut, retourner 12:00:00
-    print(f"  ⚠️  Format d'heure non reconnu: {time_str}, utilisation de 12:00:00")
+    print(f"  [WARN] Format d'heure non reconnu: {time_str}, utilisation de 12:00:00")
     return "12:00:00"
 
 def load_people_from_csv(csv_path: Path) -> List[Dict]:
@@ -1029,7 +1081,7 @@ def load_people_from_csv(csv_path: Path) -> List[Dict]:
     if not encoding_used:
         raise ValueError(f"Impossible de lire le fichier CSV avec les encodages testés: {encodings}")
     
-    print(f"📖 Encodage détecté: {encoding_used}")
+    print(f"[INFO] Encodage détecté: {encoding_used}")
     
     with open(csv_path, 'r', encoding=encoding_used) as f:
         reader = csv.DictReader(f)
@@ -1075,7 +1127,7 @@ def load_people_from_csv(csv_path: Path) -> List[Dict]:
                     person['longitude'] = float(longitude_str)
                     person['timezone'] = timezone_str if timezone_str else 'UTC'
                 except ValueError:
-                    print(f"⚠️  Coordonnées invalides pour {person['first_name']}, tentative de géocodage...")
+                    print(f"[WARN] Coordonnées invalides pour {person['first_name']}, tentative de géocodage...")
                     # Fallback: géocoder
                     coords = geocode_location(city, province, country)
                     if coords:
@@ -1084,7 +1136,7 @@ def load_people_from_csv(csv_path: Path) -> List[Dict]:
                         raise ValueError(f"Impossible de géocoder {birth_place}")
             else:
                 # Géocoder automatiquement à partir de la ville/province/pays
-                print(f"📍 Géocodage automatique pour {person['first_name']}...")
+                print(f"[GEOCODE] Géocodage automatique pour {person['first_name']}...")
                 coords = geocode_location(city, province, country)
                 if coords:
                     person['latitude'], person['longitude'], person['timezone'] = coords
@@ -1109,17 +1161,17 @@ def main():
     # Créer le répertoire de sortie
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
-    print(f"📁 Répertoire de sortie : {output_dir.absolute()}")
+    print(f"[INFO] Répertoire de sortie : {output_dir.absolute()}")
     
     # Charger les personnes
     input_path = Path(args.input_file)
     if not input_path.exists():
-        print(f"❌ Fichier introuvable : {input_path}")
+        print(f"[ERROR] Fichier introuvable : {input_path}")
         sys.exit(1)
     
-    print(f"📖 Chargement des données depuis {input_path}...")
+    print(f"[INFO] Chargement des données depuis {input_path}...")
     people = load_people_from_csv(input_path)
-    print(f"✅ {len(people)} personne(s) trouvée(s)")
+    print(f"[OK] {len(people)} personne(s) trouvée(s)")
     
     # Traiter chaque personne
     success_count = 0
@@ -1129,9 +1181,8 @@ def main():
             success_count += 1
         time.sleep(1)  # Pause pour éviter de surcharger l'API
     
-    print(f"\n✅ Terminé : {success_count}/{len(people)} dialogue(s) généré(s) avec succès")
-    print(f"📁 PDFs sauvegardés dans : {output_dir.absolute()}")
+    print(f"\n[OK] Terminé : {success_count}/{len(people)} dialogue(s) généré(s) avec succès")
+    print(f"[INFO] PDFs sauvegardés dans : {output_dir.absolute()}")
 
 if __name__ == "__main__":
     main()
-
