@@ -141,7 +141,8 @@ export default function Dialogues() {
         birth_city: birthData.birth_place || undefined,
         house_system: settings.houseSystem || 'placidus',
         include_aspects: true,
-        include_extra_objects: settings.includeExtraObjects ?? true,
+        // Required for "Chance" (Fortune + Vertex). Force it on for dialogues.
+        include_extra_objects: true,
       })
       
       if (chartResponse.error) {
@@ -153,7 +154,22 @@ export default function Dialogues() {
       if (!chart) {
         throw new Error('Chart response is empty')
       }
-      
+
+      const hasFortune = typeof chart?.extra_objects?.part_of_fortune === 'number'
+      const hasVertex = typeof chart?.extra_objects?.vertex === 'number'
+      const hasHouses = !!chart?.houses && typeof chart.houses === 'object'
+
+      if (!hasFortune || !hasVertex || !hasHouses) {
+        console.error('Chart missing required data for Chance (Fortune/Vertex):', {
+          hasFortune,
+          hasVertex,
+          hasHouses,
+          extra_objects: chart?.extra_objects,
+          housesKeys: chart?.houses ? Object.keys(chart.houses) : null,
+        })
+        throw new Error('Fortune/Vertex manquants dans la réponse du backend. Vérifie include_extra_objects et la connexion à l’API.')
+      }
+       
       console.log('Chart received:', {
         hasPlanets: !!chart?.planets,
         hasAspects: !!chart?.aspects,

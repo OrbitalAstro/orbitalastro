@@ -1,9 +1,22 @@
 """Extra astrological objects computation (Arabic Parts, Vertex, etc.)."""
 
-from math import cos, radians, sin
+from math import cos, radians
 from typing import Dict, Optional
 
 from astro.utils import normalize_angle_deg
+
+HOUSE_SYSTEM_TO_SWISSEPH_CODE = {
+    "placidus": "P",
+    "whole_sign": "W",
+    "equal": "E",
+    "koch": "K",
+    "porphyry": "O",
+    "regiomontanus": "R",
+    "campanus": "C",
+    "alcabitius": "B",
+    "meridian": "X",
+    "topocentric": "T",
+}
 
 
 def part_of_fortune(sun_long: float, moon_long: float, asc_long: float, is_day_chart: bool) -> float:
@@ -52,6 +65,31 @@ def vertex(asc_long: float, mc_long: float, latitude_deg: float) -> float:
     vertex_long = normalize_angle_deg(vertex_long + adjustment)
     
     return vertex_long
+
+
+def vertex_from_swisseph(
+    jd_ut: float,
+    latitude_deg: float,
+    longitude_deg: float,
+    house_system: str = "placidus",
+) -> float:
+    """
+    Compute Vertex using Swiss Ephemeris house calculation.
+
+    Args:
+        jd_ut: Julian Day (UT).
+        latitude_deg: Geographic latitude in degrees.
+        longitude_deg: Geographic longitude in degrees (east positive, west negative).
+        house_system: House system name (placidus, whole_sign, equal, etc.).
+
+    Returns:
+        Vertex longitude in degrees.
+    """
+    import swisseph as swe
+
+    code = HOUSE_SYSTEM_TO_SWISSEPH_CODE.get(house_system, "P")
+    _, ascmc = swe.houses(jd_ut, latitude_deg, longitude_deg, code.encode("ascii"))
+    return normalize_angle_deg(float(ascmc[3]))
 
 
 def part_of_spirit(sun_long: float, moon_long: float, asc_long: float, is_day_chart: bool) -> float:
@@ -130,6 +168,10 @@ def compute_arabic_parts(
     mc_long: float,
     is_day_chart: bool,
     include_vertex: bool = True,
+    jd_ut: Optional[float] = None,
+    latitude_deg: Optional[float] = None,
+    longitude_deg: Optional[float] = None,
+    house_system: str = "placidus",
 ) -> Dict[str, float]:
     """
     Compute common Arabic Parts and sensitive points.
@@ -141,6 +183,10 @@ def compute_arabic_parts(
         mc_long: Midheaven longitude in degrees
         is_day_chart: True if Sun is above horizon
         include_vertex: Whether to include Vertex calculation
+        jd_ut: Optional Julian Day (UT) to compute an accurate Vertex via Swiss Ephemeris
+        latitude_deg: Optional latitude to compute an accurate Vertex
+        longitude_deg: Optional longitude to compute an accurate Vertex
+        house_system: House system name for Swiss Ephemeris
 
     Returns:
         Dictionary mapping part names to longitudes in degrees
@@ -152,8 +198,20 @@ def compute_arabic_parts(
     }
     
     if include_vertex:
-        # Would need latitude for accurate Vertex, using simplified version
-        parts["vertex"] = normalize_angle_deg(asc_long + 90.0)
+        if jd_ut is not None and latitude_deg is not None and longitude_deg is not None:
+            try:
+                parts["vertex"] = vertex_from_swisseph(
+                    jd_ut=jd_ut,
+                    latitude_deg=latitude_deg,
+                    longitude_deg=longitude_deg,
+                    house_system=house_system,
+                )
+            except Exception:
+                parts["vertex"] = vertex(asc_long, mc_long, latitude_deg)
+        elif latitude_deg is not None:
+            parts["vertex"] = vertex(asc_long, mc_long, latitude_deg)
+        else:
+            parts["vertex"] = normalize_angle_deg(asc_long + 90.0)
     
     return parts
 

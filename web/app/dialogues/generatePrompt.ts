@@ -15,6 +15,11 @@ interface ChartData {
     longitude: number
     [key: string]: any
   }>
+  houses?: Record<string, number>
+  extra_objects?: Record<string, number | undefined> & {
+    part_of_fortune?: number
+    vertex?: number
+  }
   aspects?: Array<{
     planet1: string
     planet2: string
@@ -92,11 +97,46 @@ function longitudeToSign(longitude: number): string {
   return signs[signIndex]
 }
 
+function normalizeLongitude(longitude: number): number {
+  const normalized = longitude % 360
+  return normalized < 0 ? normalized + 360 : normalized
+}
+
 /**
  * Get house number from planet data
  */
 function getHouse(planet: any): number {
   return planet.house || 0
+}
+
+function getHouseFromLongitude(longitude: number, houses?: Record<string, number>): number | null {
+  if (!houses || typeof longitude !== 'number' || Number.isNaN(longitude)) return null
+
+  const cusps: number[] = []
+  for (let i = 1; i <= 12; i++) {
+    const cusp = houses[String(i)]
+    if (typeof cusp !== 'number' || Number.isNaN(cusp)) return null
+    cusps.push(((cusp % 360) + 360) % 360)
+  }
+
+  const lonNorm = ((longitude % 360) + 360) % 360
+
+  for (let index = 0; index < 12; index++) {
+    const start = cusps[index]
+    const end = cusps[(index + 1) % 12]
+
+    if (start <= end) {
+      if (start <= lonNorm && lonNorm < end) return index + 1
+    } else {
+      if (lonNorm >= start || lonNorm < end) return index + 1
+    }
+  }
+
+  for (let index = 0; index < 12; index++) {
+    if (Math.abs(lonNorm - cusps[index]) < 0.0001) return index + 1
+  }
+
+  return 12
 }
 
 /**
@@ -192,6 +232,32 @@ export function generateDialoguePrompt(
   const saturn = chart.planets?.saturn
   const jupiter = chart.planets?.jupiter
   const trueNode = chart.planets?.true_node || chart.planets?.north_node
+
+  // Fortune/Vertex are expected from backend extra_objects.
+  // As a fallback, Fortune can be computed locally from ASC/Sun/Moon if missing.
+  const ascendantLongitude =
+    typeof chart.ascendant === 'number'
+      ? chart.ascendant
+      : (chart.ascendant && typeof chart.ascendant === 'object' ? chart.ascendant.longitude : undefined)
+
+  const computedFortuneLongitude =
+    typeof ascendantLongitude === 'number' &&
+    typeof sun?.longitude === 'number' &&
+    typeof moon?.longitude === 'number'
+      ? normalizeLongitude(
+          (sun?.house ?? 0) >= 7
+            ? ascendantLongitude + moon.longitude - sun.longitude
+            : ascendantLongitude + sun.longitude - moon.longitude
+        )
+      : undefined
+
+  const fortuneLongitude = chart.extra_objects?.part_of_fortune ?? computedFortuneLongitude
+  const fortuneSign = typeof fortuneLongitude === 'number' ? longitudeToSign(fortuneLongitude) : null
+  const fortuneHouse = typeof fortuneLongitude === 'number' ? getHouseFromLongitude(fortuneLongitude, chart.houses) : null
+
+  const vertexLongitude = chart.extra_objects?.vertex
+  const vertexSign = typeof vertexLongitude === 'number' ? longitudeToSign(vertexLongitude) : null
+  const vertexHouse = typeof vertexLongitude === 'number' ? getHouseFromLongitude(vertexLongitude, chart.houses) : null
   // Get ascendant - it might be a number (longitude) or an object with sign
   let ascendantSign: string | null = null
   if (chart.ascendant) {
@@ -334,7 +400,11 @@ Astrologie : Et ta chance, comment pourrait-elle te surprendre?
 
 [Prénom] : (1–3 phrases. "J'aimerais que ma chance…" sans astrologie, au présent)
 
-Astrologie : Ça, ce sera [PointChance_PlanèteOuPoint] en [PointChance_Signe] (Maison [PointChance_Maison]), [1–3 phrases simples et concrètes, au futur]. (Seulement si fourni; sinon, tu peux aussi utiliser Jupiter pour nuancer.)
+RÈGLE (OBLIGATOIRE) : Dans la section "Chance", tu dois TOUJOURS mentionner Fortune + Vertex (et tu ne dois mentionner ni utiliser Jupiter).
+
+Astrologie : Pour ta chance, ce sera ta Fortune en [Fortune_Signe] (Maison [Fortune_Maison]). (2–4 phrases simples, concrètes et un peu plus étoffées, au futur.)
+
+Astrologie : Et ce sera aussi ton Vertex en [Vertex_Signe] (Maison [Vertex_Maison]). (2–4 phrases simples, concrètes et un peu plus étoffées, au futur.)
 
 [VERBATIM – Apprentissage]
 
@@ -428,9 +498,10 @@ NoeudNord_Maison : ${trueNode ? getHouse(trueNode) : 'Non spécifié'}
 ${talents.length >= 1 ? `Talent1_Planète : ${talents[0].planet}\nTalent1_Signe : ${talents[0].sign}\nTalent1_Maison : ${talents[0].house}` : ''}
 ${talents.length >= 2 ? `Talent2_Planète : ${talents[1].planet}\nTalent2_Signe : ${talents[1].sign}\nTalent2_Maison : ${talents[1].house}` : ''}
 ${talents.length >= 3 ? `Talent3_Planète : ${talents[2].planet}\nTalent3_Signe : ${talents[2].sign}\nTalent3_Maison : ${talents[2].house}` : ''}
-PointChance_PlanèteOuPoint : ${jupiter ? `Jupiter` : 'Jupiter'}
-PointChance_Signe : ${jupiter ? getSignInFrench(jupiter.sign) : 'Non spécifié'}
-PointChance_Maison : ${jupiter ? getHouse(jupiter) : 'Non spécifié'}
+Fortune_Signe : ${fortuneSign ? getSignInFrench(fortuneSign) : 'Non spécifié'}
+Fortune_Maison : ${fortuneHouse ?? 'Non spécifié'}
+Vertex_Signe : ${vertexSign ? getSignInFrench(vertexSign) : 'Non spécifié'}
+Vertex_Maison : ${vertexHouse ?? 'Non spécifié'}
 
 [ÂGE] : ${age}
 [ASCENDANT_SIGNE] : ${ascendantSign ? getSignInFrench(ascendantSign) : 'Non spécifié'}

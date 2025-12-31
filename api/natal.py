@@ -436,6 +436,10 @@ async def natal_chart(request: NatalRequest):
             mc_deg,
             is_day_chart,
             include_vertex=True,
+            jd_ut=jd,
+            latitude_deg=location["latitude"],
+            longitude_deg=location["longitude"],
+            house_system=house_system,
         )
 
     response = NatalResponse(
