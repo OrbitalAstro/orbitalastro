@@ -2,7 +2,7 @@
 # Déployer depuis le dossier `web/` avec: fly deploy
 
 app = "orbitalastro-web"
-primary_region = "yul"
+primary_region = "yyz"
 
 [build]
   dockerfile = "Dockerfile"

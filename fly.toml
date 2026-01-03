@@ -2,7 +2,7 @@
 # Ce fichier sera généré/modifié par `flyctl launch`
 
 app = "orbitalastro-api"
-primary_region = "yul"
+primary_region = "yyz"
 
 [build]
   dockerfile = "Dockerfile"
