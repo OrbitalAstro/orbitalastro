@@ -41,7 +41,15 @@ async def generate_interpretation(req: Request, request: InterpretationRequest):
     
     # If the user restricted their key by HTTP referrers, Gemini may require a Referer header.
     # We mirror the browser Origin/Referer when available, otherwise fall back to localhost.
-    referer = req.headers.get("origin") or req.headers.get("referer") or "http://localhost:3000"
+    #
+    # Note: browsers send Origin like "https://example.com" (no trailing slash) while
+    # Google API key referrer patterns are often configured as "https://example.com/*".
+    # Add a trailing slash when we use Origin so it matches common patterns.
+    origin = req.headers.get("origin")
+    referer_header = req.headers.get("referer")
+    referer = origin or referer_header or "http://localhost:3000/"
+    if origin and not origin.endswith("/"):
+        referer = f"{origin}/"
 
     # Sensible defaults: long-form interpretations easily exceed 2k tokens.
     # Keep a ceiling to avoid excessively large responses.
@@ -144,4 +152,3 @@ def _call_gemini_api(
         raise Exception("Request timed out")
     except requests.exceptions.ConnectionError:
         raise Exception("Connection failed")
-
