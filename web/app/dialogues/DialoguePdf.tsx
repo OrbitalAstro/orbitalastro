@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react'
-import { Document, Page, StyleSheet, Text, View, Font, Link } from '@react-pdf/renderer'
+import { Document, Page, StyleSheet, Text, View, Font, Link, Svg, Ellipse, Circle } from '@react-pdf/renderer'
 import { translations, type Language } from '@/lib/i18n'
 
 const GOLD = '#b8860b'
@@ -43,6 +43,20 @@ const styles = StyleSheet.create({
     bottom: 20,
     border: `2 solid ${GOLD}`,
     borderRadius: 8,
+  },
+  watermark: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    opacity: 0.09,
+  },
+  watermarkLogo: {
+    width: 420,
+    height: 420,
   },
   pageContent: {
     position: 'relative',
@@ -152,6 +166,51 @@ interface DialoguePdfProps {
   feedbackSurveyUrl?: string
 }
 
+function WatermarkLogo() {
+  return (
+    <Svg viewBox="0 0 400 400" style={styles.watermarkLogo}>
+      <Ellipse
+        cx="200"
+        cy="200"
+        rx="140"
+        ry="95"
+        fill="none"
+        stroke={GOLD}
+        strokeWidth={1.5}
+        opacity={0.55}
+        transform="rotate(-20 200 200)"
+      />
+      <Ellipse
+        cx="200"
+        cy="200"
+        rx="120"
+        ry="85"
+        fill="none"
+        stroke={GOLD}
+        strokeWidth={1.5}
+        opacity={0.7}
+        transform="rotate(30 200 200)"
+      />
+      <Ellipse
+        cx="200"
+        cy="200"
+        rx="100"
+        ry="75"
+        fill="none"
+        stroke={GOLD}
+        strokeWidth={1.5}
+        opacity={0.85}
+        transform="rotate(-15 200 200)"
+      />
+      <Circle cx="200" cy="200" r="9" fill={GOLD} opacity={0.9} />
+      <Circle cx="300" cy="200" r="4" fill={GOLD} opacity={0.9} />
+      <Circle cx="200" cy="100" r="4" fill={GOLD} opacity={0.9} />
+      <Circle cx="100" cy="200" r="4" fill={GOLD} opacity={0.9} />
+      <Circle cx="200" cy="300" r="4" fill={GOLD} opacity={0.9} />
+    </Svg>
+  )
+}
+
 export default function DialoguePdf({
   dialogue,
   language = 'fr',
@@ -242,6 +301,11 @@ export default function DialoguePdf({
       <Page size="A4" style={styles.page} wrap>
         {/* Cadre autour de la page */}
         <View style={styles.pageFrame} fixed />
+
+        {/* Logo OrbitalAstro en filigrane */}
+        <View style={styles.watermark} fixed>
+          <WatermarkLogo />
+        </View>
         
         <View style={styles.pageContent}>
           <View style={styles.container}>
