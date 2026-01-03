@@ -20,6 +20,8 @@ import jsPDF from 'jspdf'
 import { pdf } from '@react-pdf/renderer'
 import DialoguePdf from './DialoguePdf'
 
+const FEEDBACK_SURVEY_URL = 'https://forms.gle/eyPRR4Bicf32dCGg6'
+
 export default function Dialogues() {
   const settings = useSettingsStore()
   const t = useTranslation()
@@ -77,7 +79,10 @@ export default function Dialogues() {
       }
       
       // Générer le PDF avec un timeout pour éviter les blocages
-      const pdfPromise = pdf(<DialoguePdf dialogue={dialogue} />).toBlob()
+      const lang = (settings.language || 'fr') as 'en' | 'fr' | 'es'
+      const pdfPromise = pdf(
+        <DialoguePdf dialogue={dialogue} language={lang} feedbackSurveyUrl={FEEDBACK_SURVEY_URL} />
+      ).toBlob()
       const timeoutPromise = new Promise((_, reject) => 
         setTimeout(() => reject(new Error('PDF generation timeout')), 30000)
       )
@@ -86,7 +91,14 @@ export default function Dialogues() {
       const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
-      link.download = `Dialogue-pre-incarnation-${birthData.firstName || 'lecture'}.pdf`
+      const baseName =
+        t.locale === 'fr'
+          ? 'dialogue-pre-incarnation'
+          : t.locale === 'es'
+            ? 'dialogo-pre-encarnacion'
+            : 'pre-incarnation-dialogue'
+      const defaultName = t.locale === 'fr' ? 'lecture' : t.locale === 'es' ? 'lectura' : 'reading'
+      link.download = `${baseName}-${birthData.firstName || defaultName}.pdf`
       link.click()
       URL.revokeObjectURL(url)
     } catch (err: any) {
@@ -94,10 +106,22 @@ export default function Dialogues() {
       const errorMessage = err?.message || err?.toString() || 'Erreur inconnue'
       // Message d'erreur plus informatif
       const userMessage = errorMessage.includes('timeout') 
-        ? 'La génération du PDF prend trop de temps. Veuillez réessayer.'
+        ? (t.locale === 'fr'
+            ? 'La génération du PDF prend trop de temps. Veuillez réessayer.'
+            : t.locale === 'es'
+              ? 'La generación del PDF tarda demasiado. Inténtalo de nuevo.'
+              : 'PDF generation is taking too long. Please try again.')
         : errorMessage.includes('fetch') || errorMessage.includes('Failed to fetch')
-        ? 'Impossible de charger les ressources nécessaires. Vérifiez votre connexion et réessayez.'
-        : `Échec de la génération du PDF: ${errorMessage}`
+        ? (t.locale === 'fr'
+            ? 'Impossible de charger les ressources nécessaires. Vérifiez votre connexion et réessayez.'
+            : t.locale === 'es'
+              ? 'No se pudieron cargar los recursos necesarios. Verifica tu conexión e inténtalo de nuevo.'
+              : 'Unable to load required resources. Please check your connection and try again.')
+        : (t.locale === 'fr'
+            ? `Échec de la génération du PDF: ${errorMessage}`
+            : t.locale === 'es'
+              ? `Error al generar el PDF: ${errorMessage}`
+              : `Failed to generate PDF: ${errorMessage}`)
       alert(userMessage)
     } finally {
       setDownloading(false)
@@ -111,13 +135,13 @@ export default function Dialogues() {
     try {
       // Validate required fields
       if (!birthData.birth_date || !birthData.birth_time) {
-        alert('Date et heure de naissance requises')
+        alert(t.dialogues.validationBirthDateTimeRequired)
         setLoading(false)
         return
       }
 
       if (!birthData.latitude || !birthData.longitude) {
-        alert('Lieu de naissance requis')
+        alert(t.dialogues.validationBirthPlaceRequired)
         setLoading(false)
         return
       }
@@ -185,7 +209,8 @@ export default function Dialogues() {
       console.log('Generating dialogue with AI...')
       
       // Generate the structured prompts with all rules
-      const { systemPrompt, userPrompt } = generateDialoguePrompt(birthData, chart)
+      const lang = (settings.language || 'fr') as 'en' | 'fr' | 'es'
+      const { systemPrompt, userPrompt } = generateDialoguePrompt(birthData, chart, undefined, lang)
       
       const response = await apiClient.ai.interpret(userPrompt, systemPrompt)
       
@@ -201,8 +226,8 @@ export default function Dialogues() {
       console.error('Error generating dialogue:', error)
       const errorMsg = error.message || 'Erreur inconnue'
       const userFriendlyMsg = errorMsg.includes('Rate limit') || errorMsg.includes('429')
-        ? (t.dialogues.rateLimitError || 'Limite de requêtes atteinte. Veuillez attendre quelques instants et réessayer.')
-        : `Erreur lors de la génération du dialogue: ${errorMsg}`
+        ? t.dialogues.rateLimitError
+        : t.dialogues.errorGenerating.replace('{error}', errorMsg)
       alert(userFriendlyMsg)
     } finally {
       setLoading(false)
@@ -221,31 +246,29 @@ export default function Dialogues() {
         >
           <h1 className="text-3xl font-bold text-cosmic-gold mb-8 flex items-center">
             <MessageSquare className="h-8 w-8 mr-3 text-cosmic-gold" />
-            Dialogue Pré-incarnation
+            {t.dialogues.title}
           </h1>
 
-          <p className="text-cosmic-gold/90 mb-6">
-            Découvrez le dialogue de votre âme avant l'incarnation. Une expérience profonde et transformative qui révèle votre mission de vie.
-          </p>
+          <p className="text-cosmic-gold/90 mb-6">{t.dialogues.description}</p>
 
           {/* Input Form */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 relative z-20">
             <div>
               <label className="block text-sm font-medium text-cosmic-gold mb-2">
-                Prénom ou surnom
+                {t.dialogues.firstName}
               </label>
               <input
                 type="text"
                 value={birthData.firstName}
                 onChange={(e) => setBirthData({ ...birthData, firstName: e.target.value })}
-                placeholder="Votre prénom ou surnom"
+                placeholder={t.dialogues.firstNamePlaceholder}
                 className="w-full px-4 py-2 rounded-lg bg-white/15 border border-cosmic-gold/20 text-cosmic-gold placeholder-cosmic-gold/60 focus:outline-none focus:border-cosmic-gold/70 relative z-20"
                 suppressHydrationWarning
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-cosmic-gold mb-2">
-                Date de naissance
+                {t.dialogues.birthDate}
               </label>
               <input
                 type="text"
@@ -256,15 +279,21 @@ export default function Dialogues() {
                   const value = formatBirthDateInput(e.target.value)
                   setBirthData({ ...birthData, birth_date: value })
                 }}
-                placeholder="AAAA-MM-JJ"
+                placeholder={t.locale === 'fr' ? 'AAAA-MM-JJ' : 'YYYY-MM-DD'}
                 className="w-full px-4 py-2 rounded-lg bg-white/15 border border-cosmic-gold/20 text-cosmic-gold placeholder-cosmic-gold/60 focus:outline-none focus:border-cosmic-gold/70 relative z-20"
                 suppressHydrationWarning
               />
-              <p className="mt-1 text-xs text-cosmic-gold/70">Format: AAAA-MM-JJ (ex: 1976-10-26)</p>
+              <p className="mt-1 text-xs text-cosmic-gold/70">
+                {t.locale === 'fr'
+                  ? 'Format : AAAA-MM-JJ (ex : 1976-10-26)'
+                  : t.locale === 'es'
+                    ? 'Formato: AAAA-MM-DD (ej.: 1976-10-26)'
+                    : 'Format: YYYY-MM-DD (e.g., 1976-10-26)'}
+              </p>
             </div>
             <div>
               <label className="block text-sm font-medium text-cosmic-gold mb-2">
-                Heure de naissance
+                {t.dialogues.birthTime}
               </label>
               <input
                 type="time"
@@ -276,7 +305,7 @@ export default function Dialogues() {
             </div>
             <div className="md:col-span-2">
               <LocationInput
-                label="Lieu de naissance"
+                label={t.dialogues.birthPlace}
                 value={birthData.birth_place}
                 variant="gold"
                 onChange={(value) => {
@@ -302,7 +331,7 @@ export default function Dialogues() {
                     timezone: location.timezone || settings.defaultTimezone || '',
                   })
                 }}
-                placeholder="Rechercher un lieu..."
+                placeholder={t.tooltips.locationSearch}
               />
             </div>
           </div>
@@ -315,12 +344,12 @@ export default function Dialogues() {
             {loading ? (
               <>
                 <Sparkles className="h-5 w-5 mr-2 animate-spin" />
-                Génération en cours...
+                {t.dialogues.generating}
               </>
             ) : (
               <>
                 <MessageSquare className="h-5 w-5 mr-2" />
-                Générer mon dialogue
+                {t.dialogues.generate}
               </>
             )}
           </button>
@@ -331,7 +360,7 @@ export default function Dialogues() {
               className="text-sm text-cosmic-gold/80 hover:text-cosmic-gold underline"
               disabled={loading}
             >
-              Réinitialiser le formulaire
+              {t.dialogues.resetForm}
             </button>
           </div>
 
@@ -357,7 +386,7 @@ export default function Dialogues() {
                     <span className="brand-script">Orbital</span>
                     <span className="brand-sans">Astro</span>
                   </div>
-                  <div className="pdf-subtitle">Dialogue pré-incarnation</div>
+                  <div className="pdf-subtitle">{t.dialogues.pdfSubtitle}</div>
                 </div>
                 <div className="pdf-scroll custom-scrollbar text-cosmic-gold/90">
                   <div className="dialogue-prose px-6 py-4 pdf-body pdf-panel">
@@ -427,11 +456,11 @@ export default function Dialogues() {
                     </ReactMarkdown>
                   </div>
                 </div>
-                <div className="pdf-footnote">Dialogue pré-incarnation</div>
+                <div className="pdf-footnote">{t.dialogues.pdfSubtitle}</div>
               </div>
               {/* Note de bas de page */}
               <div className="mt-6 pt-4 border-t border-cosmic-gold/20 text-xs text-cosmic-gold/60 italic text-center footnote-small">
-                L'astrologie ici est offerte comme un divertissement, une manière légère de réfléchir, sans valeur de vérité absolue.
+                {t.dialogues.disclaimer}
               </div>
               <div className="flex flex-col sm:flex-row sm:justify-end sm:items-center gap-2 mt-4">
                 <button
@@ -440,7 +469,7 @@ export default function Dialogues() {
                   disabled={downloading}
                   className="px-4 py-2 bg-cosmic-gold/20 text-cosmic-gold rounded-lg border border-cosmic-gold/40 hover:bg-cosmic-gold/30 transition disabled:opacity-50"
                 >
-                  {downloading ? 'Création du PDF...' : 'Télécharger en PDF'}
+                  {downloading ? t.dialogues.downloadingPdf : t.dialogues.downloadPdf}
                 </button>
               </div>
             </motion.div>

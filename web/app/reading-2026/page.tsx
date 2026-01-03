@@ -12,9 +12,11 @@ import LocationInput from '@/components/LocationInput'
 import BackButton from '@/components/BackButton'
 import { generateReadingPrompt } from './generateReadingPrompt'
 import { formatBirthDateInput } from '@/lib/sanitizeBirthDateYear'
+import { useTranslation } from '@/lib/useTranslation'
 
 export default function Reading2026Page() {
   const settings = useSettingsStore()
+  const t = useTranslation()
   const [birthData, setBirthData] = useState({
     birth_date: settings.defaultBirthDate || '',
     birth_time: settings.defaultBirthTime || '12:00',
@@ -46,13 +48,13 @@ export default function Reading2026Page() {
     try {
       // Validate required fields
       if (!birthData.birth_date || !birthData.birth_time) {
-        alert('Date et heure de naissance requises')
+        alert(t.reading2026.validationBirthDateTimeRequired)
         setLoading(false)
         return
       }
 
       if (!birthData.latitude || !birthData.longitude) {
-        alert('Lieu de naissance requis')
+        alert(t.reading2026.validationBirthPlaceRequired)
         setLoading(false)
         return
       }
@@ -166,7 +168,8 @@ export default function Reading2026Page() {
       })
 
       // Generate reading using backend AI endpoint
-      const { systemPrompt, userPrompt } = generateReadingPrompt(birthData, chart, transits)
+      const lang = (settings.language || 'fr') as 'en' | 'fr' | 'es'
+      const { systemPrompt, userPrompt } = generateReadingPrompt(birthData, chart, transits, lang)
 
       const response = await apiClient.ai.interpret(userPrompt, systemPrompt)
 
@@ -180,7 +183,7 @@ export default function Reading2026Page() {
     } catch (error: any) {
       console.error('Error generating reading:', error)
       const errorMsg = error.message || 'Erreur inconnue'
-      alert(`Erreur lors de la génération de la lecture: ${errorMsg}`)
+      alert(t.reading2026.errorGenerating.replace('{error}', errorMsg))
     } finally {
       setLoading(false)
     }
@@ -198,12 +201,12 @@ export default function Reading2026Page() {
           <div className="flex items-center justify-center gap-3 mb-8">
             <Calendar className="h-8 w-8 text-cosmic-gold" />
             <h1 className="text-3xl font-bold text-cosmic-gold">
-              Lecture 2026
+              {t.reading2026.title}
             </h1>
           </div>
 
           <p className="text-cosmic-gold/90 mb-6 text-center">
-            Découvrez votre lecture astrologique annuelle pour l'année 2026 — Évolution personnelle et mission de vie
+            {t.reading2026.description}
           </p>
 
           {!reading ? (
@@ -212,13 +215,13 @@ export default function Reading2026Page() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8 relative z-40">
                 <div>
                   <label className="block text-sm font-medium text-cosmic-gold mb-2">
-                    Prénom ou surnom
+                    {t.reading2026.firstName}
                   </label>
                   <input
                     type="text"
                     value={birthData.firstName}
                     onChange={(e) => setBirthData({ ...birthData, firstName: e.target.value })}
-                    placeholder="Votre prénom ou surnom"
+                    placeholder={t.reading2026.firstNamePlaceholder}
                     className="w-full px-4 py-2 rounded-lg bg-white/10 border border-cosmic-gold/30 text-cosmic-gold placeholder-cosmic-gold/50 focus:outline-none focus:border-cosmic-gold relative z-20"
                     suppressHydrationWarning
                   />
@@ -236,15 +239,21 @@ export default function Reading2026Page() {
                       const value = formatBirthDateInput(e.target.value)
                       setBirthData({ ...birthData, birth_date: value })
                     }}
-                    placeholder="AAAA-MM-JJ"
+                    placeholder={t.locale === 'fr' ? 'AAAA-MM-JJ' : 'YYYY-MM-DD'}
                     className="w-full px-4 py-2 rounded-lg bg-white/10 border border-cosmic-gold/30 text-cosmic-gold placeholder-cosmic-gold/50 focus:outline-none focus:border-cosmic-gold relative z-20"
                     suppressHydrationWarning
                   />
-                  <p className="mt-1 text-xs text-cosmic-gold/70">Format: AAAA-MM-JJ (ex: 1976-10-26)</p>
+                  <p className="mt-1 text-xs text-cosmic-gold/70">
+                    {t.locale === 'fr'
+                      ? 'Format : AAAA-MM-JJ (ex : 1976-10-26)'
+                      : t.locale === 'es'
+                        ? 'Formato: AAAA-MM-DD (ej.: 1976-10-26)'
+                        : 'Format: YYYY-MM-DD (e.g., 1976-10-26)'}
+                  </p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-cosmic-gold mb-2">
-                    Heure de naissance
+                    {t.reading2026.birthTime}
                   </label>
                   <input
                     type="time"
@@ -256,7 +265,7 @@ export default function Reading2026Page() {
                 </div>
                 <div className="md:col-span-2">
                   <LocationInput
-                    label="Lieu de naissance"
+                    label={t.reading2026.birthPlace}
                     value={birthData.birth_place}
                     variant="gold"
                     onChange={(value) => setBirthData({ ...birthData, birth_place: value })}
@@ -269,7 +278,7 @@ export default function Reading2026Page() {
                         timezone: location.timezone || settings.defaultTimezone || '',
                       })
                     }}
-                    placeholder="Rechercher un lieu..."
+                    placeholder={t.tooltips.locationSearch}
                   />
                 </div>
               </div>
@@ -283,12 +292,12 @@ export default function Reading2026Page() {
                 {loading ? (
                   <>
                     <Sparkles className="h-5 w-5 mr-2 animate-spin" />
-                    Génération en cours...
+                    {t.reading2026.generating}
                   </>
                 ) : (
                   <>
                     <Calendar className="h-5 w-5 mr-2" />
-                    Générer ma lecture 2026
+                    {t.reading2026.generate}
                   </>
                 )}
                 </button>
@@ -297,10 +306,10 @@ export default function Reading2026Page() {
                     type="button"
                     onClick={resetForm}
                     className="text-sm text-cosmic-gold/80 hover:text-cosmic-gold underline"
-                    disabled={loading}
-                  >
-                    Réinitialiser le formulaire
-                  </button>
+                  disabled={loading}
+                >
+                  {t.reading2026.resetForm}
+                </button>
                 </div>
               </div>
             </>
@@ -317,7 +326,7 @@ export default function Reading2026Page() {
                 </div>
                 {/* Note de bas de page */}
                 <div className="mt-6 pt-4 border-t border-cosmic-gold/20 text-sm text-cosmic-gold/70 italic text-center">
-                  Ce dialogue est symbolique, un échange interprété pour le plaisir et la réflexion : il est offert à des fins de divertissement et d'inspiration, sans prétention de vérité absolue ni de certitude. - OrbitalAstro.ca
+                  {t.reading2026.disclaimer}
                 </div>
               </motion.div>
 
@@ -325,7 +334,7 @@ export default function Reading2026Page() {
                 onClick={() => setReading(null)}
                 className="mt-6 px-6 py-2 bg-cosmic-gold/20 text-cosmic-gold rounded-lg border border-cosmic-gold/40 hover:bg-cosmic-gold/30 transition"
               >
-                Générer une nouvelle lecture
+                {t.reading2026.generateAnother}
               </button>
             </>
           )}

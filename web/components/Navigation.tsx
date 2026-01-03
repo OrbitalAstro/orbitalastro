@@ -10,7 +10,7 @@ import {
   Menu,
   X
 } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Logo from './Logo'
 import { useTranslation } from '@/lib/useTranslation'
@@ -18,20 +18,11 @@ import { useTranslation } from '@/lib/useTranslation'
 export default function Navigation() {
   const pathname = usePathname()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [mounted, setMounted] = useState(false)
   const t = useTranslation()
 
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  // Use default English labels until mounted to prevent hydration mismatch
-  const menuItems = mounted ? [
-    { href: '/dialogues', label: 'Dialogue Pré-incarnation', icon: MessageSquare },
-    { href: '/reading-2026', label: 'Lecture 2026', icon: Calendar },
-  ] : [
-    { href: '/dialogues', label: 'Dialogue Pré-incarnation', icon: MessageSquare },
-    { href: '/reading-2026', label: 'Lecture 2026', icon: Calendar },
+  const menuItems = [
+    { href: '/dialogues', label: t.nav.dialogues, icon: MessageSquare },
+    { href: '/reading-2026', label: t.nav.reading2026, icon: Calendar },
   ]
 
   const isActive = (href: string) => {
@@ -81,7 +72,7 @@ export default function Navigation() {
                       : 'text-white/70 hover:text-white hover:bg-white/10'
                     }
                   `}
-                  title={mounted ? (t.nav.settings || 'Settings') : 'Settings'}
+                  title={t.nav.settings}
                 >
                   <Settings className="h-5 w-5" />
                 </Link>
@@ -95,7 +86,7 @@ export default function Navigation() {
                     }
                   `}
                 >
-                  {mounted ? (t.nav.about || 'About') : 'About'}
+                  {t.nav.about}
                 </Link>
               </div>
             </div>
@@ -104,7 +95,7 @@ export default function Navigation() {
             <button
               onClick={() => setMobileMenuOpen(true)}
               className="lg:hidden p-2 text-white hover:bg-white/10 rounded-lg transition"
-              aria-label="Open menu"
+              aria-label={t.common.openMenu}
             >
               <Menu className="h-6 w-6" />
             </button>
@@ -136,7 +127,7 @@ export default function Navigation() {
                   <button
                     onClick={() => setMobileMenuOpen(false)}
                     className="p-2 hover:bg-white/10 rounded-lg transition"
-                    aria-label="Close menu"
+                    aria-label={t.common.closeMenu}
                   >
                     <X className="h-6 w-6 text-white" />
                   </button>
@@ -174,7 +165,7 @@ export default function Navigation() {
                       `}
                     >
                       <Settings className="h-5 w-5 text-cosmic-gold" />
-                      <span className="font-medium">{mounted ? (t.nav.settings || 'Settings') : 'Settings'}</span>
+                      <span className="font-medium">{t.nav.settings}</span>
                     </Link>
                     <Link
                       href="/about"
@@ -188,7 +179,7 @@ export default function Navigation() {
                       `}
                     >
                       <Info className="h-5 w-5 text-cosmic-gold" />
-                      <span className="font-medium">{mounted ? (t.nav.about || 'About') : 'About'}</span>
+                      <span className="font-medium">{t.nav.about}</span>
                     </Link>
                   </div>
                 </nav>
@@ -200,6 +191,3 @@ export default function Navigation() {
     </>
   )
 }
-
-
-

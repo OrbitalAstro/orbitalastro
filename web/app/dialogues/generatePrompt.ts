@@ -1,3 +1,5 @@
+import type { Language } from '@/lib/i18n'
+
 interface BirthData {
   firstName: string
   birth_date: string
@@ -84,6 +86,79 @@ function getSignInFrench(sign: string): string {
     'Pisces': 'Poissons'
   }
   return signMap[sign] || sign
+}
+
+function getSignInSpanish(sign: string): string {
+  const signMap: Record<string, string> = {
+    Aries: 'Aries',
+    Taurus: 'Tauro',
+    Gemini: 'Géminis',
+    Cancer: 'Cáncer',
+    Leo: 'Leo',
+    Virgo: 'Virgo',
+    Libra: 'Libra',
+    Scorpio: 'Escorpio',
+    Sagittarius: 'Sagitario',
+    Capricorn: 'Capricornio',
+    Aquarius: 'Acuario',
+    Pisces: 'Piscis',
+  }
+  return signMap[sign] || sign
+}
+
+function getSignForLanguage(sign: string, language: Language): string {
+  if (language === 'fr') return getSignInFrench(sign)
+  if (language === 'es') return getSignInSpanish(sign)
+  return sign
+}
+
+function getLocaleForLanguage(language: Language): string {
+  if (language === 'fr') return 'fr-FR'
+  if (language === 'es') return 'es-ES'
+  return 'en-US'
+}
+
+function getPlanetLabel(planet: string, language: Language): string {
+  const labels: Record<Language, Record<string, string>> = {
+    en: {
+      sun: 'Sun',
+      moon: 'Moon',
+      mercury: 'Mercury',
+      venus: 'Venus',
+      jupiter: 'Jupiter',
+      saturn: 'Saturn',
+      uranus: 'Uranus',
+      neptune: 'Neptune',
+      pluto: 'Pluto',
+      true_node: 'North Node',
+    },
+    fr: {
+      sun: 'Soleil',
+      moon: 'Lune',
+      mercury: 'Mercure',
+      venus: 'Vénus',
+      jupiter: 'Jupiter',
+      saturn: 'Saturne',
+      uranus: 'Uranus',
+      neptune: 'Neptune',
+      pluto: 'Pluton',
+      true_node: 'Nœud Nord',
+    },
+    es: {
+      sun: 'Sol',
+      moon: 'Luna',
+      mercury: 'Mercurio',
+      venus: 'Venus',
+      jupiter: 'Júpiter',
+      saturn: 'Saturno',
+      uranus: 'Urano',
+      neptune: 'Neptuno',
+      pluto: 'Plutón',
+      true_node: 'Nodo Norte',
+    },
+  }
+
+  return labels[language][planet] || planet
 }
 
 /**
@@ -208,13 +283,14 @@ function formatBirthPlace(birthPlace: string): string {
 export function generateDialoguePrompt(
   birthData: BirthData,
   chart: ChartData,
-  wordCount?: number
+  wordCount?: number,
+  language: Language = 'fr'
 ): { systemPrompt: string; userPrompt: string } {
   const age = calculateAge(birthData.birth_date, birthData.birth_time, birthData.timezone)
   
   // Format birth date and time for display
   const birthDateObj = new Date(`${birthData.birth_date}T${birthData.birth_time}:00`)
-  const formattedDate = birthDateObj.toLocaleDateString('fr-FR', {
+  const formattedDate = birthDateObj.toLocaleDateString(getLocaleForLanguage(language), {
     year: 'numeric',
     month: 'long',
     day: 'numeric'
@@ -276,23 +352,32 @@ export function generateDialoguePrompt(
   // Get three talents - prioritize planets that make sense as talents
   // Using Jupiter, Mercury, and Venus (or other prominent planets if these aren't available)
   const talentCandidates = [
-    jupiter ? { planet: 'Jupiter', sign: getSignInFrench(jupiter.sign), house: getHouse(jupiter) } : null,
-    chart.planets?.mercury ? { planet: 'Mercure', sign: getSignInFrench(chart.planets.mercury.sign), house: getHouse(chart.planets.mercury) } : null,
-    venus ? { planet: 'Vénus', sign: getSignInFrench(venus.sign), house: getHouse(venus) } : null,
-    chart.planets?.uranus ? { planet: 'Uranus', sign: getSignInFrench(chart.planets.uranus.sign), house: getHouse(chart.planets.uranus) } : null,
-    chart.planets?.neptune ? { planet: 'Neptune', sign: getSignInFrench(chart.planets.neptune.sign), house: getHouse(chart.planets.neptune) } : null,
+    jupiter ? { planet: getPlanetLabel('jupiter', language), sign: getSignForLanguage(jupiter.sign, language), house: getHouse(jupiter) } : null,
+    chart.planets?.mercury ? { planet: getPlanetLabel('mercury', language), sign: getSignForLanguage(chart.planets.mercury.sign, language), house: getHouse(chart.planets.mercury) } : null,
+    venus ? { planet: getPlanetLabel('venus', language), sign: getSignForLanguage(venus.sign, language), house: getHouse(venus) } : null,
+    chart.planets?.uranus ? { planet: getPlanetLabel('uranus', language), sign: getSignForLanguage(chart.planets.uranus.sign, language), house: getHouse(chart.planets.uranus) } : null,
+    chart.planets?.neptune ? { planet: getPlanetLabel('neptune', language), sign: getSignForLanguage(chart.planets.neptune.sign, language), house: getHouse(chart.planets.neptune) } : null,
   ].filter(Boolean).slice(0, 3) as Array<{ planet: string; sign: string; house: number }>
   
   const talents = talentCandidates.length >= 3 ? talentCandidates : [
     ...talentCandidates,
-    ...(sun && talentCandidates.length < 3 ? [{ planet: 'Soleil', sign: getSignInFrench(sun.sign), house: getHouse(sun) }] : []),
-    ...(moon && talentCandidates.length < 2 ? [{ planet: 'Lune', sign: getSignInFrench(moon.sign), house: getHouse(moon) }] : []),
+    ...(sun && talentCandidates.length < 3 ? [{ planet: getPlanetLabel('sun', language), sign: getSignForLanguage(sun.sign, language), house: getHouse(sun) }] : []),
+    ...(moon && talentCandidates.length < 2 ? [{ planet: getPlanetLabel('moon', language), sign: getSignForLanguage(moon.sign, language), house: getHouse(moon) }] : []),
   ].slice(0, 3) as Array<{ planet: string; sign: string; house: number }>
   
+  const roleIntro =
+    language === 'en'
+      ? "You are a psychological astrologer: gentle, nuanced, and clear. You write in English, with a warm, vivid but simple style, accessible to non-astrologers. If an astrological term is used, you translate it into concrete lived experience. You never make fatalistic or medical predictions: you speak of tendencies, dynamics, and potential for growth."
+      : language === 'es'
+      ? "Eres una astróloga psicológica, suave y matizada. Escribes en español, con un estilo cálido, imagético pero simple, accesible para personas no astrólogas. Si se usa un término astrológico, lo traduces a experiencia concreta. Nunca haces predicciones fatalistas ni médicas: hablas de tendencias, dinámicas y potencial de evolución."
+      : "Tu es une astrologue psychologique, douce et nuancée. Tu écris en français, dans un style chaleureux, imagé mais simple, accessible pour des non-astrologues. Si un terme astrologique est utilisé, il est traduit en vécu concret. Tu ne fais jamais de prédictions fatalistes, ni médicales : tu parles de tendances, de dynamiques et de potentiel d'évolution."
+
+  const notSpecified = language === 'en' ? 'Not specified' : language === 'es' ? 'No especificado' : 'Non spécifié'
+
   // Build the complete system prompt with all rules and structure
   const systemPrompt = `[RÔLE]
 
-Tu es une astrologue psychologique, douce et nuancée. Tu écris en français, dans un style chaleureux, imagé mais simple, accessible pour des non-astrologues. Si un terme astrologique est utilisé, il est traduit en vécu concret. Tu ne fais jamais de prédictions fatalistes, ni médicales : tu parles de tendances, de dynamiques et de potentiel d'évolution.
+${roleIntro}
 
 Tu rédiges le texte COMPLET, en respectant la structure ci-dessous. Tu réponds uniquement avec le texte final du dialogue, sans expliquer ta démarche ni ajouter de commentaires autour.
 
@@ -331,7 +416,7 @@ Ne répète pas la même idée d’un volet à l’autre : chaque section apport
 
 [RÈGLE TYPO — STRICTE — OBLIGATOIRE]
 
-En français, il est INTERDIT de mettre une virgule avant « et », « ou », « ni ».
+Si tu écris en français, il est INTERDIT de mettre une virgule avant « et », « ou », « ni ».
 
 EXEMPLES CORRECTS :
 - « doux et rassurant » ✅
@@ -477,45 +562,45 @@ Ce dialogue est symbolique, un échange interprété pour le plaisir et la réfl
 
 INPUT (à fournir par l'utilisateur à chaque lecture)
 
-[Nombre de mots] : ${wordCount || 'Non spécifié'}
+[Nombre de mots] : ${wordCount || notSpecified}
 
-[Prénom] : ${birthData.firstName || 'Non spécifié'}
+[Prénom] : ${birthData.firstName || notSpecified}
 
 Naissance : ${formattedDate}, ${formattedTime} — ${formattedBirthPlace}
 
 [Aspects et placements fournis par l'utilisateur — à insérer ici]
 
-Ascendant_Signe : ${ascendantSign ? getSignInFrench(ascendantSign) : 'Non spécifié'}
+Ascendant_Signe : ${ascendantSign ? getSignForLanguage(ascendantSign, language) : notSpecified}
 Ascendant_Maison : ${ascendantHouse}
-Soleil_Signe : ${sun ? getSignInFrench(sun.sign) : 'Non spécifié'}
-Soleil_Maison : ${sun ? getHouse(sun) : 'Non spécifié'}
+Soleil_Signe : ${sun ? getSignForLanguage(sun.sign, language) : notSpecified}
+Soleil_Maison : ${sun ? getHouse(sun) : notSpecified}
 ${sun && getMainAspect(chart.aspects, 'sun') ? `Soleil_Aspect : ${getMainAspect(chart.aspects, 'sun')}` : ''}
-Lune_Signe : ${moon ? getSignInFrench(moon.sign) : 'Non spécifié'}
-Lune_Maison : ${moon ? getHouse(moon) : 'Non spécifié'}
+Lune_Signe : ${moon ? getSignForLanguage(moon.sign, language) : notSpecified}
+Lune_Maison : ${moon ? getHouse(moon) : notSpecified}
 ${moon && getMainAspect(chart.aspects, 'moon') ? `Lune_Aspect : ${getMainAspect(chart.aspects, 'moon')}` : ''}
-Venus_Signe : ${venus ? getSignInFrench(venus.sign) : 'Non spécifié'}
-Venus_Maison : ${venus ? getHouse(venus) : 'Non spécifié'}
+Venus_Signe : ${venus ? getSignForLanguage(venus.sign, language) : notSpecified}
+Venus_Maison : ${venus ? getHouse(venus) : notSpecified}
 ${venus && getMainAspect(chart.aspects, 'venus') ? `Venus_Aspect : ${getMainAspect(chart.aspects, 'venus')}` : ''}
-Mars_Signe : ${mars ? getSignInFrench(mars.sign) : 'Non spécifié'}
-Mars_Maison : ${mars ? getHouse(mars) : 'Non spécifié'}
+Mars_Signe : ${mars ? getSignForLanguage(mars.sign, language) : notSpecified}
+Mars_Maison : ${mars ? getHouse(mars) : notSpecified}
 ${mars && getMainAspect(chart.aspects, 'mars') ? `Mars_Aspect : ${getMainAspect(chart.aspects, 'mars')}` : ''}
-Jupiter_Signe : ${jupiter ? getSignInFrench(jupiter.sign) : 'Non spécifié'}
-Jupiter_Maison : ${jupiter ? getHouse(jupiter) : 'Non spécifié'}
-Saturne_Signe : ${saturn ? getSignInFrench(saturn.sign) : 'Non spécifié'}
-Saturne_Maison : ${saturn ? getHouse(saturn) : 'Non spécifié'}
+Jupiter_Signe : ${jupiter ? getSignForLanguage(jupiter.sign, language) : notSpecified}
+Jupiter_Maison : ${jupiter ? getHouse(jupiter) : notSpecified}
+Saturne_Signe : ${saturn ? getSignForLanguage(saturn.sign, language) : notSpecified}
+Saturne_Maison : ${saturn ? getHouse(saturn) : notSpecified}
 ${saturn && getMainAspect(chart.aspects, 'saturn') ? `Saturne_Aspect : ${getMainAspect(chart.aspects, 'saturn')}` : ''}
-NoeudNord_Signe : ${trueNode ? getSignInFrench(trueNode.sign) : 'Non spécifié'}
-NoeudNord_Maison : ${trueNode ? getHouse(trueNode) : 'Non spécifié'}
+NoeudNord_Signe : ${trueNode ? getSignForLanguage(trueNode.sign, language) : notSpecified}
+NoeudNord_Maison : ${trueNode ? getHouse(trueNode) : notSpecified}
 ${talents.length >= 1 ? `Talent1_Planète : ${talents[0].planet}\nTalent1_Signe : ${talents[0].sign}\nTalent1_Maison : ${talents[0].house}` : ''}
 ${talents.length >= 2 ? `Talent2_Planète : ${talents[1].planet}\nTalent2_Signe : ${talents[1].sign}\nTalent2_Maison : ${talents[1].house}` : ''}
 ${talents.length >= 3 ? `Talent3_Planète : ${talents[2].planet}\nTalent3_Signe : ${talents[2].sign}\nTalent3_Maison : ${talents[2].house}` : ''}
-Fortune_Signe : ${fortuneSign ? getSignInFrench(fortuneSign) : 'Non spécifié'}
-Fortune_Maison : ${fortuneHouse ?? 'Non spécifié'}
-Vertex_Signe : ${vertexSign ? getSignInFrench(vertexSign) : 'Non spécifié'}
-Vertex_Maison : ${vertexHouse ?? 'Non spécifié'}
+Fortune_Signe : ${fortuneSign ? getSignForLanguage(fortuneSign, language) : notSpecified}
+Fortune_Maison : ${fortuneHouse ?? notSpecified}
+Vertex_Signe : ${vertexSign ? getSignForLanguage(vertexSign, language) : notSpecified}
+Vertex_Maison : ${vertexHouse ?? notSpecified}
 
 [ÂGE] : ${age}
-[ASCENDANT_SIGNE] : ${ascendantSign ? getSignInFrench(ascendantSign) : 'Non spécifié'}
+[ASCENDANT_SIGNE] : ${ascendantSign ? getSignForLanguage(ascendantSign, language) : notSpecified}
 [Date atterrissage] : ${formattedDate}
 [Heure atterrissage] : ${formattedTime}
 [Lieu atterrissage] : ${formattedBirthPlace}

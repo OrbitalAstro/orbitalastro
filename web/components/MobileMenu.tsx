@@ -2,24 +2,26 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Menu, X, Home, Sparkles, BookOpen, MessageSquare, Settings, Info, TrendingUp, Zap, Wand2 } from 'lucide-react'
+import { Menu, X, Home, BookOpen, MessageSquare, Settings, Info, TrendingUp, Zap, Wand2, Calendar } from 'lucide-react'
 import Link from 'next/link'
 import Logo from './Logo'
+import { useTranslation } from '@/lib/useTranslation'
 
 export default function MobileMenu() {
   const [isOpen, setIsOpen] = useState(false)
+  const t = useTranslation()
 
   const menuItems = [
-    { href: '/dashboard', label: 'Dashboard', icon: Home },
-    { href: '/chart', label: 'Chart', icon: Sparkles },
-    { href: '/transits', label: 'Transits', icon: Zap },
-    { href: '/progressions', label: 'Progressions', icon: TrendingUp },
-    { href: '/rectification', label: 'Rectification', icon: Wand2 },
-    { href: '/stories', label: 'Stories', icon: BookOpen },
-    { href: '/dialogues', label: 'Dialogues', icon: MessageSquare },
-    { href: '/chat', label: 'Chat', icon: MessageSquare },
-    { href: '/settings', label: 'Settings', icon: Settings },
-    { href: '/about', label: 'About', icon: Info },
+    { href: '/dashboard', label: t.nav.dashboard, icon: Home },
+    { href: '/transits', label: t.nav.transits, icon: Zap },
+    { href: '/progressions', label: t.nav.progressions, icon: TrendingUp },
+    { href: '/rectification', label: t.nav.rectification, icon: Wand2 },
+    { href: '/stories', label: t.nav.stories, icon: BookOpen },
+    { href: '/dialogues', label: t.nav.dialogues, icon: MessageSquare },
+    { href: '/reading-2026', label: t.nav.reading2026, icon: Calendar },
+    { href: '/chat', label: t.nav.chat, icon: MessageSquare },
+    { href: '/settings', label: t.nav.settings, icon: Settings },
+    { href: '/about', label: t.nav.about, icon: Info },
   ]
 
   return (
@@ -27,7 +29,7 @@ export default function MobileMenu() {
       <button
         onClick={() => setIsOpen(true)}
         className="md:hidden p-2 text-white hover:bg-white/10 rounded-lg transition"
-        aria-label="Open menu"
+        aria-label={t.common.openMenu}
       >
         <Menu className="h-6 w-6" />
       </button>
@@ -55,7 +57,7 @@ export default function MobileMenu() {
                   <button
                     onClick={() => setIsOpen(false)}
                     className="p-2 hover:bg-white/10 rounded-lg transition"
-                    aria-label="Close menu"
+                    aria-label={t.common.closeMenu}
                   >
                     <X className="h-6 w-6 text-white" />
                   </button>

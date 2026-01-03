@@ -4,6 +4,15 @@ export type Language = "en" | "fr" | "es";
 
 export const translations = {
   en: {
+    common: {
+      back: "Back",
+      openMenu: "Open menu",
+      closeMenu: "Close menu",
+      clearLocation: "Clear location",
+    },
+    quickActions: {
+      noResults: "No actions found",
+    },
     nav: {
       dashboard: "Dashboard",
       chart: "Chart",
@@ -12,6 +21,7 @@ export const translations = {
       rectification: "Rectification",
       stories: "Stories",
       dialogues: "Dialogues",
+      reading2026: "2026 Reading",
       chat: "Chat",
       settings: "Settings",
       about: "About",
@@ -21,6 +31,7 @@ export const translations = {
       heroTitle1: "Your Cosmic Blueprint",
       heroTitle2: "Awaits",
       heroSubtitle: "Where ancient wisdom meets modern precision",
+      heroLead: "Discover your pre-incarnation dialogue and your astrological reading for 2026.",
       heroDescription: "Discover your ",
       heroDescriptionLinkNatal: "natal chart",
       heroDescriptionLinkTransits: "transits",
@@ -64,12 +75,14 @@ export const translations = {
       ctaDescription: "Join thousands exploring their astrological destiny.",
       ctaButton: "Get Started",
       footerTagline: "Where ancient wisdom meets modern precision",
+      footerServices: "Services",
       footerFeatures: "Features",
       footerResources: "Resources",
       footerAbout: "About",
       footerAboutText:
         "OrbitalAstro brings professional astrological calculations to everyone.",
       footerLearnMore: "Learn more →",
+      footerApiDocs: "API Docs",
       footerCopyright:
         "© 2024 OrbitalAstro. Built with precision and poetry.",
     },
@@ -77,7 +90,7 @@ export const translations = {
       title: "Pre‑Incarnation Dialogue",
       description:
         "Generate a mythopoetic dialogue between your soul and the cosmic council before your birth.",
-      firstName: "First name (optional)",
+      firstName: "First name or nickname (optional)",
       firstNamePlaceholder: "How should the dialogue address you?",
       birthDate: "Birth date",
       birthTime: "Birth time",
@@ -86,8 +99,50 @@ export const translations = {
         "To generate the dialogue, please configure your Gemini API key in the Settings page.",
       generating: "Weaving your pre‑incarnation dialogue...",
       generate: "Generate Dialogue",
+      resetForm: "Reset form",
+      downloadingPdf: "Creating PDF...",
+      downloadPdf: "Download PDF",
+      pdfSubtitle: "Pre‑incarnation dialogue",
+      disclaimer:
+        "Astrology here is offered as entertainment—a light way to reflect—without any claim of absolute truth.",
+      feedbackPrompt:
+        "Your opinion matters to us—thank you for taking a moment to share your feedback via this survey:",
+      feedbackLinkLabel: "Share my feedback (survey)",
+      feedbackPromo:
+        "People who complete the survey may receive promotions on upcoming products.",
+      feedbackCta:
+        "Order pre‑incarnation dialogues for your loved ones and 2026 readings now.",
       rateLimitError:
         "Rate limit reached. Please wait a moment and try again.",
+      validationBirthDateTimeRequired: "Birth date and time are required",
+      validationBirthPlaceRequired: "Birth place is required",
+      errorGenerating: "Error generating dialogue: {error}",
+    },
+    reading2026: {
+      title: "2026 Reading",
+      description:
+        "Generate a focused 2026 reading based on your natal chart and upcoming transits.",
+      firstName: "First name or nickname (optional)",
+      firstNamePlaceholder: "How should the reading address you?",
+      birthDate: "Birth date",
+      birthTime: "Birth time",
+      birthPlace: "Birth place",
+      generating: "Generating your 2026 reading...",
+      generate: "Generate 2026 Reading",
+      generateAnother: "Generate another reading",
+      resetForm: "Reset form",
+      disclaimer:
+        "This reading is symbolic—offered for entertainment and reflection—without any claim of absolute truth.",
+      feedbackPrompt:
+        "Your opinion matters to us—thank you for taking a moment to share your feedback via this survey:",
+      feedbackLinkLabel: "Share my feedback (survey)",
+      feedbackPromo:
+        "People who complete the survey may receive promotions on upcoming products.",
+      feedbackCta:
+        "Order pre‑incarnation dialogues for your loved ones and 2026 readings now.",
+      validationBirthDateTimeRequired: "Birth date and time are required",
+      validationBirthPlaceRequired: "Birth place is required",
+      errorGenerating: "Error generating reading: {error}",
     },
     interpretation: {
       title: "Astrological Interpretation",
@@ -141,6 +196,7 @@ export const translations = {
       cities: "Cities",
       specificPlaces: "Specific Places",
       searchingPlaces: "Searching places...",
+      noPlacesFound: "No results. Try adding the province/state or country.",
     },
     dashboard: {
       birthDate: "Birth Date",
@@ -230,6 +286,15 @@ export const translations = {
     },
   },
   fr: {
+    common: {
+      back: "Retour",
+      openMenu: "Ouvrir le menu",
+      closeMenu: "Fermer le menu",
+      clearLocation: "Effacer le lieu",
+    },
+    quickActions: {
+      noResults: "Aucune action trouvée",
+    },
     nav: {
       dashboard: "Tableau de bord",
       chart: "Carte",
@@ -239,6 +304,7 @@ export const translations = {
       stories: "Histoires",
       dialogues: "Dialogues",
       chat: "Chat",
+      reading2026: "Lecture 2026",
       settings: "Paramètres",
       about: "À propos",
       beginJourney: "Commencer",
@@ -247,6 +313,7 @@ export const translations = {
       heroTitle1: "Votre Plan Cosmique",
       heroTitle2: "Vous Attend",
       heroSubtitle: "Où la sagesse ancienne rencontre la précision moderne",
+      heroLead: "Découvrez votre dialogue pré-incarnation et votre lecture astrologique pour 2026.",
       heroDescription: "Découvrez votre ",
       heroDescriptionLinkNatal: "thème natal",
       heroDescriptionLinkTransits: "transits",
@@ -294,12 +361,14 @@ export const translations = {
         "Rejoignez des milliers de personnes explorant leur destin astrologique.",
       ctaButton: "Commencer",
       footerTagline: "Où la sagesse ancienne rencontre la précision moderne",
+      footerServices: "Services",
       footerFeatures: "Fonctionnalités",
       footerResources: "Ressources",
       footerAbout: "À propos",
       footerAboutText:
         "OrbitalAstro apporte des calculs astrologiques professionnels à tous.",
       footerLearnMore: "En savoir plus →",
+      footerApiDocs: "Docs API",
       footerCopyright:
         "© 2024 OrbitalAstro. Construit avec précision et poésie.",
     },
@@ -307,7 +376,7 @@ export const translations = {
       title: "Dialogue de Pré‑Incarnation",
       description:
         "Générez un dialogue mythopoétique entre votre âme et le conseil cosmique avant votre naissance.",
-      firstName: "Prénom (optionnel)",
+      firstName: "Prénom ou surnom (optionnel)",
       firstNamePlaceholder:
         "Sous quel prénom le dialogue doit-il vous adresser la parole ?",
       birthDate: "Date de naissance",
@@ -317,8 +386,50 @@ export const translations = {
         "Pour générer le dialogue, veuillez configurer votre clé API Gemini dans la page Paramètres.",
       generating: "Tissage de votre dialogue de pré‑incarnation...",
       generate: "Générer le dialogue",
+      resetForm: "Réinitialiser le formulaire",
+      downloadingPdf: "Création du PDF...",
+      downloadPdf: "Télécharger en PDF",
+      pdfSubtitle: "Dialogue pré‑incarnation",
+      disclaimer:
+        "L'astrologie ici est offerte comme un divertissement, une manière légère de réfléchir, sans valeur de vérité absolue.",
+      feedbackPrompt:
+        "J’espère que tu as trouvé ta lecture amusante ♡\nSi tu as quelques minutes et que tu as envie d’aider à optimiser le concept, voici un questionnaire retour d’expérience :",
+      feedbackLinkLabel: "Rétroaction dialogue pré-incarnation",
+      feedbackPromo:
+        "Après ta réponse au sondage, je t’enverrai ton code promo pour offrir des Dialogues à tes proches, ainsi que l’accès au tarif fondateur, pour te remercier de ton soutien tôt dans l’aventure. C’est excitant!",
+      feedbackCta:
+        "Date limite : 22 janvier 2026",
       rateLimitError:
         "Limite de requêtes atteinte. Veuillez attendre quelques instants et réessayer.",
+      validationBirthDateTimeRequired: "Date et heure de naissance requises",
+      validationBirthPlaceRequired: "Lieu de naissance requis",
+      errorGenerating: "Erreur lors de la génération du dialogue : {error}",
+    },
+    reading2026: {
+      title: "Lecture 2026",
+      description:
+        "Générez une lecture 2026 ciblée à partir de votre thème natal et des transits à venir.",
+      firstName: "Prénom ou surnom (optionnel)",
+      firstNamePlaceholder: "Sous quel prénom la lecture doit-elle vous parler ?",
+      birthDate: "Date de naissance",
+      birthTime: "Heure de naissance",
+      birthPlace: "Lieu de naissance",
+      generating: "Génération de votre lecture 2026...",
+      generate: "Générer la lecture 2026",
+      generateAnother: "Générer une nouvelle lecture",
+      resetForm: "Réinitialiser le formulaire",
+      disclaimer:
+        "Cette lecture est symbolique, offerte pour le divertissement et la réflexion, sans valeur de vérité absolue.",
+      feedbackPrompt:
+        "Votre opinion est importante pour nous. Merci de prendre un moment pour répondre à ce sondage de rétroaction :",
+      feedbackLinkLabel: "Sondage de rétroaction OrbitalAstro",
+      feedbackPromo:
+        "Les personnes qui répondent au sondage recevront des promotions sur les produits à venir.",
+      feedbackCta:
+        "Commande dès maintenant les dialogues pré-incarnations pour tes êtres chers et les lectures 2026.",
+      validationBirthDateTimeRequired: "Date et heure de naissance requises",
+      validationBirthPlaceRequired: "Lieu de naissance requis",
+      errorGenerating: "Erreur lors de la génération de la lecture : {error}",
     },
     interpretation: {
       title: "Interprétation Astrologique",
@@ -372,6 +483,7 @@ export const translations = {
       cities: "Villes",
       specificPlaces: "Lieux Spécifiques",
       searchingPlaces: "Recherche de lieux...",
+      noPlacesFound: "Aucun résultat. Essaie d’ajouter la province/état ou le pays.",
     },
     dashboard: {
       birthDate: "Date de Naissance",
@@ -438,6 +550,15 @@ export const translations = {
     },
   },
   es: {
+    common: {
+      back: "Volver",
+      openMenu: "Abrir menú",
+      closeMenu: "Cerrar menú",
+      clearLocation: "Borrar ubicación",
+    },
+    quickActions: {
+      noResults: "No se encontraron acciones",
+    },
     nav: {
       dashboard: "Panel",
       chart: "Carta",
@@ -447,6 +568,7 @@ export const translations = {
       stories: "Historias",
       dialogues: "Diálogos",
       chat: "Chat",
+      reading2026: "Lectura 2026",
       settings: "Configuración",
       about: "Acerca de",
       beginJourney: "Comenzar",
@@ -456,6 +578,7 @@ export const translations = {
       heroTitle2: "Te Espera",
       heroSubtitle:
         "Donde la sabiduría antigua se encuentra con la precisión moderna",
+      heroLead: "Descubre tu diálogo pre-encarnación y tu lectura astrológica para 2026.",
       heroDescription: "Descubre tu ",
       heroDescriptionLinkNatal: "carta natal",
       heroDescriptionLinkTransits: "tránsitos",
@@ -504,12 +627,14 @@ export const translations = {
       ctaButton: "Comenzar",
       footerTagline:
         "Donde la sabiduría antigua se encuentra con la precisión moderna",
+      footerServices: "Servicios",
       footerFeatures: "Características",
       footerResources: "Recursos",
       footerAbout: "Acerca de",
       footerAboutText:
         "OrbitalAstro lleva cálculos astrológicos profesionales a todos.",
       footerLearnMore: "Saber más →",
+      footerApiDocs: "Docs API",
       footerCopyright:
         "© 2024 OrbitalAstro. Construido con precisión y poesía.",
     },
@@ -517,7 +642,7 @@ export const translations = {
       title: "Diálogo de Pre‑Encarnación",
       description:
         "Genera un diálogo mitopoético entre tu alma y el consejo cósmico antes de tu nacimiento.",
-      firstName: "Nombre (opcional)",
+      firstName: "Nombre o apodo (opcional)",
       firstNamePlaceholder:
         "¿Cómo debería dirigirse a ti el diálogo?",
       birthDate: "Fecha de nacimiento",
@@ -527,8 +652,50 @@ export const translations = {
         "Para generar el diálogo, configura tu clave API de Gemini en la página de Configuración.",
       generating: "Tejiendo tu diálogo de pre‑encarnación...",
       generate: "Generar diálogo",
+      resetForm: "Restablecer formulario",
+      downloadingPdf: "Creando PDF...",
+      downloadPdf: "Descargar PDF",
+      pdfSubtitle: "Diálogo de pre‑encarnación",
+      disclaimer:
+        "La astrología aquí se ofrece como entretenimiento: una forma ligera de reflexionar, sin valor de verdad absoluta.",
+      feedbackPrompt:
+        "Tu opinión es importante para nosotros. Gracias por tomarte un momento para responder esta encuesta:",
+      feedbackLinkLabel: "Encuesta de retroalimentación (OrbitalAstro)",
+      feedbackPromo:
+        "Quienes completen la encuesta podrían recibir promociones en productos próximos.",
+      feedbackCta:
+        "Pide ahora diálogos de pre‑encarnación para tus seres queridos y lecturas 2026.",
       rateLimitError:
         "Se alcanzó el límite de peticiones. Espera un momento e inténtalo de nuevo.",
+      validationBirthDateTimeRequired: "Se requieren fecha y hora de nacimiento",
+      validationBirthPlaceRequired: "Se requiere lugar de nacimiento",
+      errorGenerating: "Error al generar el diálogo: {error}",
+    },
+    reading2026: {
+      title: "Lectura 2026",
+      description:
+        "Genera una lectura 2026 enfocada basada en tu carta natal y los próximos tránsitos.",
+      firstName: "Nombre o apodo (opcional)",
+      firstNamePlaceholder: "¿Cómo debe dirigirse la lectura a ti?",
+      birthDate: "Fecha de nacimiento",
+      birthTime: "Hora de nacimiento",
+      birthPlace: "Lugar de nacimiento",
+      generating: "Generando tu lectura 2026...",
+      generate: "Generar lectura 2026",
+      generateAnother: "Generar una nueva lectura",
+      resetForm: "Restablecer formulario",
+      disclaimer:
+        "Esta lectura es simbólica: se ofrece para entretenimiento y reflexión, sin valor de verdad absoluta.",
+      feedbackPrompt:
+        "Tu opinión es importante para nosotros. Gracias por tomarte un momento para responder esta encuesta:",
+      feedbackLinkLabel: "Encuesta de retroalimentación (OrbitalAstro)",
+      feedbackPromo:
+        "Quienes completen la encuesta podrían recibir promociones en productos próximos.",
+      feedbackCta:
+        "Pide ahora diálogos de pre‑encarnación para tus seres queridos y lecturas 2026.",
+      validationBirthDateTimeRequired: "Se requieren fecha y hora de nacimiento",
+      validationBirthPlaceRequired: "Se requiere lugar de nacimiento",
+      errorGenerating: "Error al generar la lectura: {error}",
     },
     interpretation: {
       title: "Interpretación Astrológica",
@@ -582,6 +749,7 @@ export const translations = {
       cities: "Ciudades",
       specificPlaces: "Lugares Específicos",
       searchingPlaces: "Buscando lugares...",
+      noPlacesFound: "Sin resultados. Prueba agregando la provincia/estado o el país.",
     },
     dashboard: {
       birthDate: "Fecha de Nacimiento",

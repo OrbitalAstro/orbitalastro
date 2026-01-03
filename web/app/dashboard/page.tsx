@@ -157,14 +157,20 @@ export default function Dashboard() {
                 type="text"
                 inputMode="numeric"
                 pattern="\\d{4}-\\d{2}-\\d{2}"
-                placeholder="AAAA-MM-JJ"
+                placeholder={t.locale === 'fr' ? 'AAAA-MM-JJ' : 'YYYY-MM-DD'}
                 required
                 error={errors.birth_date}
                 success={!!birthData.birth_date && !errors.birth_date}
                 icon={Calendar}
                 tooltip={t.tooltips.birthDate}
               />
-              <p className="mt-1 text-xs text-white/60">Format: AAAA-MM-JJ (ex: 1976-10-26)</p>
+              <p className="mt-1 text-xs text-white/60">
+                {t.locale === 'fr'
+                  ? 'Format : AAAA-MM-JJ (ex : 1976-10-26)'
+                  : t.locale === 'es'
+                    ? 'Formato: AAAA-MM-DD (ej.: 1976-10-26)'
+                    : 'Format: YYYY-MM-DD (e.g., 1976-10-26)'}
+              </p>
             </div>
             <FormField
               label={t.dashboard.birthTime}

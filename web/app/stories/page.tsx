@@ -102,7 +102,7 @@ export default function Stories() {
         },
       }
 
-      const lang = settings.language || 'en'
+      const lang = settings.language || 'fr'
       const t = translations[lang]
       const signs = signTranslations[lang]
 
@@ -176,10 +176,16 @@ ${t.journeyText(ascSign)}
                   const value = formatBirthDateInput(e.target.value)
                   setBirthData({ ...birthData, birth_date: value })
                 }}
-                placeholder="AAAA-MM-JJ"
+                placeholder={t.locale === 'fr' ? 'AAAA-MM-JJ' : 'YYYY-MM-DD'}
                 className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
-              <p className="mt-1 text-xs text-white/60">Format: AAAA-MM-JJ (ex: 1976-10-26)</p>
+              <p className="mt-1 text-xs text-white/60">
+                {t.locale === 'fr'
+                  ? 'Format : AAAA-MM-JJ (ex : 1976-10-26)'
+                  : t.locale === 'es'
+                    ? 'Formato: AAAA-MM-DD (ej.: 1976-10-26)'
+                    : 'Format: YYYY-MM-DD (e.g., 1976-10-26)'}
+              </p>
             </div>
             <div>
               <label className="block text-sm font-medium text-white/80 mb-2">

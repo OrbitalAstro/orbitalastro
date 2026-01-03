@@ -20,7 +20,7 @@ export default function TransitsPage() {
   
   const latestChart = history && history.length > 0 ? history[history.length - 1] : null
 
-  const lang = settings.language || 'en'
+  const lang = settings.language || 'fr'
   const translations = {
     en: {
       title: 'Transits',
@@ -211,4 +211,3 @@ export default function TransitsPage() {
     </div>
   )
 }
-

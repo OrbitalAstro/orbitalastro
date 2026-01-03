@@ -94,6 +94,13 @@ export default function LocationInput({
     loadCities()
   }, [])
 
+  const normalizeForSearch = (input: string) =>
+    (input || '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim()
+
   // Geocode place using Nominatim (OpenStreetMap)
   const geocodePlace = useCallback(async (query: string) => {
     if (!query || query.trim().length < 3) {
@@ -119,46 +126,36 @@ export default function LocationInput({
     
     try {
       console.log('[LocationInput] Geocoding query:', query)
-      // Use Nominatim API (free, no API key required)
-      // Note: Nominatim requires a User-Agent header and has rate limits (1 req/sec)
-      const url = `https://nominatim.openstreetmap.org/search?` +
+
+      const fetchPlaces = async (url: string, init?: RequestInit) => {
+        const response = await fetch(url, { ...init, signal: abortController.signal })
+        if (!response.ok) return null
+        const data = await response.json().catch(() => null)
+        return Array.isArray(data) ? data : null
+      }
+
+      const proxyUrl = `/api/geocode?q=${encodeURIComponent(query)}&limit=5`
+      const nominatimUrl =
+        `https://nominatim.openstreetmap.org/search?` +
         `q=${encodeURIComponent(query)}&` +
         `format=json&` +
         `limit=5&` +
         `addressdetails=1&` +
         `extratags=1`
-      
-      console.log('[LocationInput] Geocoding URL:', url)
-      
-      const response = await fetch(url, {
-        headers: {
-          'User-Agent': 'OrbitalAstro/1.0 (https://orbitalastro.com)',
-          'Accept': 'application/json',
-        },
-        signal: abortController.signal,
-      })
-      
-      clearTimeout(timeoutId)
-      
-      if (!response.ok) {
-        const errorText = await response.text().catch(() => 'Unknown error')
-        console.error('[LocationInput] Geocoding failed:', response.status, response.statusText, errorText)
-        
-        // Handle rate limiting (429)
-        if (response.status === 429) {
-          console.warn('[LocationInput] Rate limited by Nominatim, will retry later')
-          setGeocodedPlaces([])
-          return
-        }
-        
-        throw new Error(`Geocoding failed: ${response.status} ${response.statusText}`)
+
+      console.log('[LocationInput] Geocoding URL (proxy):', proxyUrl)
+      let data = await fetchPlaces(proxyUrl)
+
+      if (!data) {
+        console.log('[LocationInput] Geocoding URL (direct):', nominatimUrl)
+        data = await fetchPlaces(nominatimUrl, { headers: { Accept: 'application/json' } })
       }
-      
-      const data = await response.json()
-      console.log('[LocationInput] Geocoding results:', data.length, 'places found', data)
-      
-      if (!Array.isArray(data)) {
-        console.error('[LocationInput] Invalid response format:', data)
+
+      clearTimeout(timeoutId)
+
+      console.log('[LocationInput] Geocoding results:', data?.length || 0, 'places found')
+
+      if (!data) {
         setGeocodedPlaces([])
         return
       }
@@ -202,13 +199,13 @@ export default function LocationInput({
       return
     }
 
-    const searchTerm = value.toLowerCase().trim()
+    const searchTerm = normalizeForSearch(value)
     
     // Filter cities
     const filtered = cities.filter((city) => {
-      const nameMatch = city.name.toLowerCase().includes(searchTerm)
+      const nameMatch = normalizeForSearch(city.name).includes(searchTerm)
       const aliasMatch = city.aliases?.some((alias) =>
-        alias.toLowerCase().includes(searchTerm)
+        normalizeForSearch(alias).includes(searchTerm)
       )
       return nameMatch || aliasMatch
     })
@@ -258,8 +255,15 @@ export default function LocationInput({
 
   // Update isOpen when filtered cities or geocoded places change
   useEffect(() => {
+    const showNoResults =
+      !!value &&
+      value.trim().length > 0 &&
+      !isGeocoding &&
+      filteredCities.length === 0 &&
+      geocodedPlaces.length === 0
+
     if (value && value.trim().length > 0) {
-      setIsOpen(filteredCities.length > 0 || geocodedPlaces.length > 0 || isGeocoding)
+      setIsOpen(filteredCities.length > 0 || geocodedPlaces.length > 0 || isGeocoding || showNoResults)
     } else {
       setIsOpen(false)
     }
@@ -403,7 +407,7 @@ export default function LocationInput({
             className={`absolute right-3 top-1/2 -translate-y-1/2 transition ${
               isGold ? 'text-cosmic-gold/60 hover:text-cosmic-gold' : 'text-white/50 hover:text-white'
             }`}
-            aria-label="Clear location"
+            aria-label={t.common.clearLocation}
           >
             <X className="h-5 w-5" />
           </button>
@@ -412,7 +416,7 @@ export default function LocationInput({
 
       {/* Dropdown */}
       <AnimatePresence>
-        {isOpen && (filteredCities.length > 0 || geocodedPlaces.length > 0 || isGeocoding) && (
+        {isOpen && (
           <motion.div
             ref={dropdownRef}
             initial={{ opacity: 0, y: -10 }}
@@ -477,6 +481,12 @@ export default function LocationInput({
                   </button>
                 ))}
               </>
+            )}
+
+            {!isGeocoding && filteredCities.length === 0 && geocodedPlaces.length === 0 && (
+              <div className="px-4 py-3 text-center text-black/60 text-sm">
+                {t.tooltips.noPlacesFound}
+              </div>
             )}
           </motion.div>
         )}

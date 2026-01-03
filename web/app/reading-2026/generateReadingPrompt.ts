@@ -3,6 +3,8 @@
  * Basé sur les directives fournies
  */
 
+import type { Language } from '@/lib/i18n'
+
 interface BirthData {
   firstName: string
   birth_date: string
@@ -204,7 +206,8 @@ function formatTransits(transits: Transit[], chart: ChartData): string {
 export function generateReadingPrompt(
   birthData: BirthData,
   chart: ChartData,
-  transits: Transit[]
+  transits: Transit[],
+  language: Language = 'fr'
 ): { systemPrompt: string; userPrompt: string } {
   const sun = chart.planets?.sun
   const moon = chart.planets?.moon
@@ -229,10 +232,24 @@ export function generateReadingPrompt(
   // Format birth place to show only city, province, and country
   const formattedBirthPlace = formatBirthPlace(birthData.birth_place)
   
-  const systemPrompt = `[RÔLE]
-Tu es une astrologue psychologique, douce et nuancée. Tu écris en français québécois neutre, dans un style chaleureux, clair et accessible pour des non-astrologues.
+  const roleIntro =
+    language === 'en'
+      ? "You are a psychological astrologer: gentle, nuanced, and clear. You write in English, with a warm, simple, accessible style for non-astrologers."
+      : language === 'es'
+      ? "Eres una astróloga psicológica, suave y matizada. Escribes en español, con un estilo cálido, simple y accesible para personas no astrólogas."
+      : "Tu es une astrologue psychologique, douce et nuancée. Tu écris en français québécois neutre, dans un style chaleureux, clair et accessible pour des non-astrologues."
 
-Tu ne fais jamais de prédictions fatalistes ni médicales : tu parles de tendances, de dynamiques intérieures et de potentiel d'évolution.
+  const noPredictions =
+    language === 'en'
+      ? "You never make fatalistic or medical predictions: you speak of tendencies, inner dynamics, and potential for growth."
+      : language === 'es'
+      ? "Nunca haces predicciones fatalistas ni médicas: hablas de tendencias, dinámicas internas y potencial de evolución."
+      : "Tu ne fais jamais de prédictions fatalistes ni médicales : tu parles de tendances, de dynamiques intérieures et de potentiel d'évolution."
+
+  const systemPrompt = `[RÔLE]
+${roleIntro}
+
+${noPredictions}
 
 [ADAPTATION AU PROFIL]
 Avant d'écrire, prends quelques instants pour « sentir » la personnalité à partir de la carte natale :
@@ -377,4 +394,3 @@ Ce dialogue est symbolique, un échange interprété pour le plaisir et la réfl
 
   return { systemPrompt, userPrompt }
 }
-

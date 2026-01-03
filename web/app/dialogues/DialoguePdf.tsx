@@ -1,5 +1,10 @@
 import React, { useMemo } from 'react'
-import { Document, Page, StyleSheet, Text, View, Font } from '@react-pdf/renderer'
+import { Document, Page, StyleSheet, Text, View, Font, Link } from '@react-pdf/renderer'
+import { translations, type Language } from '@/lib/i18n'
+
+const GOLD = '#b8860b'
+const GOLD_DARK = '#8b6914'
+const TEXT_BLACK = '#000000'
 
 // Enregistrement de la police Great Vibes depuis le dossier public
 // Le fichier est téléchargé automatiquement dans public/fonts/GreatVibes-Regular.ttf
@@ -36,7 +41,7 @@ const styles = StyleSheet.create({
     left: 20,
     right: 20,
     bottom: 20,
-    border: '2 solid #000000', // Noir temporairement (original: '#b8860b' - Doré plus foncé)
+    border: `2 solid ${GOLD}`,
     borderRadius: 8,
   },
   pageContent: {
@@ -47,7 +52,7 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: 'transparent',
     padding: 20,
-    color: '#000000', // Noir temporairement (original: '#b8860b' - Doré plus foncé)
+    color: GOLD, // Accents en doré par défaut (le corps du texte est forcé en noir)
     flex: 1,
   },
   pagination: {
@@ -58,7 +63,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontFamily: 'Helvetica',
     fontSize: 10,
-    color: '#000000', // Noir temporairement (original: '#b8860b' - Doré plus foncé)
+    color: GOLD_DARK,
   },
   header: {
     textAlign: 'center',
@@ -74,14 +79,14 @@ const styles = StyleSheet.create({
   brandScript: {
     fontFamily: greatVibesLoaded ? 'GreatVibes' : 'Times-Italic',
     fontSize: greatVibesLoaded ? 34 : 40,
-    color: '#000000', // Noir temporairement (original: '#b8860b' - Doré plus foncé)
+    color: GOLD,
     letterSpacing: greatVibesLoaded ? 0.5 : 1.5,
     fontStyle: greatVibesLoaded ? 'normal' : 'italic',
   },
   brandSans: {
     fontFamily: 'Times-Roman',
     fontSize: 16,
-    color: '#000000', // Noir temporairement (original: '#8b6914' - Doré foncé)
+    color: GOLD_DARK,
     letterSpacing: 6,
     textTransform: 'uppercase',
     fontWeight: 'bold',
@@ -91,9 +96,8 @@ const styles = StyleSheet.create({
   subtitle: {
     fontFamily: 'Times-Roman',
     fontSize: 9,
-    color: '#000000', // Noir temporairement (original: '#8b6914' - Doré foncé)
+    color: GOLD_DARK,
     letterSpacing: 4,
-    textTransform: 'uppercase',
     marginTop: 6,
     fontWeight: 'bold',
   },
@@ -103,6 +107,7 @@ const styles = StyleSheet.create({
     lineHeight: 1.6,
     marginBottom: 10,
     textAlign: 'justify',
+    color: TEXT_BLACK,
   },
   landing: {
     fontFamily: 'Helvetica-Oblique',
@@ -111,6 +116,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
     textAlign: 'center',
     marginVertical: 8,
+    color: TEXT_BLACK,
   },
   center: {
     textAlign: 'center',
@@ -119,7 +125,7 @@ const styles = StyleSheet.create({
   footnote: {
     fontFamily: 'Helvetica',
     fontSize: 9,
-    color: '#000000', // Noir temporairement (original: '#8b6914' - Doré foncé)
+    color: GOLD_DARK,
     textAlign: 'center',
     marginTop: 10,
   },
@@ -128,6 +134,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
     fontFamily: 'Helvetica',
     fontSize: 12,
+    color: TEXT_BLACK,
   },
   iciMaintenant: {
     textAlign: 'center',
@@ -135,14 +142,22 @@ const styles = StyleSheet.create({
     fontFamily: 'Helvetica',
     fontSize: 14,
     fontWeight: 'bold',
+    color: TEXT_BLACK,
   },
 })
 
 interface DialoguePdfProps {
   dialogue: string
+  language?: Language
+  feedbackSurveyUrl?: string
 }
 
-export default function DialoguePdf({ dialogue }: DialoguePdfProps) {
+export default function DialoguePdf({
+  dialogue,
+  language = 'fr',
+  feedbackSurveyUrl,
+}: DialoguePdfProps) {
+  const t = translations[language] || translations.fr
   const paragraphs = useMemo(() => {
     // Diviser par double retour à la ligne, mais aussi traiter les lignes individuelles
     const lines = (dialogue || '').split(/\n/)
@@ -233,15 +248,15 @@ export default function DialoguePdf({ dialogue }: DialoguePdfProps) {
           <View style={styles.header}>
             {/* Lignes décoratives en haut */}
             <View style={{ marginBottom: 8 }}>
-              <View style={{ height: 1, backgroundColor: '#000000', width: '100%', marginBottom: 2 }} />
-              <View style={{ height: 1, backgroundColor: '#000000', width: '100%' }} />
+              <View style={{ height: 1, backgroundColor: GOLD, width: '100%', marginBottom: 2 }} />
+              <View style={{ height: 1, backgroundColor: GOLD, width: '100%' }} />
             </View>
             
             <View style={styles.brandLine}>
               <Text style={styles.brandScript}>Orbital</Text>
               <Text style={styles.brandSans}>ASTRO</Text>
             </View>
-            <Text style={styles.subtitle}>DIALOGUE PRÉ-INCARNATION</Text>
+            <Text style={styles.subtitle}>{t.dialogues.pdfSubtitle}</Text>
           </View>
 
           {paragraphs.map((p, idx) => {
@@ -337,12 +352,20 @@ export default function DialoguePdf({ dialogue }: DialoguePdfProps) {
           {!paragraphs.some((p) =>
             p.toLowerCase().startsWith('ce dialogue est symbolique')
           ) && (
-            <Text style={styles.footnote}>
-              Ce dialogue est symbolique, un échange interprété pour le plaisir
-              et la réflexion : il est offert à des fins de divertissement et
-              d’inspiration, sans prétention de vérité absolue ni de certitude.
-              OrbitalAstro.ca
-            </Text>
+            <Text style={styles.footnote}>{t.dialogues.disclaimer}</Text>
+          )}
+
+          {feedbackSurveyUrl && (
+            <View style={{ marginTop: 10 }}>
+              <Text style={styles.footnote}>{t.dialogues.feedbackPrompt}</Text>
+              <Text style={styles.footnote}>
+                <Link src={feedbackSurveyUrl} style={{ color: GOLD, textDecoration: 'underline' }}>
+                  {t.dialogues.feedbackLinkLabel}
+                </Link>
+              </Text>
+              <Text style={styles.footnote}>{t.dialogues.feedbackPromo}</Text>
+              <Text style={styles.footnote}>{t.dialogues.feedbackCta}</Text>
+            </View>
           )}
           </View>
         </View>

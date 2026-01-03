@@ -85,7 +85,7 @@ export default function ChatPage() {
     },
   }
 
-  const lang = settings.language || 'en'
+  const lang = settings.language || 'fr'
   const t = translations[lang as keyof typeof translations] || translations.en
   const hasApiKey = true // API key is now managed in backend
 
@@ -272,7 +272,7 @@ export default function ChatPage() {
 
   const generateResponse = async (question: string, chart: any, defaultChart?: any): Promise<string> => {
     const lowerQuestion = question.toLowerCase()
-    const lang = settings.language || 'en'
+    const lang = settings.language || 'fr'
 
     // Check if question is about current situation or transits
     if (
@@ -725,4 +725,3 @@ export default function ChatPage() {
     </div>
   )
 }
-

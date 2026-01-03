@@ -41,7 +41,7 @@ export default function LandingPage() {
             whileTap={{ scale: 0.95 }}
             className="px-6 py-2 bg-gradient-to-r from-cosmic-gold to-rose-gold rounded-lg font-semibold shadow-lg text-cosmic-purple"
           >
-            Commencer
+            {t.nav.beginJourney}
           </motion.button>
         </Link>
       </div>
@@ -67,9 +67,7 @@ export default function LandingPage() {
               {t.home.heroSubtitle}
             </p>
 
-            <p className="text-base md:text-lg text-cosmic-gold/85 mb-12 max-w-2xl mx-auto">
-              Découvrez votre dialogue pré-incarnation et votre lecture astrologique pour 2026.
-            </p>
+            <p className="text-base md:text-lg text-cosmic-gold/85 mb-12 max-w-2xl mx-auto">{t.home.heroLead}</p>
 
             {/* CTAs */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
@@ -79,7 +77,7 @@ export default function LandingPage() {
                   whileTap={{ scale: 0.95 }}
                   className="px-10 py-4 bg-gradient-to-r from-cosmic-gold via-rose-gold to-cosmic-gold text-cosmic-purple rounded-xl font-semibold text-lg shadow-2xl hover:shadow-cosmic-gold/50 transition flex items-center group"
                 >
-                  Dialogue Pré-incarnation
+                  {t.dialogues.title}
                   <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition" />
                 </motion.button>
               </Link>
@@ -90,7 +88,7 @@ export default function LandingPage() {
                   whileTap={{ scale: 0.95 }}
                   className="px-10 py-4 bg-cosmic-gold/20 backdrop-blur-sm text-cosmic-gold rounded-xl font-semibold text-lg border border-cosmic-gold/40 hover:bg-cosmic-gold/30 hover:border-cosmic-gold/60 transition"
                 >
-                  Lecture 2026
+                  {t.reading2026.title}
                 </motion.button>
               </Link>
             </div>
@@ -110,10 +108,10 @@ export default function LandingPage() {
             </div>
 
             <div>
-              <h3 className="font-semibold mb-4 text-cosmic-gold">Services</h3>
+              <h3 className="font-semibold mb-4 text-cosmic-gold">{t.home.footerServices}</h3>
               <ul className="space-y-2 text-cosmic-gold/80">
-                <li><Link href="/dialogues" className="hover:text-cosmic-gold transition text-base">Dialogue Pré-incarnation</Link></li>
-                <li><Link href="/reading-2026" className="hover:text-cosmic-gold transition text-base">Lecture 2026</Link></li>
+                <li><Link href="/dialogues" className="hover:text-cosmic-gold transition text-base">{t.dialogues.title}</Link></li>
+                <li><Link href="/reading-2026" className="hover:text-cosmic-gold transition text-base">{t.reading2026.title}</Link></li>
               </ul>
             </div>
 
@@ -122,7 +120,7 @@ export default function LandingPage() {
               <ul className="space-y-2 text-cosmic-gold/80">
                 <li><Link href="/settings" className="hover:text-cosmic-gold transition text-base">{t.nav.settings}</Link></li>
                 <li><Link href="/about" className="hover:text-cosmic-gold transition text-base">{t.nav.about}</Link></li>
-                <li><a href="/docs" className="hover:text-cosmic-gold transition text-base">API Docs</a></li>
+                <li><a href="/docs" className="hover:text-cosmic-gold transition text-base">{t.home.footerApiDocs}</a></li>
               </ul>
             </div>
 
@@ -199,4 +197,3 @@ function Starfield() {
     </div>
   )
 }
-

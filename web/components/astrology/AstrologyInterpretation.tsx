@@ -27,7 +27,7 @@ export default function AstrologyInterpretation({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const language = (settings.language || 'en') as 'en' | 'fr' | 'es'
+  const language = (settings.language || 'fr') as 'en' | 'fr' | 'es'
 
   useEffect(() => {
     const generateInterpretation = async () => {
@@ -260,4 +260,3 @@ Génère une interprétation narrative fluide et accessible. Utilise un ton symb
     </div>
   )
 }
-
