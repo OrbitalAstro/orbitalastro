@@ -379,8 +379,12 @@ const scriptTermRegex = new RegExp(
 const houseRegex = /(?<!\p{L})(Maison|House|Casa)\s*(\d{1,2}|[IVX]{1,6})(?!\p{L})/giu
 
 function renderRichText(text: string, base?: { script?: boolean; extraScriptRegex?: RegExp | null }) {
+  const normalized = text.replace(
+    /(Enfin,\s*quel\s+sera\s+le\s+)Nord(\s+de\s+la\s+boussole\s+qui\s+guidera\s+ton\s+(?:\u00e9|e)volution)(\s*[?.!])?/giu,
+    '$1**Nord**$2$3'
+  )
   const baseScript = base?.script ?? false
-  let pieces: RichPiece[] = splitMarkdownBold(text).map((p) => ({ ...p, script: baseScript }))
+  let pieces: RichPiece[] = splitMarkdownBold(normalized).map((p) => ({ ...p, script: baseScript }))
 
   for (const pattern of forcedBoldPatterns) {
     pieces = applyRegex(pieces, new RegExp(pattern.source, pattern.flags), (piece) => ({
