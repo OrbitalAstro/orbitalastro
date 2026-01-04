@@ -188,3 +188,10 @@ body {
 .animate-nebula-pulse {
   animation: nebula-pulse 3s ease-in-out infinite;
 }
+
+.prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6 {
+  text-align: center;
+}
+.prose p {
+  text-align: justify;
+}
