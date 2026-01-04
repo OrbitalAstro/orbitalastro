@@ -158,6 +158,9 @@ export default function DialoguePdf({
   feedbackSurveyUrl,
 }: DialoguePdfProps) {
   const t = translations[language] || translations.fr
+  const pdfSubtitle = (t.dialogues.pdfSubtitle || '')
+    .replace(/&/g, '-')
+    .replace(/[\u2010\u2011\u2012\u2013\u2014\u2212]/g, '-')
   const paragraphs = useMemo(() => {
     // Diviser par double retour à la ligne, mais aussi traiter les lignes individuelles
     const lines = (dialogue || '').split(/\n/)
@@ -256,7 +259,7 @@ export default function DialoguePdf({
               <Text style={styles.brandScript}>Orbital</Text>
               <Text style={styles.brandSans}>ASTRO</Text>
             </View>
-            <Text style={styles.subtitle}>{t.dialogues.pdfSubtitle}</Text>
+            <Text style={styles.subtitle}>{pdfSubtitle}</Text>
           </View>
 
           {paragraphs.map((p, idx) => {

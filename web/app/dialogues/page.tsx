@@ -39,6 +39,9 @@ export default function Dialogues() {
   const [dialogue, setDialogue] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [downloading, setDownloading] = useState(false)
+  const pdfSubtitle = t.dialogues.pdfSubtitle
+    .replace(/&/g, '-')
+    .replace(/[\u2010\u2011\u2012\u2013\u2014\u2212]/g, '-')
 
   const resetForm = () => {
     setBirthData({
@@ -93,7 +96,7 @@ export default function Dialogues() {
       link.href = url
       const baseName =
         t.locale === 'fr'
-          ? 'dialogue-pre-incarnation'
+          ? 'Dialogue-pre-incarnation'
           : t.locale === 'es'
             ? 'dialogo-pre-encarnacion'
             : 'pre-incarnation-dialogue'
@@ -396,7 +399,7 @@ export default function Dialogues() {
                     <span className="brand-script">Orbital</span>
                     <span className="brand-sans">Astro</span>
                   </div>
-                  <div className="pdf-subtitle">{t.dialogues.pdfSubtitle}</div>
+                  <div className="pdf-subtitle">{pdfSubtitle}</div>
                 </div>
                 <div className="pdf-scroll custom-scrollbar text-cosmic-gold/90">
                   <div className="dialogue-prose px-6 py-4 pdf-body pdf-panel">
@@ -466,7 +469,7 @@ export default function Dialogues() {
                     </ReactMarkdown>
                   </div>
                 </div>
-                <div className="pdf-footnote">{t.dialogues.pdfSubtitle}</div>
+                <div className="pdf-footnote">{pdfSubtitle}</div>
               </div>
               {/* Note de bas de page */}
               <div className="mt-6 pt-4 border-t border-cosmic-gold/20 text-xs text-cosmic-gold/60 italic text-center footnote-small">
