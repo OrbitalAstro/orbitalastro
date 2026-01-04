@@ -688,14 +688,28 @@ export default function DialoguePdf({
             }
 
             // Exclure les phrases de dialogue (qui commencent par "Astrologie" ou un prénom suivi de ":")
-            const isDialogue = /^(Astrologie|Isa|Isabelle|[\w]+\s*):/.test(trimmed)
+            const speakerMatch = trimmed.match(/^([^\n:]{2,24})\s*:\s*(.*)$/)
+            const isDialogue = (() => {
+              if (!speakerMatch) return false
+              const label = speakerMatch[1].trim()
+              const labelLower = label.toLowerCase()
+              const isAstro =
+                labelLower === 'astrologie' ||
+                labelLower === 'astrology' ||
+                labelLower === 'astrología' ||
+                labelLower === 'astrologia'
+              const looksLikeFirstName =
+                /^[\p{L}'’-]+$/u.test(label) && label.length <= 16 && !speakerLabelBlacklist.has(labelLower)
+              return isAstro || looksLikeFirstName
+            })()
             
             const isCenter =
               !isDialogue &&
               p.length < 90 &&
               (/\d\s*[–-]\s*\d/.test(p) ||
                 /\d{1,2}\s+\w+\s+\d{2,4}/i.test(p) ||
-                (p.includes(',') && p.length < 80 && !p.toLowerCase().includes('astrologie')))
+                // Centrer seulement les lignes type "ville, région, pays" (2 virgules), pas les phrases normales.
+                (/^[^,\n]+,\s*[^,\n]+,\s*[^,\n]+$/.test(p) && !/[.!?]/.test(p)))
 
             return (
               <Text
