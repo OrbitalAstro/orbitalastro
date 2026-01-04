@@ -279,11 +279,17 @@ const forcedBoldPatterns: RegExp[] = [
   /(?<!\p{L})chance(?!\p{L})/giu,
   /(?<!\p{L})apprentissage(?!\p{L})/giu,
   /ICI\s+et\s+MAINTENANT/giu,
+  /HERE\s+AND\s+NOW/giu,
+  /AQU[IÍ]\s+Y\s+AHORA/giu,
 ]
 
 const scriptTerms = [
   // FR
   'Astrologie',
+  // EN/ES
+  'Astrology',
+  'Astrología',
+  'Astrologia',
   'Ascendant',
   'Soleil',
   'Lune',
@@ -443,7 +449,7 @@ function renderSpeakerLine(
   const rest = match[2] ?? ''
 
   const labelLower = label.toLowerCase()
-  const isAstrologie = labelLower === 'astrologie'
+  const isAstrologie = labelLower === 'astrologie' || labelLower === 'astrology' || labelLower === 'astrología' || labelLower === 'astrologia'
   const looksLikeFirstName =
     /^[\p{L}'’-]+$/u.test(label) && label.length <= 16 && !speakerLabelBlacklist.has(labelLower)
 
@@ -509,20 +515,23 @@ export default function DialoguePdf({
         continue
       }
       
-      // Détecter "ICI ET MAINTENANT" ou "ICI et MAINTENANT" (peut être suivi de texte)
+      // Détecter "ICI ET MAINTENANT" / "HERE AND NOW" / "AQUÍ Y AHORA" (peut être suivi de texte)
       const lower = line.toLowerCase()
-      if (lower.includes('ici et maintenant')) {
+      const isNowSection =
+        lower.includes('ici et maintenant') ||
+        lower.includes('here and now') ||
+        lower.includes('aquí y ahora') ||
+        lower.includes('aqui y ahora')
+      if (isNowSection) {
         if (currentParagraph) {
           result.push(currentParagraph)
           currentParagraph = ''
         }
-        // Si la ligne commence par "ICI et MAINTENANT", on la garde telle quelle
-        // Sinon, on extrait juste la partie "ICI et MAINTENANT"
-        if (/^ici\s+et\s+maintenant/i.test(line.trim())) {
-          result.push(line) // Garder la ligne complète si elle commence par ICI et MAINTENANT
+        const headerPattern = /(ici\s+et\s+maintenant|here\s+and\s+now|aqui\s+y\s+ahora|aquí\s+y\s+ahora)/i
+        if (headerPattern.test(line.trim()) && headerPattern.exec(line.trim())?.index === 0) {
+          result.push(line)
         } else {
-          // Extraire juste "ICI et MAINTENANT" de la ligne
-          const match = line.match(/^(.*?ici\s+et\s+maintenant[^\s]*)/i)
+          const match = line.match(/^(.*?(ici\s+et\s+maintenant|here\s+and\s+now|aqui\s+y\s+ahora|aquí\s+y\s+ahora)[^\s]*)/i)
           if (match) {
             result.push(match[1].trim())
             // Si il y a du texte après, l'ajouter comme paragraphe séparé
@@ -596,19 +605,43 @@ export default function DialoguePdf({
               /^\s*\*{3,}\s*$/.test(trimmed) ||
               /^\s*\*\s*\*\s*\*\s*$/.test(trimmed)
             
-            // Détecter "ICI ET MAINTENANT" ou "ICI et MAINTENANT" - centrer (plusieurs variantes)
-            // Peut être suivi de texte, donc on vérifie si ça commence par "ICI et MAINTENANT"
-            const isIciMaintenant = 
-              lower === 'ici et maintenant' ||
-              lower.startsWith('ici et maintenant') ||
-              /^ici\s+et\s+maintenant/i.test(trimmed) ||
-              (lower.includes('ici et maintenant') && trimmed.length < 200 && trimmed.split('\n').length <= 3)
+            // Détecter "ICI ET MAINTENANT" / "HERE AND NOW" / "AQUÍ Y AHORA"
+            const isIciMaintenant = (() => {
+              const lowerTrim = trimmed.toLowerCase()
+              const isFr =
+                lowerTrim === 'ici et maintenant' ||
+                lowerTrim.startsWith('ici et maintenant') ||
+                /^ici\s+et\s+maintenant/i.test(trimmed) ||
+                (lowerTrim.includes('ici et maintenant') && trimmed.length < 200 && trimmed.split('\n').length <= 3)
+              const isEn =
+                lowerTrim === 'here and now' ||
+                lowerTrim.startsWith('here and now') ||
+                /^here\s+and\s+now/i.test(trimmed) ||
+                (lowerTrim.includes('here and now') && trimmed.length < 200 && trimmed.split('\n').length <= 3)
+              const isEs =
+                lowerTrim === 'aquí y ahora' ||
+                lowerTrim === 'aqui y ahora' ||
+                lowerTrim.startsWith('aquí y ahora') ||
+                lowerTrim.startsWith('aqui y ahora') ||
+                /^aqu[ií]\s+y\s+ahora/i.test(trimmed) ||
+                ((lowerTrim.includes('aquí y ahora') || lowerTrim.includes('aqui y ahora')) &&
+                  trimmed.length < 200 &&
+                  trimmed.split('\n').length <= 3)
+              return isFr || isEn || isEs
+            })()
             
             const isLanding =
               lower.includes('les énergies se rassemblent') ||
               lower.includes('les vibrations se calibrent') ||
               lower.includes('ta matière prend forme') ||
-              lower.includes('atterrissage')
+              lower.includes('atterrissage') ||
+              lower.includes('the energies gather') ||
+              lower.includes('the vibrations calibrate') ||
+              lower.includes('your matter takes form') ||
+              lower.includes('landing') ||
+              lower.includes('las energías se reúnen') ||
+              lower.includes('las energias se reunen') ||
+              lower.includes('aterrizaje')
             const isFootnote =
               lower.startsWith('ce dialogue est symbolique')
 
@@ -621,8 +654,7 @@ export default function DialoguePdf({
             }
 
             if (isIciMaintenant) {
-              // Extraire juste "ICI et MAINTENANT" si suivi de texte
-              const iciMatch = p.match(/^(.*?ici\s+et\s+maintenant[^\s]*)/i)
+              const iciMatch = p.match(/^(.*?(ici\s+et\s+maintenant|here\s+and\s+now|aqui\s+y\s+ahora|aquí\s+y\s+ahora)[^\s]*)/i)
               const iciText = iciMatch ? iciMatch[1].trim() : p
               
               return (

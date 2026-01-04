@@ -22,6 +22,54 @@ import DialoguePdf from './DialoguePdf'
 
 const FEEDBACK_SURVEY_URL = 'https://forms.gle/eyPRR4Bicf32dCGg6'
 
+function normalizeGeneratedDialogue(
+  raw: string,
+  options: { firstName?: string; lang: 'en' | 'fr' | 'es'; age?: number; ascendantSign?: string }
+): string {
+  const firstName = (options.firstName || '').trim()
+  const age = options.age
+  const ascendantSign = (options.ascendantSign || '').trim()
+  let text = (raw || '').trim()
+
+  if (!text) return text
+
+  if (firstName) {
+    text = text.replace(/\[\s*(?:prénom|prenom|first\s*name|firstname|name|nombre)\s*\]/giu, firstName)
+    text = text.replace(/\{\{\s*(?:prénom|prenom|first[_\s]*name|firstname|name|nombre)\s*\}\}/giu, firstName)
+  }
+
+  if (typeof age === 'number' && Number.isFinite(age) && age > 0) {
+    text = text.replace(/\[\s*(?:ÂGE|AGE|EDAD)\s*\]/giu, String(age))
+  }
+  if (ascendantSign) {
+    text = text.replace(/\[\s*(?:ASCENDANT_SIGNE|ASCENDANT_SIGN|SIGNO_ASCENDENTE)\s*\]/giu, ascendantSign)
+  }
+
+  const filteredLines = text
+    .split(/\r?\n/)
+    .filter((line) => {
+      const t = line.trim()
+      if (!t) return true
+      if (t === '***') return true
+      if (/^={10,}$/.test(t)) return false
+      if (/^(?:INPUT|ENTRADA)\b/i.test(t)) return false
+      if (/^(?:RAPPEL FINAL|FINAL REMINDER|RECORDATORIO FINAL)\b/i.test(t)) return false
+      if (/^(?:word count|nombre de mots|número de palabras|numero de palabras|first name|prénom|prenom|nombre|birth|naissance|nacimiento)\s*:/i.test(t)) return false
+      if (/\b(?:_Signe|_Maison|_Aspect|Talent\d_)\b/.test(t)) return false
+      if (/^\[(?:RÔLE|ROLE|TON|RÈGLE|REGLE|VERBATIM|INPUT|RAPPEL|RULE|STRUCTURE)\b/i.test(t)) return false
+      if (/^\[[^\]\n]{1,140}\]$/.test(t)) return false
+      return true
+    })
+
+  text = filteredLines.join('\n')
+  // Remove any remaining bracket placeholders to prevent prompt leakage
+  text = text.replace(/\[[^\]\n]{1,100}\]/g, '')
+  text = text.replace(/\s{2,}/g, ' ')
+  text = text.replace(/\n{3,}/g, '\n\n').trim()
+
+  return text
+}
+
 export default function Dialogues() {
   const settings = useSettingsStore()
   const t = useTranslation()
@@ -219,6 +267,9 @@ export default function Dialogues() {
       // Generate the structured prompts with all rules
       const lang = (settings.language || 'fr') as 'en' | 'fr' | 'es'
       const { systemPrompt, userPrompt } = generateDialoguePrompt(birthData, chart, undefined, lang)
+
+      const extractedAge = Number(userPrompt.match(/^AGE\s*:\s*(\d+)/m)?.[1] || NaN)
+      const extractedAscendantSign = userPrompt.match(/^Ascendant_Signe\s*:\s*(.+)$/m)?.[1]?.trim()
       
       const response = await apiClient.ai.interpret(userPrompt, systemPrompt)
       
@@ -226,7 +277,12 @@ export default function Dialogues() {
         throw new Error(response.error)
       }
       
-      const dialogueText = response.data?.content || ''
+      const dialogueText = normalizeGeneratedDialogue(response.data?.content || '', {
+        firstName: birthData.firstName,
+        lang,
+        age: Number.isFinite(extractedAge) ? extractedAge : undefined,
+        ascendantSign: extractedAscendantSign || undefined,
+      })
       
       console.log('Dialogue generated successfully')
       setDialogue(dialogueText)

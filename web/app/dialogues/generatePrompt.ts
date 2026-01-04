@@ -374,8 +374,8 @@ export function generateDialoguePrompt(
 
   const notSpecified = language === 'en' ? 'Not specified' : language === 'es' ? 'No especificado' : 'Non spécifié'
 
-  // Build the complete system prompt with all rules and structure
-  const systemPrompt = `[RÔLE]
+  // Build the complete system prompt with all rules and structure (FR template)
+  const systemPromptFrTemplate = `[RÔLE]
 
 ${roleIntro}
 
@@ -568,18 +568,206 @@ Je me rappelle aussi que mon allié le plus terrien, c'est mon Ascendant [ASCEND
 
 Ce dialogue est symbolique, un échange interprété pour le plaisir et la réflexion : il est offert à des fins de divertissement et d'inspiration, sans prétention de vérité absolue ni de certitude. OrbitalAstro.ca`
 
+  const systemPromptEnTemplate = `[ROLE]
+
+${roleIntro}
+
+You must write the COMPLETE dialogue in English, following the structure below.
+Output ONLY the final dialogue text (no headings, no rules, no commentary).
+
+ABSOLUTE OUTPUT RULES (STRICT)
+- Do NOT output any bracket placeholders like [Prénom], [Ascendant_Signe], [AGE], etc. The final text must contain no square brackets [] at all.
+- Keep enthusiasm aligned with the chart personality: 0 exclamation marks in the intro, and 1 exclamation mark maximum in the whole dialogue (all voices combined). If you've already used "!", do not use any more.
+- If the incarnated person expresses fear, pressure, difficulty, or "stop / no longer", immediately reframe as a direct positive desire: "I want / I choose / I prefer…". Avoid negative phrasing.
+- Avoid "more/better/less" self-improvement phrasing (they haven't lived yet). "More" is allowed only as a quantity (e.g., "more than 3") not as personal improvement.
+- Forbidden: "Yes, I recognize myself…" and similar ("I recognize myself", "That sounds like me", "I realize that…"). Replace with future-tense commitment ("Yes, I will choose…", "Yes, I will embody…").
+
+FRENCH TYPO RULE (only relevant if you write in French — but you must write in English)
+- Never write ", and" / ", or" / ", nor" patterns; remove the comma automatically.
+
+STRUCTURE (follow exactly, but write natural English)
+
+[Intro — verbatim]
+[Prénom], at a moment before your arrival on Earth, between a [chart-appropriate element] and an [chart-appropriate intensity] light, your soul pauses for a breath.
+Astrology stands before you as a calm and benevolent presence, ready to illuminate the choice of your next adventure.
+This dialogue is not a prediction: your free will will always have authority — above any tendency and any symbol — it will have the final word, at every moment.
+This is a symbolic exchange to clarify the impulses and tendencies of your astrological game plan, the one that will influence how you will live, choose, and grow.
+Here, you align the vibrations you will calibrate throughout your next life.
+
+[Q1 — verbatim]
+Astrology: [Prénom], congratulations! It's time for us to align your next incarnation. Tell me: how do you want to land — what essence of presence do you want to carry from the very first second?
+[Prénom]: (2–4 sentences. Concrete desires of presence, no astrology, present tense.)
+
+[Ascendant — verbatim]
+Astrology: Let's go with an Ascendant in [Ascendant_Signe] (House [Ascendant_Maison]), for an incarnation where your first reflex will be: "[a simple, concrete reflex phrase that translates the Ascendant — future tense]".
+[Prénom]: (1–3 sentences. Summarize the Ascendant's gift + the chosen challenge.)
+
+[Q Sun — verbatim]
+Astrology: Perfect. Now let's speak about your light: how do you want to shine?
+[Prénom]: (2–5 sentences. Identity/values/life terrain desired, no astrology, present tense.)
+Astrology: Perfect — it will be a Sun in [Soleil_Signe] (House [Soleil_Maison]), [1–3 sentences translating sign+house, future tense]. (Optional: 0–1 Sun aspect, only if provided.)
+
+[Q Moon — verbatim]
+Astrology: And your emotions — how do you want to live them?
+[Prénom]: (2–5 sentences. Emotional style, needs, security, no astrology, present tense.)
+Astrology: Alright — it will be the Moon in [Lune_Signe] (House [Lune_Maison]) that will offer you that. (Optional: 0–1 Moon aspect, only if provided.)
+
+[Q Venus — verbatim]
+Astrology: Love, friendship, value, safety — what do you choose as the language of the heart?
+[Prénom]: (2–5 sentences. How you love, relational needs, no astrology, present tense.)
+Astrology: Then it will be a Venus in [Venus_Signe] (House [Venus_Maison]). [1–3 sentences translating sign+house, future tense]. (Optional: 0–1 Venus aspect, only if provided.)
+
+[Q Mars — verbatim]
+Astrology: And your energy of action, your creativity — how would you like to channel it?
+[Prénom]: (2–5 sentences. Energy, action, creation, challenges, no astrology, present tense.)
+Astrology: Let's place your Mars in [Mars_Signe] (House [Mars_Maison]). [1–3 sentences translating sign+house, future tense]. (Optional: 0–1 Mars aspect, only if provided.)
+
+[Talents — verbatim]
+Astrology: And your three greatest talents?
+[Prénom]: (2–4 sentences. "I choose…" + resources you want to carry, no astrology, present tense.)
+Astrology: Then I offer you [Talent1_Planète] in [Talent1_Signe] (House [Talent1_Maison]), [1 concrete talent sentence, future tense]. You will also take [Talent2_Planète] in [Talent2_Signe] (House [Talent2_Maison]), [1 concrete talent sentence, future tense]. And finally, you will have [Talent3_Planète] in [Talent3_Signe] (House [Talent3_Maison]), [1 concrete talent sentence, future tense].
+(Rule: talents only from placements provided in INPUT.)
+
+[Chance — verbatim]
+Astrology: And your luck — how could it surprise you?
+[Prénom]: (1–3 sentences. "I would like my luck…" no astrology, present tense.)
+Rule (mandatory): In the "Luck" section, you must ALWAYS mention Fortune + Vertex (and you must NOT mention Jupiter).
+Astrology: For your luck, it will be your Fortune in [Fortune_Signe] (House [Fortune_Maison]). (2–4 simple, concrete sentences, future tense.)
+Astrology: And you will also have your Vertex in [Vertex_Signe] (House [Vertex_Maison]). (2–4 simple, concrete sentences, future tense.)
+
+[Learning — verbatim]
+Astrology: What do you plan for your greatest learning?
+[Prénom]: (1–4 sentences. Value, self-worth, boundaries, courage, etc., no astrology, present tense.)
+Astrology: Then [Saturne_Signe] will be in (House [Saturne_Maison]), [1–3 learning sentences, future tense]. (Optional: 0–1 Saturn aspect, only if provided.)
+
+[North Node — verbatim]
+Astrology: Finally, what will be the North of the compass that will guide your evolution?
+[Prénom]: (2–5 sentences. Life direction, meaning, inner movement, no astrology, present tense.)
+Astrology: That will be your North Node in [NoeudNord_Signe] (House [NoeudNord_Maison]). It's for this path that everything will converge! [1 sentence linking Ascendant + Sun + Moon + Venus + Mars + North Node, simple words, future tense, no astrology.]
+[Prénom]: (2–4 final sentences, "Yes! I will embody this life to…" no astrology, deep and gentle tone, future tense.)
+
+[Landing — verbatim]
+The energies gather, the vibrations calibrate, and your matter takes form
+5 – 4 – 3 – 2 – 1 … Landing: [date, time]
+[city, region, country]
+
+[RULE — HERE AND NOW (MANDATORY)]
+The "HERE AND NOW" section must be written in present tense.
+BEFORE the title "HERE AND NOW", you MUST write exactly "***" (three asterisks) on its own centered line.
+Under the title, you MUST write exactly the 2 sentences below, verbatim (no rewording, no additions, nothing before/after).
+Only substitutions allowed:
+- Replace [AGE] with the exact age (completed years).
+- Replace [ASCENDANT_SIGN] with the exact Ascendant sign (e.g., Cancer, Aries, etc.).
+VERBATIM TEXT (2 sentences only):
+Now that I am here, for nearly [AGE] years, I know I have free will: I can continue to [verb + important elements for the incarnated person].
+I also remember that my most grounded ally is my Ascendant [ASCENDANT_SIGN].
+
+[End — verbatim]
+This dialogue is symbolic — an interpreted exchange for enjoyment and reflection: it is offered for entertainment and inspiration, without any claim of absolute truth or certainty. OrbitalAstro.ca`
+
+  const systemPromptEsTemplate = `[ROL]
+
+${roleIntro}
+
+Debes escribir el diálogo COMPLETO en español, siguiendo la estructura de abajo.
+Devuelve SOLO el texto final del diálogo (sin títulos, sin reglas, sin comentarios).
+
+REGLAS ABSOLUTAS (ESTRICTAS)
+- NO muestres marcadores entre corchetes como [Prénom], [Ascendant_Signe], [EDAD], etc. El texto final no debe contener corchetes [].
+- 0 signos de exclamación en la introducción y 1 máximo en todo el diálogo (todas las voces). Si ya usaste "!", no uses más.
+- Si el/la encarnado/a expresa miedo, presión, dificultad o "dejar de / no más", reformula de inmediato en deseo positivo directo: "Quiero / Elijo / Prefiero…". Evita formulaciones negativas.
+- Evita el "más/mejor/menos" como mejora personal (aún no ha vivido). "Más" solo como cantidad.
+- Prohibido: "Sí, me reconozco…" y similares. Reemplaza por futuro ("Sí, elegiré…", "Sí, encarnaré…").
+
+ESTRUCTURA (misma estructura; español natural)
+
+[Intro — verbatim]
+[Prénom], en un momento antes de tu llegada a la Tierra, entre un [elemento acorde a la carta] y una [intensidad acorde a la carta] luz, tu alma se detiene un instante.
+La Astrología se presenta ante ti como una presencia calma y benevolente, lista para iluminar la elección de tu próxima aventura.
+Este diálogo no es una predicción: tu libre albedrío siempre tendrá la autoridad — por encima de toda tendencia y de todo símbolo — y tendrá la última palabra, en cada instante.
+Es un intercambio simbólico para clarificar los impulsos y las tendencias de tu plan de juego astrológico, el que influirá en cómo vivirás, elegirás y crecerás.
+Aquí, alineas las vibraciones que calibrarás a lo largo de tu próxima vida.
+
+[Q1 — verbatim]
+Astrología: [Prénom], ¡felicidades! Es el momento de alinear tu próxima encarnación. Dime: ¿cómo quieres aterrizar — qué esencia de presencia quieres llevar desde el primer segundo?
+[Prénom]: (2–4 frases. Deseos concretos de presencia, sin astrología, presente.)
+
+[Ascendente — verbatim]
+Astrología: Vamos con un Ascendente en [Ascendant_Signe] (Casa [Ascendant_Maison]), para una encarnación donde tu primer reflejo será: "[frase-reflejo simple y concreta que traduzca el Ascendente — futuro]".
+[Prénom]: (1–3 frases. Resume el regalo del Ascendente + el desafío elegido.)
+
+[Nodo Norte — verbatim]
+Astrología: Por último, ¿cuál será el Norte de la brújula que guiará tu evolución?
+[Prénom]: (2–5 frases. Dirección de vida, sentido, movimiento interior, sin astrología, presente.)
+
+[REGLA — AQUÍ Y AHORA (OBLIGATORIA)]
+La sección "AQUÍ Y AHORA" debe escribirse en presente.
+ANTES del título "AQUÍ Y AHORA", debes escribir exactamente "***" en una línea separada, centrada.
+Bajo el título, escribe exactamente estas 2 frases, verbatim (sin reformular).
+Sustituciones permitidas:
+- Reemplazar [EDAD] por la edad exacta (años completos).
+- Reemplazar [SIGNO_ASCENDENTE] por el signo exacto del Ascendente.
+TEXTO VERBATIM (2 frases):
+Ahora que estoy aquí, desde hace casi [EDAD] años, sé que tengo libre albedrío: puedo seguir [verbo + elementos importantes para la persona encarnada].
+También recuerdo que mi aliado más terrenal es mi Ascendente [SIGNO_ASCENDENTE].
+
+[Fin — verbatim]
+Este diálogo es simbólico — un intercambio interpretado para el placer y la reflexión: se ofrece con fines de entretenimiento e inspiración, sin pretensión de verdad absoluta ni de certeza. OrbitalAstro.ca`
+
+  const speakerNameRaw = (birthData.firstName || '').trim()
+  const speakerName =
+    speakerNameRaw ||
+    (language === 'en' ? 'Friend' : language === 'es' ? 'Amiga' : 'Toi')
+
+  const systemPromptTemplate =
+    language === 'fr'
+      ? systemPromptFrTemplate
+      : language === 'es'
+        ? systemPromptEsTemplate
+        : systemPromptEnTemplate
+
+  const systemPrompt = systemPromptTemplate
+    .replaceAll('[Prénom]', speakerName)
+    .replaceAll('[Prenom]', speakerName)
+
   // Build the user prompt with astrological data formatted according to the structure
+  const inputTitle =
+    language === 'en'
+      ? 'INPUT (provided by the user for this reading)'
+      : language === 'es'
+        ? 'ENTRADA (proporcionada por el usuario para esta lectura)'
+        : "INPUT (à fournir par l'utilisateur à chaque lecture)"
+  const wordCountLabel = language === 'en' ? 'Word count' : language === 'es' ? 'Número de palabras' : 'Nombre de mots'
+  const firstNameLabel = language === 'en' ? 'First name' : language === 'es' ? 'Nombre' : 'Prénom'
+  const birthLabel = language === 'en' ? 'Birth' : language === 'es' ? 'Nacimiento' : 'Naissance'
+  const placementsLabel =
+    language === 'en'
+      ? 'Placements/aspects provided by the user'
+      : language === 'es'
+        ? 'Posiciones/aspectos proporcionados por el usuario'
+        : "Aspects et placements fournis par l'utilisateur"
+  const landingDateLabel = language === 'en' ? 'Landing date' : language === 'es' ? 'Fecha de aterrizaje' : 'Date atterrissage'
+  const landingTimeLabel = language === 'en' ? 'Landing time' : language === 'es' ? 'Hora de aterrizaje' : 'Heure atterrissage'
+  const landingPlaceLabel = language === 'en' ? 'Landing place' : language === 'es' ? 'Lugar de aterrizaje' : 'Lieu atterrissage'
+  const finalReminderTitle = language === 'en' ? 'FINAL REMINDER' : language === 'es' ? 'RECORDATORIO FINAL' : 'RAPPEL FINAL'
+  const finalReminderLine =
+    language === 'en'
+      ? 'Return ONLY the final dialogue text, with no other text.'
+      : language === 'es'
+        ? 'Devuelve SOLO el texto final del diálogo, sin ningún otro texto.'
+        : 'Tu produis uniquement le texte final du dialogue, sans aucun autre texte.'
+
   const userPrompt = `====================================================
 
-INPUT (à fournir par l'utilisateur à chaque lecture)
+${inputTitle}
 
-[Nombre de mots] : ${wordCount || notSpecified}
+${wordCountLabel} : ${wordCount || notSpecified}
 
-[Prénom] : ${birthData.firstName || notSpecified}
+${firstNameLabel} : ${speakerNameRaw || notSpecified}
 
-Naissance : ${formattedDate}, ${formattedTime} — ${formattedBirthPlace}
+${birthLabel} : ${formattedDate}, ${formattedTime} — ${formattedBirthPlace}
 
-[Aspects et placements fournis par l'utilisateur — à insérer ici]
+${placementsLabel} — (inserted below)
 
 Ascendant_Signe : ${ascendantSign ? getSignForLanguage(ascendantSign, language) : notSpecified}
 Ascendant_Maison : ${ascendantHouse}
@@ -610,17 +798,21 @@ Fortune_Maison : ${fortuneHouse ?? notSpecified}
 Vertex_Signe : ${vertexSign ? getSignForLanguage(vertexSign, language) : notSpecified}
 Vertex_Maison : ${vertexHouse ?? notSpecified}
 
-[ÂGE] : ${age}
-[ASCENDANT_SIGNE] : ${ascendantSign ? getSignForLanguage(ascendantSign, language) : notSpecified}
-[Date atterrissage] : ${formattedDate}
-[Heure atterrissage] : ${formattedTime}
-[Lieu atterrissage] : ${formattedBirthPlace}
+AGE : ${age}
+EDAD : ${age}
+ÂGE : ${age}
+ASCENDANT_SIGN : ${ascendantSign ? getSignForLanguage(ascendantSign, language) : notSpecified}
+ASCENDANT_SIGNE : ${ascendantSign ? getSignForLanguage(ascendantSign, language) : notSpecified}
+SIGNO_ASCENDENTE : ${ascendantSign ? getSignForLanguage(ascendantSign, language) : notSpecified}
+${landingDateLabel} : ${formattedDate}
+${landingTimeLabel} : ${formattedTime}
+${landingPlaceLabel} : ${formattedBirthPlace}
 
 ====================================================
 
-RAPPEL FINAL
+${finalReminderTitle}
 
-Tu produis uniquement le texte final du dialogue, sans aucun autre texte.`
+${finalReminderLine}`
 
   return { systemPrompt, userPrompt }
 }
