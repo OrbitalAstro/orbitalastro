@@ -526,7 +526,8 @@ export default function Dialogues() {
                           lower.includes('las energías se reúnen') ||
                           lower.includes('las energias se reunen')
                         const center = !isDialogue && (rawText || '').length < 120 && (isCountdown || isDate || isPlace || isLandingPhrase)
-                        const isLanding = isLandingPhrase || lower.includes('atterrissage') || lower.includes('landing') || lower.includes('aterrizaje')
+                        const isLandingLabel = /\b(?:atterrissage|landing|aterrizaje)\s*:/i.test(rawText || '')
+                        const isLanding = isLandingPhrase || isCountdown || isLandingLabel || isPlace
                         const isFootnote = lower.startsWith('ce dialogue est symbolique')
                         
                         // Si c'est ICI et MAINTENANT suivi de texte, on doit le séparer
