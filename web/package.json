@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "node -e \"require('fs').rmSync('.next',{recursive:true,force:true})\" && next dev",
+    "dev": "node -e \"require('fs').rmSync('.next-dev',{recursive:true,force:true})\" && next dev",
     "dev:fast": "next dev",
     "build": "next build",
     "build:vercel": "next build",
