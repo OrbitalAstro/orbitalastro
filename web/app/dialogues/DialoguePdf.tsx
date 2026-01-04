@@ -144,16 +144,22 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: TEXT_BLACK,
   },
+  finalCenter: {
+    textAlign: 'center',
+  },
   inlineBold: {
     fontFamily: 'Helvetica-Bold',
   },
   inlineScript: {
     fontFamily: greatVibesLoaded ? 'GreatVibes' : 'Times-Italic',
     fontStyle: greatVibesLoaded ? 'normal' : 'italic',
+    fontSize: 13,
   },
   finalScript: {
     fontFamily: greatVibesLoaded ? 'GreatVibes' : 'Times-Italic',
     fontStyle: greatVibesLoaded ? 'normal' : 'italic',
+    fontSize: 16,
+    textAlign: 'center',
   },
 })
 
@@ -638,6 +644,7 @@ export default function DialoguePdf({
                   styles.paragraph,
                   isCenter ? styles.center : null,
                   idx === finalPhraseIndex ? styles.finalScript : null,
+                  idx === finalPhraseIndex ? styles.finalCenter : null,
                 ]}
               >
                 {renderSpeakerLine(p, { baseScript: idx === finalPhraseIndex })}
