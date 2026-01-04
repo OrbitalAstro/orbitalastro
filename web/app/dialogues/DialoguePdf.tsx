@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react'
-import { Document, Page, StyleSheet, Text, View, Font, Link } from '@react-pdf/renderer'
+import { Document, Page, StyleSheet, Text, View, Font, Link, Svg, Path } from '@react-pdf/renderer'
 import { translations, type Language } from '@/lib/i18n'
 
 const GOLD = '#b8860b'
@@ -144,12 +144,63 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: TEXT_BLACK,
   },
+  inlineBold: {
+    fontFamily: 'Helvetica-Bold',
+  },
 })
 
 interface DialoguePdfProps {
   dialogue: string
   language?: Language
   feedbackSurveyUrl?: string
+}
+
+function renderInlineBold(text: string) {
+  if (!text.includes('**')) return text
+
+  const nodes: Array<string | React.ReactElement> = []
+  let cursor = 0
+  let key = 0
+
+  while (cursor < text.length) {
+    const start = text.indexOf('**', cursor)
+    if (start === -1) break
+
+    const end = text.indexOf('**', start + 2)
+    if (end === -1) break
+
+    if (start > cursor) {
+      nodes.push(text.slice(cursor, start))
+    }
+
+    const boldText = text.slice(start + 2, end)
+    if (boldText) {
+      nodes.push(
+        <Text key={`b-${key++}`} style={styles.inlineBold}>
+          {boldText}
+        </Text>
+      )
+    }
+
+    cursor = end + 2
+  }
+
+  if (cursor < text.length) {
+    nodes.push(text.slice(cursor))
+  }
+
+  return nodes.length ? nodes : text
+}
+
+function HeartIcon({ color = GOLD, size = 9 }: { color?: string; size?: number }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" style={{ marginLeft: 3, marginTop: 1 }}>
+      <Path
+        d="M12 21s-7.2-4.7-9.6-8.5C.3 9 .9 5.9 3.6 4.3c2-1.2 4.6-.8 6.1 1l2.3 2.7 2.3-2.7c1.5-1.8 4.1-2.2 6.1-1 2.7 1.6 3.3 4.7 1.2 8.2C19.2 16.3 12 21 12 21z"
+        fill={color}
+      />
+    </Svg>
+  )
 }
 
 export default function DialoguePdf({
@@ -305,11 +356,11 @@ export default function DialoguePdf({
               return (
                 <View key={idx} style={{ marginBottom: 10 }}>
                   <Text style={styles.iciMaintenant}>
-                    {iciText}
+                    {renderInlineBold(iciText)}
                   </Text>
                   {iciMatch && p.length > iciMatch[0].length && (
                     <Text style={styles.paragraph}>
-                      {p.substring(iciMatch[0].length).trim()}
+                      {renderInlineBold(p.substring(iciMatch[0].length).trim())}
                     </Text>
                   )}
                 </View>
@@ -319,7 +370,7 @@ export default function DialoguePdf({
             if (isLanding) {
               return (
                 <Text key={idx} style={styles.landing}>
-                  {p}
+                  {renderInlineBold(p)}
                 </Text>
               )
             }
@@ -327,7 +378,7 @@ export default function DialoguePdf({
             if (isFootnote) {
               return (
                 <Text key={idx} style={styles.footnote}>
-                  {p}
+                  {renderInlineBold(p)}
                 </Text>
               )
             }
@@ -347,7 +398,7 @@ export default function DialoguePdf({
                 key={idx}
                 style={[styles.paragraph, isCenter ? styles.center : null]}
               >
-                {p}
+                {renderInlineBold(p)}
               </Text>
             )
           })}
@@ -355,19 +406,39 @@ export default function DialoguePdf({
           {!paragraphs.some((p) =>
             p.toLowerCase().startsWith('ce dialogue est symbolique')
           ) && (
-            <Text style={styles.footnote}>{t.dialogues.disclaimer}</Text>
+            <Text style={styles.footnote}>{renderInlineBold(t.dialogues.disclaimer)}</Text>
           )}
 
           {feedbackSurveyUrl && (
             <View style={{ marginTop: 10 }}>
-              <Text style={styles.footnote}>{t.dialogues.feedbackPrompt}</Text>
+              {(() => {
+                const raw = t.dialogues.feedbackPrompt || ''
+                const lines = raw.split(/\r?\n/)
+                const first = (lines[0] || '').replace(/[♡♥]/g, '').trimEnd()
+                const hasHeart = /[♡♥]/.test(lines[0] || '')
+                const rest = lines.slice(1).join('\n')
+
+                return (
+                  <>
+                    {hasHeart ? (
+                      <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
+                        <Text style={styles.footnote}>{renderInlineBold(first)}</Text>
+                        <HeartIcon />
+                      </View>
+                    ) : (
+                      <Text style={styles.footnote}>{renderInlineBold(raw)}</Text>
+                    )}
+                    {!!rest.trim() && <Text style={styles.footnote}>{renderInlineBold(rest)}</Text>}
+                  </>
+                )
+              })()}
               <Text style={styles.footnote}>
                 <Link src={feedbackSurveyUrl} style={{ color: GOLD, textDecoration: 'underline' }}>
                   {t.dialogues.feedbackLinkLabel}
                 </Link>
               </Text>
-              <Text style={styles.footnote}>{t.dialogues.feedbackPromo}</Text>
-              <Text style={styles.footnote}>{t.dialogues.feedbackCta}</Text>
+              <Text style={styles.footnote}>{renderInlineBold(t.dialogues.feedbackPromo)}</Text>
+              <Text style={styles.footnote}>{renderInlineBold(t.dialogues.feedbackCta)}</Text>
             </View>
           )}
           </View>
