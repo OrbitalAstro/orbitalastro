@@ -438,7 +438,7 @@ RÈGLE ABSOLUE : Jamais de virgule juste avant « et », « ou », « ni ». Si 
 
 [VERBATIM – Q1]
 
-Astrologie : [Prénom], félicitations! C'est le moment pour nous d'aligner ta prochaine incarnation. Dis-moi comment as-tu envie d'atterrir, quelle essence de présence désire-tu porter dès la première seconde ?
+Astrologie : [Prénom], félicitations! C'est le moment pour nous d'aligner ta prochaine incarnation. Dis-moi comment as-tu envie d'atterrir, quelle essence de présence désires-tu porter dès la première seconde ?
 
 [Prénom] : (2–4 phrases. Désirs concrets de présence, sans astrologie.)
 
