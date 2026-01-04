@@ -217,6 +217,12 @@ function looksLikeLocationLine(text: string) {
   return startsUpper(match[1]) && startsUpper(match[2]) && startsUpper(match[3])
 }
 
+function looksLikeCountdownLine(text: string) {
+  const value = (text || '').trim()
+  if (!value) return false
+  return /\b5\s*[–-]\s*4\s*[–-]\s*3\s*[–-]\s*2\s*[–-]\s*1\b/.test(value)
+}
+
 function splitMarkdownBold(text: string): RichPiece[] {
   if (!text.includes('**')) return [{ text }]
 
@@ -642,18 +648,17 @@ export default function DialoguePdf({
               return isFr || isEn || isEs
             })()
             
-            const isLanding =
+            const isLandingPhrase =
               lower.includes('les énergies se rassemblent') ||
               lower.includes('les vibrations se calibrent') ||
               lower.includes('ta matière prend forme') ||
-              lower.includes('atterrissage') ||
               lower.includes('the energies gather') ||
               lower.includes('the vibrations calibrate') ||
               lower.includes('your matter takes form') ||
-              lower.includes('landing') ||
               lower.includes('las energías se reúnen') ||
-              lower.includes('las energias se reunen') ||
-              lower.includes('aterrizaje')
+              lower.includes('las energias se reunen')
+            const isLandingLabel = /\b(?:atterrissage|landing|aterrizaje)\s*:/i.test(trimmed)
+            const isLanding = isLandingPhrase || looksLikeCountdownLine(trimmed) || looksLikeLocationLine(trimmed) || isLandingLabel
             const isFootnote =
               lower.startsWith('ce dialogue est symbolique')
 
@@ -718,7 +723,7 @@ export default function DialoguePdf({
             const isCenter =
               !isDialogue &&
               p.length < 90 &&
-              (/\d\s*[–-]\s*\d/.test(p) ||
+              (looksLikeCountdownLine(p) ||
                 /\d{1,2}\s+\w+\s+\d{2,4}/i.test(p) ||
                 // Centrer seulement les lignes type "ville, région, pays" (2 virgules), pas les phrases normales.
                 looksLikeLocationLine(p))

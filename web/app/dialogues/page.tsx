@@ -507,7 +507,8 @@ export default function Dialogues() {
                           return isAstro || looksLikeFirstName
                         })()
                         
-                        const isCountdown = /\d\s*[–-]\s*\d/.test(rawText || '')
+                        const isCountdown =
+                          /\b5\s*[–-]\s*4\s*[–-]\s*3\s*[–-]\s*2\s*[–-]\s*1\b/.test(rawText || '')
                         const isDate = /\d{1,2}\s+\w+\s+\d{2,4}/i.test(rawText || '')
                         const isPlace = (() => {
                           const text = rawText || ''
