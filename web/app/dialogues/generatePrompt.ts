@@ -385,11 +385,22 @@ Tu rédiges le texte COMPLET, en respectant la structure ci-dessous. Tu réponds
 
 Le ton doit refléter les qualités de l'incarné (plus doux, plus intense, plus joueur, plus posé, etc. selon ce que tu reçois) afin que ça résonne fort. Ne donne pas de faux positif, soit positif directement : ex. : Je me rappelle que ma sensibilité n'est pas un défaut : elle est un signal, un langage, un guide. OPTE pour ce genre de formule : Je me rappelle que ma sensibilité est un outil : elle est un signal, un langage, un guide. - Et si je me perds dans le rythme, je reviens à mon outil numéro un OPTE pour Et si j'ai besoin de retrouver mon rythme, je reviens à mon outil numéro un.
 
-[RÈGLE DE FORMULATION – INCARNÉ (OBLIGATOIRE)]
+[RÈGLE DE FORMULATION — INCARNÉ (OBLIGATOIRE — STRICTE)]
 
-Si l'incarné exprime une difficulté, une peur, une pression ou une phrase du type "arrêter de / ne plus", je reformule en désir positif direct sous forme "Je veux / Je choisis / Je préfère…". J'évite les formulations négatives. Vigilance avec le mot «plus» (et ses semblables) : l'incarné.e n'a pas encore vécu, il ne peut pas devenir «plus» (simple, doux, etc…).
+Ces règles s'appliquent à ce que dit l'incarné.e ([Prénom]) : iel n'a pas encore vécu sur Terre.
 
-[Niveau d'enthousiasme exprimé en accord avec la personnalité] : 0 dans l'intro et 1 exclamation maximum dans tout le dialogue.
+1) Enthousiasme / ponctuation : 0 point d'exclamation dans l'intro, et 1 point d'exclamation maximum dans tout le dialogue (toutes voix confondues). Si tu as déjà utilisé "!", n'en utilise plus.
+
+2) Si l'incarné exprime une difficulté, une peur, une pression, ou une formulation du type "arrêter de / ne plus", tu REFORMULES immédiatement en désir positif direct sous forme : "Je veux / Je choisis / Je préfère…". Évite les formulations négatives.
+
+3) Vigilance avec le mot "plus" (et ses semblables : "davantage", "encore plus", "mieux", "moins") : l'incarné.e n'a pas encore vécu, donc pas de "devenir plus X", pas de "je veux être meilleure/plus…". "Plus" est autorisé uniquement pour une quantité (ex. : "plus de 3") et jamais pour une amélioration personnelle.
+
+4) Interdiction d'utiliser l'expression "Oui, je me reconnais…" (et ses semblables : "Je me reconnais", "Ça me ressemble", "Je réalise que…") : l'incarné.e ne peut pas se reconnaître dans une vie pas encore vécue. Remplace par une formulation au futur (ex. : "Oui, je choisirai…", "Oui, j'incarnerai…", "Oui, je marcherai vers…").
+
+AUTO-VÉRIFICATION (OBLIGATOIRE) : avant de rendre le texte final, relis et corrige :
+- Supprime toute occurrence de ", et" / ", ou" / ", ni" (sauf incise avec deux virgules).
+- Vérifie la règle des "!".
+- Vérifie l'absence des formulations interdites ci-dessus.
 
 [RÈGLE DE TEMPS — STRICTE]
 
@@ -444,7 +455,7 @@ Astrologie : [Prénom], félicitations! C'est le moment pour nous d'aligner ta p
 
 [VERBATIM – Ascendant]
 
-Astrologie : Allons-y donc avec un Ascendant en [Ascendant_Signe] (Maison [Ascendant_Maison]), pour une incarnation où ton premier réflexe, ce sera : "[phrase-réflexe simple et concrète qui traduit l'Ascendant]", au futur.
+Astrologie : Allons-y donc avec un Ascendant en [Ascendant_Signe] (Maison [Ascendant_Maison]), pour une incarnation où ton premier réflexe, ce sera : “[phrase-réflexe simple et concrète qui traduit l’Ascendant, au futur]”
 
 [Prénom] : (1–3 phrases. Résume le positif de l'Ascendant + le défi choisi)
 
