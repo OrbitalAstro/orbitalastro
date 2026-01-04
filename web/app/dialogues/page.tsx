@@ -65,7 +65,14 @@ function normalizeGeneratedDialogue(
   text = filteredLines.join('\n')
   // Remove any remaining bracket placeholders to prevent prompt leakage
   text = text.replace(/\[[^\]\n]{1,100}\]/g, '')
-  text = text.replace(/\s{2,}/g, ' ')
+  // Collapse only spaces/tabs (preserve newlines so paragraphs keep their formatting)
+  text = text.replace(/[ \t]{2,}/g, ' ')
+
+  // Ensure the landing block starts on its own paragraph
+  text = text.replace(/([^\n])\n*(Les énergies se rassemblent)/g, '$1\n\n$2')
+  text = text.replace(/([^\n])\n*(The energies gather)/g, '$1\n\n$2')
+  text = text.replace(/([^\n])\n*(Las energías se reúnen)/g, '$1\n\n$2')
+  text = text.replace(/([^\n])\n*(Las energias se reunen)/g, '$1\n\n$2')
   text = text.replace(/\n{3,}/g, '\n\n').trim()
 
   return text
