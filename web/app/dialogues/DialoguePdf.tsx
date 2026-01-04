@@ -153,12 +153,12 @@ const styles = StyleSheet.create({
   inlineScript: {
     fontFamily: greatVibesLoaded ? 'GreatVibes' : 'Times-Italic',
     fontStyle: greatVibesLoaded ? 'normal' : 'italic',
-    fontSize: 13,
+    fontSize: 18,
   },
   finalScript: {
     fontFamily: greatVibesLoaded ? 'GreatVibes' : 'Times-Italic',
     fontStyle: greatVibesLoaded ? 'normal' : 'italic',
-    fontSize: 16,
+    fontSize: 24,
     textAlign: 'center',
   },
 })
@@ -167,6 +167,7 @@ interface DialoguePdfProps {
   dialogue: string
   language?: Language
   feedbackSurveyUrl?: string
+  firstName?: string
 }
 
 function renderInlineBold(text: string) {
@@ -196,6 +197,12 @@ function asNodeArray(value: string | Array<string | React.ReactElement>) {
 
 function escapeRegExp(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+function buildFirstNameRegex(firstName?: string) {
+  const trimmed = (firstName || '').trim()
+  if (!trimmed) return null
+  return new RegExp(`(?<!\\p{L})${escapeRegExp(trimmed)}(?!\\p{L})`, 'giu')
 }
 
 function splitMarkdownBold(text: string): RichPiece[] {
@@ -371,7 +378,7 @@ const scriptTermRegex = new RegExp(
 )
 const houseRegex = /(?<!\p{L})(Maison|House|Casa)\s*(\d{1,2}|[IVX]{1,6})(?!\p{L})/giu
 
-function renderRichText(text: string, base?: { script?: boolean }) {
+function renderRichText(text: string, base?: { script?: boolean; extraScriptRegex?: RegExp | null }) {
   const baseScript = base?.script ?? false
   let pieces: RichPiece[] = splitMarkdownBold(text).map((p) => ({ ...p, script: baseScript }))
 
@@ -390,6 +397,12 @@ function renderRichText(text: string, base?: { script?: boolean }) {
     ...piece,
     script: true,
   }))
+  if (base?.extraScriptRegex) {
+    pieces = applyRegex(pieces, new RegExp(base.extraScriptRegex.source, base.extraScriptRegex.flags), (piece) => ({
+      ...piece,
+      script: true,
+    }))
+  }
 
   const nodes: Array<string | React.ReactElement> = []
   let key = 0
@@ -415,9 +428,12 @@ function renderRichText(text: string, base?: { script?: boolean }) {
 
 const speakerLabelBlacklist = new Set(['atterrissage', 'naissance'])
 
-function renderSpeakerLine(text: string, options?: { baseScript?: boolean }) {
+function renderSpeakerLine(
+  text: string,
+  options?: { baseScript?: boolean; extraScriptRegex?: RegExp | null }
+) {
   const match = text.match(/^([^\n:]{2,24})\s*:\s*(.*)$/)
-  if (!match) return renderRichText(text, { script: options?.baseScript })
+  if (!match) return renderRichText(text, { script: options?.baseScript, extraScriptRegex: options?.extraScriptRegex })
 
   const label = match[1].trim()
   const rest = match[2] ?? ''
@@ -438,7 +454,11 @@ function renderSpeakerLine(text: string, options?: { baseScript?: boolean }) {
     </Text>
   )
   nodes.push(': ')
-  nodes.push(...asNodeArray(renderRichText(rest, { script: options?.baseScript })))
+  nodes.push(
+    ...asNodeArray(
+      renderRichText(rest, { script: options?.baseScript, extraScriptRegex: options?.extraScriptRegex })
+    )
+  )
   return nodes
 }
 
@@ -446,8 +466,12 @@ export default function DialoguePdf({
   dialogue,
   language = 'fr',
   feedbackSurveyUrl,
+  firstName,
 }: DialoguePdfProps) {
   const t = translations[language] || translations.fr
+  const firstNameRegex = useMemo(() => buildFirstNameRegex(firstName), [firstName])
+  const renderText = (text: string, base?: { script?: boolean }) =>
+    renderRichText(text, { script: base?.script, extraScriptRegex: firstNameRegex })
   const pdfSubtitle = (t.dialogues.pdfSubtitle || '')
     .replace(/&/g, '-')
     .replace(/[\u2010\u2011\u2012\u2013\u2014\u2212]/g, '-')
@@ -600,11 +624,11 @@ export default function DialoguePdf({
               return (
                 <View key={idx} style={{ marginBottom: 10 }}>
                   <Text style={styles.iciMaintenant}>
-                    {renderRichText(iciText)}
+                    {renderText(iciText)}
                   </Text>
                   {iciMatch && p.length > iciMatch[0].length && (
                     <Text style={styles.paragraph}>
-                      {renderSpeakerLine(p.substring(iciMatch[0].length).trim())}
+                      {renderText(p.substring(iciMatch[0].length).trim())}
                     </Text>
                   )}
                 </View>
@@ -614,7 +638,7 @@ export default function DialoguePdf({
             if (isLanding) {
               return (
                 <Text key={idx} style={styles.landing}>
-                  {renderSpeakerLine(p)}
+                  {renderSpeakerLine(p, { extraScriptRegex: firstNameRegex })}
                 </Text>
               )
             }
@@ -622,7 +646,7 @@ export default function DialoguePdf({
             if (isFootnote) {
               return (
                 <Text key={idx} style={styles.footnote}>
-                  {renderSpeakerLine(p)}
+                  {renderSpeakerLine(p, { extraScriptRegex: firstNameRegex })}
                 </Text>
               )
             }
@@ -647,7 +671,7 @@ export default function DialoguePdf({
                   idx === finalPhraseIndex ? styles.finalCenter : null,
                 ]}
               >
-                {renderSpeakerLine(p, { baseScript: idx === finalPhraseIndex })}
+                {renderSpeakerLine(p, { baseScript: idx === finalPhraseIndex, extraScriptRegex: firstNameRegex })}
               </Text>
             )
           })}
@@ -655,7 +679,7 @@ export default function DialoguePdf({
           {!paragraphs.some((p) =>
             p.toLowerCase().startsWith('ce dialogue est symbolique')
           ) && (
-            <Text style={styles.footnote}>{renderRichText(t.dialogues.disclaimer)}</Text>
+            <Text style={styles.footnote}>{renderText(t.dialogues.disclaimer)}</Text>
           )}
 
           {feedbackSurveyUrl && (
@@ -671,13 +695,13 @@ export default function DialoguePdf({
                   <>
                     {hasHeart ? (
                       <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
-                        <Text style={styles.footnote}>{renderRichText(first)}</Text>
+                        <Text style={styles.footnote}>{renderText(first)}</Text>
                         <HeartIcon />
                       </View>
                     ) : (
-                      <Text style={styles.footnote}>{renderRichText(raw)}</Text>
+                      <Text style={styles.footnote}>{renderText(raw)}</Text>
                     )}
-                    {!!rest.trim() && <Text style={styles.footnote}>{renderRichText(rest)}</Text>}
+                    {!!rest.trim() && <Text style={styles.footnote}>{renderText(rest)}</Text>}
                   </>
                 )
               })()}
@@ -686,8 +710,8 @@ export default function DialoguePdf({
                   {t.dialogues.feedbackLinkLabel}
                 </Link>
               </Text>
-              <Text style={styles.footnote}>{renderRichText(t.dialogues.feedbackPromo)}</Text>
-              <Text style={styles.footnote}>{renderRichText(t.dialogues.feedbackCta)}</Text>
+              <Text style={styles.footnote}>{renderText(t.dialogues.feedbackPromo)}</Text>
+              <Text style={styles.footnote}>{renderText(t.dialogues.feedbackCta)}</Text>
             </View>
           )}
           </View>

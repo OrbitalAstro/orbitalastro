@@ -84,7 +84,12 @@ export default function Dialogues() {
       // Générer le PDF avec un timeout pour éviter les blocages
       const lang = (settings.language || 'fr') as 'en' | 'fr' | 'es'
       const pdfPromise = pdf(
-        <DialoguePdf dialogue={dialogue} language={lang} feedbackSurveyUrl={FEEDBACK_SURVEY_URL} />
+        <DialoguePdf
+          dialogue={dialogue}
+          language={lang}
+          feedbackSurveyUrl={FEEDBACK_SURVEY_URL}
+          firstName={birthData.firstName || undefined}
+        />
       ).toBlob()
       const timeoutPromise = new Promise((_, reject) => 
         setTimeout(() => reject(new Error('PDF generation timeout')), 30000)
