@@ -68,11 +68,22 @@ function normalizeGeneratedDialogue(
   // Collapse only spaces/tabs (preserve newlines so paragraphs keep their formatting)
   text = text.replace(/[ \t]{2,}/g, ' ')
 
+  // Ensure Markdown paragraphs: AI often uses single newlines, but Markdown requires a blank line.
+  // Convert line breaks into paragraph breaks to avoid a single mega-paragraph (which can trigger global centering/styles).
+  text = text
+    .split(/\r?\n/)
+    .map((line) => line.trimEnd())
+    .join('\n\n')
+
   // Ensure the landing block starts on its own paragraph
   text = text.replace(/([^\n])\n*(Les énergies se rassemblent)/g, '$1\n\n$2')
+  text = text.replace(/([^\n])\s+(Les énergies se rassemblent)/g, '$1\n\n$2')
   text = text.replace(/([^\n])\n*(The energies gather)/g, '$1\n\n$2')
+  text = text.replace(/([^\n])\s+(The energies gather)/g, '$1\n\n$2')
   text = text.replace(/([^\n])\n*(Las energías se reúnen)/g, '$1\n\n$2')
+  text = text.replace(/([^\n])\s+(Las energías se reúnen)/g, '$1\n\n$2')
   text = text.replace(/([^\n])\n*(Las energias se reunen)/g, '$1\n\n$2')
+  text = text.replace(/([^\n])\s+(Las energias se reunen)/g, '$1\n\n$2')
   text = text.replace(/\n{3,}/g, '\n\n').trim()
 
   return text

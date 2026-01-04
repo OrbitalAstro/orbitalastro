@@ -504,8 +504,9 @@ export default function DialoguePdf({
     .replace(/&/g, '-')
     .replace(/[\u2010\u2011\u2012\u2013\u2014\u2212]/g, '-')
   const paragraphs = useMemo(() => {
-    // Diviser par double retour à la ligne, mais aussi traiter les lignes individuelles
-    const lines = (dialogue || '').split(/\n/)
+    const rawDialogue = dialogue || ''
+    const hasBlankLine = /\n\s*\n/.test(rawDialogue)
+    const lines = rawDialogue.split(/\r?\n/)
     const result: string[] = []
     let currentParagraph = ''
     
@@ -564,6 +565,17 @@ export default function DialoguePdf({
         continue
       }
       
+      // If the dialogue has no blank lines, treat each non-empty line as its own paragraph.
+      // This prevents the whole dialogue from being merged into a single block (which can trigger global centering).
+      if (!hasBlankLine) {
+        if (currentParagraph) {
+          result.push(currentParagraph)
+          currentParagraph = ''
+        }
+        result.push(line)
+        continue
+      }
+
       // Sinon, ajouter à la ligne courante
       if (currentParagraph) {
         currentParagraph += '\n' + line
