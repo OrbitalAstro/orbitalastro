@@ -476,24 +476,62 @@ export default function Dialogues() {
                         // Détecter les astérisques (***)
                         const isAsterisks = rawText === '***' || rawText === '* * *' || /^\s*\*{3,}\s*$/.test(rawText || '')
                         
-                        // Détecter "ICI ET MAINTENANT" ou "ICI et MAINTENANT" (peut être suivi de texte)
+                        // Détecter "ICI ET MAINTENANT" / "HERE AND NOW" / "AQUÍ Y AHORA" (peut être suivi de texte)
                         const isIciMaintenant = 
                           lower === 'ici et maintenant' ||
                           lower.startsWith('ici et maintenant') ||
                           /^ici\s+et\s+maintenant/i.test(rawText || '') ||
-                          (lower.includes('ici et maintenant') && rawText && rawText.length < 200 && /ici\s+et\s+maintenant/i.test(rawText || ''))
+                          lower === 'here and now' ||
+                          lower.startsWith('here and now') ||
+                          /^here\s+and\s+now/i.test(rawText || '') ||
+                          lower === 'aquí y ahora' ||
+                          lower === 'aqui y ahora' ||
+                          lower.startsWith('aquí y ahora') ||
+                          lower.startsWith('aqui y ahora') ||
+                          /^aqu[ií]\s+y\s+ahora/i.test(rawText || '') ||
+                          (lower.includes('ici et maintenant') && rawText && rawText.length < 200 && /ici\s+et\s+maintenant/i.test(rawText || '')) ||
+                          (lower.includes('here and now') && rawText && rawText.length < 200 && /here\s+and\s+now/i.test(rawText || '')) ||
+                          ((lower.includes('aquí y ahora') || lower.includes('aqui y ahora')) && rawText && rawText.length < 200 && /aqu[ií]\s+y\s+ahora/i.test(rawText || ''))
+
+                        const speakerMatch = (rawText || '').match(/^([^\n:]{2,24})\s*:\s*/)
+                        const isDialogue = (() => {
+                          if (!speakerMatch) return false
+                          const label = speakerMatch[1].trim()
+                          const labelLower = label.toLowerCase()
+                          const isAstro =
+                            labelLower === 'astrologie' ||
+                            labelLower === 'astrology' ||
+                            labelLower === 'astrología' ||
+                            labelLower === 'astrologia'
+                          const looksLikeFirstName = /^[\p{L}'’-]+$/u.test(label) && label.length <= 16
+                          return isAstro || looksLikeFirstName
+                        })()
                         
                         const isCountdown = /\d\s*[–-]\s*\d/.test(rawText || '')
                         const isDate = /\d{1,2}\s+\w+\s+\d{2,4}/i.test(rawText || '')
-                        const isPlace = (rawText || '').includes(',') && (rawText || '').length < 80
-                        const isLandingPhrase = lower.includes('les énergies se rassemblent')
-                        const center = (rawText || '').length < 120 && (isCountdown || isDate || isPlace || isLandingPhrase)
-                        const isLanding = isLandingPhrase || lower.includes('atterrissage')
+                        const isPlace = (() => {
+                          const text = rawText || ''
+                          if (!text || text.length > 80) return false
+                          if (/[0-9]/.test(text)) return false
+                          const match = text.match(
+                            /^([\p{L}][\p{L}'’.\- ]{0,40}),\s*([\p{L}][\p{L}'’.\- ]{0,40}),\s*([\p{L}][\p{L}'’.\- ]{0,40})$/u
+                          )
+                          if (!match) return false
+                          const startsUpper = (value: string) => /^\p{Lu}/u.test(value.trim())
+                          return startsUpper(match[1]) && startsUpper(match[2]) && startsUpper(match[3])
+                        })()
+                        const isLandingPhrase =
+                          lower.includes('les énergies se rassemblent') ||
+                          lower.includes('the energies gather') ||
+                          lower.includes('las energías se reúnen') ||
+                          lower.includes('las energias se reunen')
+                        const center = !isDialogue && (rawText || '').length < 120 && (isCountdown || isDate || isPlace || isLandingPhrase)
+                        const isLanding = isLandingPhrase || lower.includes('atterrissage') || lower.includes('landing') || lower.includes('aterrizaje')
                         const isFootnote = lower.startsWith('ce dialogue est symbolique')
                         
                         // Si c'est ICI et MAINTENANT suivi de texte, on doit le séparer
                         if (isIciMaintenant && rawText && rawText.length > 20) {
-                          const iciMatch = rawText.match(/^(.*?ici\s+et\s+maintenant[^\s]*)/i)
+                          const iciMatch = rawText.match(/^(.*?(ici\s+et\s+maintenant|here\s+and\s+now|aqui\s+y\s+ahora|aquí\s+y\s+ahora)[^\s]*)/i)
                           if (iciMatch) {
                             const iciText = iciMatch[1].trim()
                             const restText = rawText.substring(iciMatch[0].length).trim()

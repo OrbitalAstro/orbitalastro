@@ -205,6 +205,18 @@ function buildFirstNameRegex(firstName?: string) {
   return new RegExp(`(?<!\\p{L})${escapeRegExp(trimmed)}(?!\\p{L})`, 'giu')
 }
 
+function looksLikeLocationLine(text: string) {
+  const value = (text || '').trim()
+  if (!value || value.length > 80) return false
+  if (/[0-9]/.test(value)) return false
+  const match = value.match(
+    /^([\p{L}][\p{L}'’.\- ]{0,40}),\s*([\p{L}][\p{L}'’.\- ]{0,40}),\s*([\p{L}][\p{L}'’.\- ]{0,40})$/u
+  )
+  if (!match) return false
+  const startsUpper = (part: string) => /^\p{Lu}/u.test(part.trim())
+  return startsUpper(match[1]) && startsUpper(match[2]) && startsUpper(match[3])
+}
+
 function splitMarkdownBold(text: string): RichPiece[] {
   if (!text.includes('**')) return [{ text }]
 
@@ -709,7 +721,7 @@ export default function DialoguePdf({
               (/\d\s*[–-]\s*\d/.test(p) ||
                 /\d{1,2}\s+\w+\s+\d{2,4}/i.test(p) ||
                 // Centrer seulement les lignes type "ville, région, pays" (2 virgules), pas les phrases normales.
-                (/^[^,\n]+,\s*[^,\n]+,\s*[^,\n]+$/.test(p) && !/[.!?]/.test(p)))
+                looksLikeLocationLine(p))
 
             return (
               <Text
