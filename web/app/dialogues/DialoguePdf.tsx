@@ -147,6 +147,14 @@ const styles = StyleSheet.create({
   inlineBold: {
     fontFamily: 'Helvetica-Bold',
   },
+  inlineScript: {
+    fontFamily: greatVibesLoaded ? 'GreatVibes' : 'Times-Italic',
+    fontStyle: greatVibesLoaded ? 'normal' : 'italic',
+  },
+  finalScript: {
+    fontFamily: greatVibesLoaded ? 'GreatVibes' : 'Times-Italic',
+    fontStyle: greatVibesLoaded ? 'normal' : 'italic',
+  },
 })
 
 interface DialoguePdfProps {
@@ -156,40 +164,7 @@ interface DialoguePdfProps {
 }
 
 function renderInlineBold(text: string) {
-  if (!text.includes('**')) return text
-
-  const nodes: Array<string | React.ReactElement> = []
-  let cursor = 0
-  let key = 0
-
-  while (cursor < text.length) {
-    const start = text.indexOf('**', cursor)
-    if (start === -1) break
-
-    const end = text.indexOf('**', start + 2)
-    if (end === -1) break
-
-    if (start > cursor) {
-      nodes.push(text.slice(cursor, start))
-    }
-
-    const boldText = text.slice(start + 2, end)
-    if (boldText) {
-      nodes.push(
-        <Text key={`b-${key++}`} style={styles.inlineBold}>
-          {boldText}
-        </Text>
-      )
-    }
-
-    cursor = end + 2
-  }
-
-  if (cursor < text.length) {
-    nodes.push(text.slice(cursor))
-  }
-
-  return nodes.length ? nodes : text
+  return renderRichText(text)
 }
 
 function HeartIcon({ color = GOLD, size = 9 }: { color?: string; size?: number }) {
@@ -201,6 +176,264 @@ function HeartIcon({ color = GOLD, size = 9 }: { color?: string; size?: number }
       />
     </Svg>
   )
+}
+
+type RichPiece = {
+  text: string
+  bold?: boolean
+  script?: boolean
+}
+
+function asNodeArray(value: string | Array<string | React.ReactElement>) {
+  return Array.isArray(value) ? value : [value]
+}
+
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+function splitMarkdownBold(text: string): RichPiece[] {
+  if (!text.includes('**')) return [{ text }]
+
+  const pieces: RichPiece[] = []
+  let cursor = 0
+  let bold = false
+
+  while (cursor < text.length) {
+    const idx = text.indexOf('**', cursor)
+    if (idx === -1) {
+      pieces.push({ text: text.slice(cursor), bold })
+      break
+    }
+
+    if (idx > cursor) {
+      pieces.push({ text: text.slice(cursor, idx), bold })
+    }
+
+    bold = !bold
+    cursor = idx + 2
+  }
+
+  return pieces.filter((p) => p.text.length > 0)
+}
+
+function applyRegex(
+  pieces: RichPiece[],
+  regex: RegExp,
+  apply: (piece: RichPiece) => RichPiece
+): RichPiece[] {
+  const out: RichPiece[] = []
+
+  for (const piece of pieces) {
+    const text = piece.text
+    if (!text) continue
+
+    regex.lastIndex = 0
+    let lastIndex = 0
+    let match: RegExpExecArray | null
+
+    while ((match = regex.exec(text)) !== null) {
+      const start = match.index
+      const end = start + match[0].length
+
+      if (start > lastIndex) {
+        out.push({ ...piece, text: text.slice(lastIndex, start) })
+      }
+
+      out.push(apply({ ...piece, text: match[0] }))
+      lastIndex = end
+
+      if (match[0].length === 0) {
+        regex.lastIndex++
+      }
+    }
+
+    if (lastIndex < text.length) {
+      out.push({ ...piece, text: text.slice(lastIndex) })
+    }
+  }
+
+  return out.filter((p) => p.text.length > 0)
+}
+
+const forcedBoldPatterns: RegExp[] = [
+  /essence\s+de\s+présence/giu,
+  /lumière/giu,
+  /émotions/giu,
+  /Amour,\s*amitié,\s*valeur,\s*sécurité/giu,
+  /énergie\s+d[’']action,\s*ta\s+créativité/giu,
+  /plus\s+grands\s+talents/giu,
+  /(?<!\p{L})chance(?!\p{L})/giu,
+  /(?<!\p{L})apprentissage(?!\p{L})/giu,
+  /ICI\s+et\s+MAINTENANT/giu,
+]
+
+const scriptTerms = [
+  // FR
+  'Astrologie',
+  'Ascendant',
+  'Soleil',
+  'Lune',
+  'Mercure',
+  'Vénus',
+  'Venus',
+  'Mars',
+  'Jupiter',
+  'Saturne',
+  'Uranus',
+  'Neptune',
+  'Pluton',
+  'Nœud Nord',
+  'Noeud Nord',
+  'Vertex',
+  'Fortune',
+  'Part de Fortune',
+  'Bélier',
+  'Taureau',
+  'Gémeaux',
+  'Cancer',
+  'Lion',
+  'Vierge',
+  'Balance',
+  'Scorpion',
+  'Sagittaire',
+  'Capricorne',
+  'Verseau',
+  'Poissons',
+  // EN
+  'Sun',
+  'Moon',
+  'Mercury',
+  'Venus',
+  'Mars',
+  'Jupiter',
+  'Saturn',
+  'Uranus',
+  'Neptune',
+  'Pluto',
+  'Ascendant',
+  'North Node',
+  'Vertex',
+  'Fortune',
+  'Aries',
+  'Taurus',
+  'Gemini',
+  'Cancer',
+  'Leo',
+  'Virgo',
+  'Libra',
+  'Scorpio',
+  'Sagittarius',
+  'Capricorn',
+  'Aquarius',
+  'Pisces',
+  // ES
+  'Sol',
+  'Luna',
+  'Mercurio',
+  'Venus',
+  'Marte',
+  'Júpiter',
+  'Jupiter',
+  'Saturno',
+  'Urano',
+  'Neptuno',
+  'Plutón',
+  'Pluton',
+  'Ascendente',
+  'Nodo Norte',
+  'Casa',
+  'Aries',
+  'Tauro',
+  'Géminis',
+  'Geminis',
+  'Cáncer',
+  'Cancer',
+  'Leo',
+  'Virgo',
+  'Libra',
+  'Escorpio',
+  'Sagitario',
+  'Capricornio',
+  'Acuario',
+  'Piscis',
+].sort((a, b) => b.length - a.length)
+
+const scriptTermRegex = new RegExp(
+  `(?<!\\p{L})(${scriptTerms.map(escapeRegExp).join('|')})(?!\\p{L})`,
+  'giu'
+)
+const houseRegex = /(?<!\p{L})(Maison|House|Casa)\s*(\d{1,2}|[IVX]{1,6})(?!\p{L})/giu
+
+function renderRichText(text: string, base?: { script?: boolean }) {
+  const baseScript = base?.script ?? false
+  let pieces: RichPiece[] = splitMarkdownBold(text).map((p) => ({ ...p, script: baseScript }))
+
+  for (const pattern of forcedBoldPatterns) {
+    pieces = applyRegex(pieces, new RegExp(pattern.source, pattern.flags), (piece) => ({
+      ...piece,
+      bold: true,
+    }))
+  }
+
+  pieces = applyRegex(pieces, new RegExp(houseRegex.source, houseRegex.flags), (piece) => ({
+    ...piece,
+    script: true,
+  }))
+  pieces = applyRegex(pieces, new RegExp(scriptTermRegex.source, scriptTermRegex.flags), (piece) => ({
+    ...piece,
+    script: true,
+  }))
+
+  const nodes: Array<string | React.ReactElement> = []
+  let key = 0
+  for (const piece of pieces) {
+    const needsBold = !!piece.bold
+    const needsScript = !!piece.script && !needsBold
+
+    if (!needsBold && !needsScript) {
+      nodes.push(piece.text)
+      continue
+    }
+
+    const style = needsBold ? styles.inlineBold : styles.inlineScript
+    nodes.push(
+      <Text key={`rt-${key++}`} style={style}>
+        {piece.text}
+      </Text>
+    )
+  }
+
+  return nodes.length ? nodes : text
+}
+
+const speakerLabelBlacklist = new Set(['atterrissage', 'naissance'])
+
+function renderSpeakerLine(text: string, options?: { baseScript?: boolean }) {
+  const match = text.match(/^([^\n:]{2,24})\s*:\s*(.*)$/)
+  if (!match) return renderRichText(text, { script: options?.baseScript })
+
+  const label = match[1].trim()
+  const rest = match[2] ?? ''
+
+  const labelLower = label.toLowerCase()
+  const isAstrologie = labelLower === 'astrologie'
+  const looksLikeFirstName =
+    /^[\p{L}'’-]+$/u.test(label) && label.length <= 16 && !speakerLabelBlacklist.has(labelLower)
+
+  if (!isAstrologie && !looksLikeFirstName) {
+    return renderRichText(text, { script: options?.baseScript })
+  }
+
+  const nodes: Array<string | React.ReactElement> = []
+  nodes.push(
+    <Text key="spk" style={styles.inlineScript}>
+      {label}
+    </Text>
+  )
+  nodes.push(': ')
+  nodes.push(...asNodeArray(renderRichText(rest, { script: options?.baseScript })))
+  return nodes
 }
 
 export default function DialoguePdf({
@@ -290,6 +523,11 @@ export default function DialoguePdf({
       return cleaned
     }).filter(Boolean)
   }, [dialogue])
+  const firstFootnoteIndex = useMemo(
+    () => paragraphs.findIndex((p) => p.toLowerCase().startsWith('ce dialogue est symbolique')),
+    [paragraphs]
+  )
+  const finalPhraseIndex = firstFootnoteIndex > 0 ? firstFootnoteIndex - 1 : -1
 
   return (
     <Document>
@@ -356,11 +594,11 @@ export default function DialoguePdf({
               return (
                 <View key={idx} style={{ marginBottom: 10 }}>
                   <Text style={styles.iciMaintenant}>
-                    {renderInlineBold(iciText)}
+                    {renderRichText(iciText)}
                   </Text>
                   {iciMatch && p.length > iciMatch[0].length && (
                     <Text style={styles.paragraph}>
-                      {renderInlineBold(p.substring(iciMatch[0].length).trim())}
+                      {renderSpeakerLine(p.substring(iciMatch[0].length).trim())}
                     </Text>
                   )}
                 </View>
@@ -370,7 +608,7 @@ export default function DialoguePdf({
             if (isLanding) {
               return (
                 <Text key={idx} style={styles.landing}>
-                  {renderInlineBold(p)}
+                  {renderSpeakerLine(p)}
                 </Text>
               )
             }
@@ -378,7 +616,7 @@ export default function DialoguePdf({
             if (isFootnote) {
               return (
                 <Text key={idx} style={styles.footnote}>
-                  {renderInlineBold(p)}
+                  {renderSpeakerLine(p)}
                 </Text>
               )
             }
@@ -396,9 +634,13 @@ export default function DialoguePdf({
             return (
               <Text
                 key={idx}
-                style={[styles.paragraph, isCenter ? styles.center : null]}
+                style={[
+                  styles.paragraph,
+                  isCenter ? styles.center : null,
+                  idx === finalPhraseIndex ? styles.finalScript : null,
+                ]}
               >
-                {renderInlineBold(p)}
+                {renderSpeakerLine(p, { baseScript: idx === finalPhraseIndex })}
               </Text>
             )
           })}
@@ -406,7 +648,7 @@ export default function DialoguePdf({
           {!paragraphs.some((p) =>
             p.toLowerCase().startsWith('ce dialogue est symbolique')
           ) && (
-            <Text style={styles.footnote}>{renderInlineBold(t.dialogues.disclaimer)}</Text>
+            <Text style={styles.footnote}>{renderRichText(t.dialogues.disclaimer)}</Text>
           )}
 
           {feedbackSurveyUrl && (
@@ -422,13 +664,13 @@ export default function DialoguePdf({
                   <>
                     {hasHeart ? (
                       <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
-                        <Text style={styles.footnote}>{renderInlineBold(first)}</Text>
+                        <Text style={styles.footnote}>{renderRichText(first)}</Text>
                         <HeartIcon />
                       </View>
                     ) : (
-                      <Text style={styles.footnote}>{renderInlineBold(raw)}</Text>
+                      <Text style={styles.footnote}>{renderRichText(raw)}</Text>
                     )}
-                    {!!rest.trim() && <Text style={styles.footnote}>{renderInlineBold(rest)}</Text>}
+                    {!!rest.trim() && <Text style={styles.footnote}>{renderRichText(rest)}</Text>}
                   </>
                 )
               })()}
@@ -437,8 +679,8 @@ export default function DialoguePdf({
                   {t.dialogues.feedbackLinkLabel}
                 </Link>
               </Text>
-              <Text style={styles.footnote}>{renderInlineBold(t.dialogues.feedbackPromo)}</Text>
-              <Text style={styles.footnote}>{renderInlineBold(t.dialogues.feedbackCta)}</Text>
+              <Text style={styles.footnote}>{renderRichText(t.dialogues.feedbackPromo)}</Text>
+              <Text style={styles.footnote}>{renderRichText(t.dialogues.feedbackCta)}</Text>
             </View>
           )}
           </View>
