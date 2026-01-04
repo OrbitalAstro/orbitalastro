@@ -582,6 +582,10 @@ ABSOLUTE OUTPUT RULES (STRICT)
 - Avoid "more/better/less" self-improvement phrasing (they haven't lived yet). "More" is allowed only as a quantity (e.g., "more than 3") not as personal improvement.
 - Forbidden: "Yes, I recognize myself…" and similar ("I recognize myself", "That sounds like me", "I realize that…"). Replace with future-tense commitment ("Yes, I will choose…", "Yes, I will embody…").
 
+LENGTH TARGET (STRICT)
+- Target about ${wordCount || 1700} words for the final dialogue.
+- To reach the target without adding sections, aim for the top of the sentence ranges in each prompt line.
+
 FRENCH TYPO RULE (only relevant if you write in French — but you must write in English)
 - Never write ", and" / ", or" / ", nor" patterns; remove the comma automatically.
 
@@ -678,6 +682,10 @@ REGLAS ABSOLUTAS (ESTRICTAS)
 - Si el/la encarnado/a expresa miedo, presión, dificultad o "dejar de / no más", reformula de inmediato en deseo positivo directo: "Quiero / Elijo / Prefiero…". Evita formulaciones negativas.
 - Evita el "más/mejor/menos" como mejora personal (aún no ha vivido). "Más" solo como cantidad.
 - Prohibido: "Sí, me reconozco…" y similares. Reemplaza por futuro ("Sí, elegiré…", "Sí, encarnaré…").
+
+LONGITUD OBJETIVO (ESTRICTA)
+- Objetivo: aproximadamente ${wordCount || 1700} palabras en el diálogo final.
+- Para llegar sin agregar secciones, usa el extremo alto de los rangos de frases.
 
 ESTRUCTURA (misma estructura; español natural)
 

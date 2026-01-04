@@ -21,6 +21,7 @@ import { pdf } from '@react-pdf/renderer'
 import DialoguePdf from './DialoguePdf'
 
 const FEEDBACK_SURVEY_URL = 'https://forms.gle/eyPRR4Bicf32dCGg6'
+const DIALOGUE_WORD_COUNT_TARGET = 1700
 
 function normalizeGeneratedDialogue(
   raw: string,
@@ -266,7 +267,7 @@ export default function Dialogues() {
       
       // Generate the structured prompts with all rules
       const lang = (settings.language || 'fr') as 'en' | 'fr' | 'es'
-      const { systemPrompt, userPrompt } = generateDialoguePrompt(birthData, chart, undefined, lang)
+      const { systemPrompt, userPrompt } = generateDialoguePrompt(birthData, chart, DIALOGUE_WORD_COUNT_TARGET, lang)
 
       const extractedAge = Number(userPrompt.match(/^AGE\s*:\s*(\d+)/m)?.[1] || NaN)
       const extractedAscendantSign = userPrompt.match(/^Ascendant_Signe\s*:\s*(.+)$/m)?.[1]?.trim()
