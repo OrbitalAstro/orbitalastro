@@ -1,4 +1,6 @@
 /** @type {import('next').NextConfig} */
+const isProd = process.env.NODE_ENV === 'production'
+
 const nextConfig = {
   reactStrictMode: true,
   eslint: {
@@ -12,7 +14,9 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   // Disable static page generation - all pages are dynamic
-  output: 'standalone',
+  // `output: 'standalone'` breaks `next dev` on Windows with missing server chunks
+  // (e.g. "Cannot find module './948.js'"). Keep it for production builds only.
+  ...(isProd ? { output: 'standalone' } : {}),
   // Skip static generation during build
   generateBuildId: async () => {
     return 'build-' + Date.now()
@@ -23,8 +27,6 @@ const nextConfig = {
 }
 
 module.exports = nextConfig
-
-
 
 
 

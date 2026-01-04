@@ -371,6 +371,16 @@ export default function Dialogues() {
               animate={{ opacity: 1, y: 0 }}
               className="bg-gradient-to-br from-cosmic-purple/40 to-magenta-purple/40 rounded-xl p-6 border border-cosmic-gold/20"
             >
+              <div className="flex flex-col sm:flex-row sm:justify-end sm:items-center gap-2 mb-4">
+                <button
+                  type="button"
+                  onClick={handleDownloadPdf}
+                  disabled={downloading}
+                  className="w-full sm:w-auto px-4 py-2 bg-cosmic-gold/20 text-cosmic-gold rounded-lg border border-cosmic-gold/40 hover:bg-cosmic-gold/30 transition disabled:opacity-50"
+                >
+                  {downloading ? t.dialogues.downloadingPdf : t.dialogues.downloadPdf}
+                </button>
+              </div>
               <div className="pdf-card max-w-3xl mx-auto" ref={exportRef}>
                 <div className="pdf-header">
                   <img
@@ -461,16 +471,6 @@ export default function Dialogues() {
               {/* Note de bas de page */}
               <div className="mt-6 pt-4 border-t border-cosmic-gold/20 text-xs text-cosmic-gold/60 italic text-center footnote-small">
                 {t.dialogues.disclaimer}
-              </div>
-              <div className="flex flex-col sm:flex-row sm:justify-end sm:items-center gap-2 mt-4">
-                <button
-                  type="button"
-                  onClick={handleDownloadPdf}
-                  disabled={downloading}
-                  className="px-4 py-2 bg-cosmic-gold/20 text-cosmic-gold rounded-lg border border-cosmic-gold/40 hover:bg-cosmic-gold/30 transition disabled:opacity-50"
-                >
-                  {downloading ? t.dialogues.downloadingPdf : t.dialogues.downloadPdf}
-                </button>
               </div>
             </motion.div>
           )}
