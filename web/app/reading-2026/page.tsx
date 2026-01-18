@@ -22,6 +22,7 @@ export default function Reading2026Page() {
     birth_time: settings.defaultBirthTime || '12:00',
     birth_place: '',
     firstName: settings.defaultFirstName || '',
+    email: '',
     latitude: settings.defaultLatitude || 0,
     longitude: settings.defaultLongitude || 0,
     timezone: settings.defaultTimezone || 'UTC',
@@ -29,6 +30,7 @@ export default function Reading2026Page() {
 
   const [reading, setReading] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [emailStatus, setEmailStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
 
   const resetForm = () => {
     setBirthData({
@@ -36,14 +38,48 @@ export default function Reading2026Page() {
       birth_time: settings.defaultBirthTime || '12:00',
       birth_place: '',
       firstName: settings.defaultFirstName || '',
+      email: '',
       latitude: settings.defaultLatitude || 0,
       longitude: settings.defaultLongitude || 0,
       timezone: settings.defaultTimezone || 'UTC',
     })
     setReading(null)
+    setEmailStatus('idle')
+  }
+
+  const sendReadingPdfByEmail = async (readingText: string) => {
+    const to = (birthData.email || '').trim()
+    if (!to) return
+
+    setEmailStatus('sending')
+    try {
+      const res = await fetch('/api/email-pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          kind: 'reading-2026',
+          to,
+          language: (settings.language || 'fr') as 'en' | 'fr' | 'es',
+          firstName: birthData.firstName || undefined,
+          birthDate: birthData.birth_date,
+          birthTime: birthData.birth_time,
+          birthPlace: birthData.birth_place,
+          content: readingText,
+        }),
+      })
+
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(json?.error || `HTTP ${res.status}`)
+
+      setEmailStatus('sent')
+    } catch (err) {
+      console.error('[Reading2026] Failed to email PDF:', err)
+      setEmailStatus('error')
+    }
   }
 
   const handleGenerateReading = async () => {
+    setEmailStatus('idle')
     setLoading(true)
     try {
       // Validate required fields
@@ -55,6 +91,12 @@ export default function Reading2026Page() {
 
       if (!birthData.latitude || !birthData.longitude) {
         alert(t.reading2026.validationBirthPlaceRequired)
+        setLoading(false)
+        return
+      }
+
+      if (!birthData.email || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(birthData.email.trim())) {
+        alert(t.reading2026.validationEmailRequired)
         setLoading(false)
         return
       }
@@ -180,6 +222,7 @@ export default function Reading2026Page() {
       const readingText = response.data?.content || ''
 
       setReading(readingText)
+      await sendReadingPdfByEmail(readingText)
     } catch (error: any) {
       console.error('Error generating reading:', error)
       const errorMsg = error.message || 'Erreur inconnue'
@@ -222,6 +265,19 @@ export default function Reading2026Page() {
                     value={birthData.firstName}
                     onChange={(e) => setBirthData({ ...birthData, firstName: e.target.value })}
                     placeholder={t.reading2026.firstNamePlaceholder}
+                    className="w-full px-4 py-2 rounded-lg bg-white/10 border border-cosmic-gold/30 text-cosmic-gold placeholder-cosmic-gold/50 focus:outline-none focus:border-cosmic-gold relative z-20"
+                    suppressHydrationWarning
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-cosmic-gold mb-2">
+                    {t.reading2026.email}
+                  </label>
+                  <input
+                    type="email"
+                    value={birthData.email}
+                    onChange={(e) => setBirthData({ ...birthData, email: e.target.value })}
+                    placeholder={t.reading2026.emailPlaceholder}
                     className="w-full px-4 py-2 rounded-lg bg-white/10 border border-cosmic-gold/30 text-cosmic-gold placeholder-cosmic-gold/50 focus:outline-none focus:border-cosmic-gold relative z-20"
                     suppressHydrationWarning
                   />
@@ -301,6 +357,16 @@ export default function Reading2026Page() {
                   </>
                 )}
                 </button>
+
+                {emailStatus !== 'idle' ? (
+                  <div className="mt-3 text-sm text-cosmic-gold/85">
+                    {emailStatus === 'sending'
+                      ? t.reading2026.emailSending
+                      : emailStatus === 'sent'
+                        ? t.reading2026.emailSent.replace('{email}', birthData.email)
+                        : t.reading2026.emailFailed}
+                  </div>
+                ) : null}
                 <div className="flex justify-end mt-2">
                   <button
                     type="button"

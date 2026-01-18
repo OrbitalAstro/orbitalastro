@@ -1,0 +1,211 @@
+import React, { useMemo } from 'react'
+import { Document, Page, StyleSheet, Text, View } from '@react-pdf/renderer'
+import { translations, type Language } from '@/lib/i18n'
+
+const GOLD = '#b8860b'
+const GOLD_DARK = '#8b6914'
+const TEXT_BLACK = '#000000'
+
+const styles = StyleSheet.create({
+  page: {
+    backgroundColor: '#ffffff',
+    padding: 30,
+    position: 'relative',
+  },
+  pageFrame: {
+    position: 'absolute',
+    top: 20,
+    left: 20,
+    right: 20,
+    bottom: 20,
+    border: `2 solid ${GOLD}`,
+    borderRadius: 8,
+  },
+  container: {
+    padding: 20,
+    flex: 1,
+  },
+  header: {
+    textAlign: 'center',
+    marginBottom: 14,
+  },
+  brand: {
+    fontFamily: 'Times-Roman',
+    fontSize: 22,
+    color: GOLD,
+    letterSpacing: 1,
+    marginBottom: 6,
+  },
+  title: {
+    fontFamily: 'Times-Bold',
+    fontSize: 14,
+    color: GOLD_DARK,
+    letterSpacing: 2,
+    textTransform: 'uppercase',
+    marginBottom: 6,
+  },
+  meta: {
+    fontFamily: 'Helvetica',
+    fontSize: 9,
+    color: GOLD_DARK,
+    marginBottom: 2,
+  },
+  paragraph: {
+    fontFamily: 'Helvetica',
+    fontSize: 12,
+    lineHeight: 1.55,
+    marginBottom: 10,
+    textAlign: 'justify',
+    color: TEXT_BLACK,
+  },
+  heading: {
+    fontFamily: 'Helvetica-Bold',
+    fontSize: 12,
+    marginTop: 6,
+    marginBottom: 6,
+    color: TEXT_BLACK,
+  },
+  bulletRow: {
+    flexDirection: 'row',
+    gap: 6,
+    marginBottom: 4,
+  },
+  bullet: {
+    fontFamily: 'Helvetica-Bold',
+    fontSize: 12,
+    color: TEXT_BLACK,
+    width: 10,
+  },
+  bulletText: {
+    fontFamily: 'Helvetica',
+    fontSize: 12,
+    lineHeight: 1.45,
+    color: TEXT_BLACK,
+    flex: 1,
+  },
+  footer: {
+    fontFamily: 'Helvetica',
+    fontSize: 9,
+    color: GOLD_DARK,
+    textAlign: 'center',
+    marginTop: 12,
+  },
+})
+
+type Block =
+  | { type: 'heading'; text: string }
+  | { type: 'bullet'; text: string }
+  | { type: 'paragraph'; text: string }
+
+function parseBlocks(markdown: string): Block[] {
+  const text = (markdown || '').replace(/\r\n/g, '\n').trim()
+  if (!text) return []
+
+  const blocks: Block[] = []
+  const paragraphs = text.split(/\n{2,}/)
+
+  for (const raw of paragraphs) {
+    const chunk = raw.trim()
+    if (!chunk) continue
+
+    const lines = chunk.split('\n').map((l) => l.trim()).filter(Boolean)
+    if (!lines.length) continue
+
+    for (const line of lines) {
+      if (/^#{1,6}\s+/.test(line)) {
+        blocks.push({ type: 'heading', text: line.replace(/^#{1,6}\s+/, '').trim() })
+        continue
+      }
+      if (/^(?:[-•*]|\d+\.)\s+/.test(line)) {
+        blocks.push({ type: 'bullet', text: line.replace(/^(?:[-•*]|\d+\.)\s+/, '').trim() })
+        continue
+      }
+      blocks.push({ type: 'paragraph', text: line })
+    }
+  }
+
+  return blocks
+}
+
+interface Reading2026PdfProps {
+  reading: string
+  language?: Language
+  firstName?: string
+  birthDate?: string
+  birthTime?: string
+  birthPlace?: string
+}
+
+export default function Reading2026Pdf({
+  reading,
+  language = 'fr',
+  firstName,
+  birthDate,
+  birthTime,
+  birthPlace,
+}: Reading2026PdfProps) {
+  const t = translations[language] || translations.fr
+
+  const blocks = useMemo(() => parseBlocks(reading), [reading])
+
+  const metaLines = [
+    firstName ? `${t.dialogues.firstName.replace(/\s*\(.*?\)\s*$/, '')}: ${firstName}` : null,
+    birthDate ? `${t.dialogues.birthDate}: ${birthDate}` : null,
+    birthTime ? `${t.dialogues.birthTime}: ${birthTime}` : null,
+    birthPlace ? `${t.dialogues.birthPlace}: ${birthPlace}` : null,
+  ].filter(Boolean) as string[]
+
+  const title =
+    language === 'en' ? '2026 Reading' : language === 'es' ? 'Lectura 2026' : 'Lecture 2026'
+
+  return (
+    <Document>
+      <Page size="A4" style={styles.page}>
+        <View style={styles.pageFrame} />
+        <View style={styles.container}>
+          <View style={styles.header}>
+            <Text style={styles.brand}>OrbitalAstro</Text>
+            <Text style={styles.title}>{title}</Text>
+            {metaLines.map((line, i) => (
+              <Text key={i} style={styles.meta}>
+                {line}
+              </Text>
+            ))}
+          </View>
+
+          {blocks.map((block, index) => {
+            if (block.type === 'heading') {
+              return (
+                <Text key={index} style={styles.heading}>
+                  {block.text}
+                </Text>
+              )
+            }
+            if (block.type === 'bullet') {
+              return (
+                <View key={index} style={styles.bulletRow}>
+                  <Text style={styles.bullet}>•</Text>
+                  <Text style={styles.bulletText}>{block.text}</Text>
+                </View>
+              )
+            }
+            return (
+              <Text key={index} style={styles.paragraph}>
+                {block.text}
+              </Text>
+            )
+          })}
+
+          <Text style={styles.footer}>
+            {language === 'en'
+              ? 'Generated by OrbitalAstro'
+              : language === 'es'
+                ? 'Generado por OrbitalAstro'
+                : 'Généré par OrbitalAstro'}
+          </Text>
+        </View>
+      </Page>
+    </Document>
+  )
+}
+

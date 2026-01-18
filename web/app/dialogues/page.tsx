@@ -98,6 +98,7 @@ export default function Dialogues() {
     birth_time: settings.defaultBirthTime || '12:00',
     birth_place: '',
     firstName: settings.defaultFirstName || '',
+    email: '',
     latitude: settings.defaultLatitude || 0,
     longitude: settings.defaultLongitude || 0,
     timezone: settings.defaultTimezone || 'UTC',
@@ -106,6 +107,7 @@ export default function Dialogues() {
   const [dialogue, setDialogue] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [downloading, setDownloading] = useState(false)
+  const [emailStatus, setEmailStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
   const pdfSubtitle = t.dialogues.pdfSubtitle
     .replace(/&/g, '-')
     .replace(/[\u2010\u2011\u2012\u2013\u2014\u2212]/g, '-')
@@ -116,11 +118,41 @@ export default function Dialogues() {
       birth_time: settings.defaultBirthTime || '12:00',
       birth_place: '',
       firstName: settings.defaultFirstName || '',
+      email: '',
       latitude: settings.defaultLatitude || 0,
       longitude: settings.defaultLongitude || 0,
       timezone: settings.defaultTimezone || 'UTC',
     })
     setDialogue(null)
+    setEmailStatus('idle')
+  }
+
+  const sendDialoguePdfByEmail = async (dialogueText: string) => {
+    const to = (birthData.email || '').trim()
+    if (!to) return
+
+    setEmailStatus('sending')
+    try {
+      const res = await fetch('/api/email-pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          kind: 'dialogue',
+          to,
+          language: (settings.language || 'fr') as 'en' | 'fr' | 'es',
+          firstName: birthData.firstName || undefined,
+          content: dialogueText,
+        }),
+      })
+
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(json?.error || `HTTP ${res.status}`)
+
+      setEmailStatus('sent')
+    } catch (err) {
+      console.error('[Dialogues] Failed to email PDF:', err)
+      setEmailStatus('error')
+    }
   }
 
   const handleDownloadPdf = async () => {
@@ -207,6 +239,7 @@ export default function Dialogues() {
     // API key check moved to backend
 
     setLoading(true)
+    setEmailStatus('idle')
     try {
       // Validate required fields
       if (!birthData.birth_date || !birthData.birth_time) {
@@ -217,6 +250,12 @@ export default function Dialogues() {
 
       if (!birthData.latitude || !birthData.longitude) {
         alert(t.dialogues.validationBirthPlaceRequired)
+        setLoading(false)
+        return
+      }
+
+      if (!birthData.email || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(birthData.email.trim())) {
+        alert(t.dialogues.validationEmailRequired)
         setLoading(false)
         return
       }
@@ -305,6 +344,7 @@ export default function Dialogues() {
       
       console.log('Dialogue generated successfully')
       setDialogue(dialogueText)
+      await sendDialoguePdfByEmail(dialogueText)
     } catch (error: any) {
       console.error('Error generating dialogue:', error)
       const errorMsg = error.message || 'Erreur inconnue'
@@ -345,6 +385,19 @@ export default function Dialogues() {
                 value={birthData.firstName}
                 onChange={(e) => setBirthData({ ...birthData, firstName: e.target.value })}
                 placeholder={t.dialogues.firstNamePlaceholder}
+                className="w-full px-4 py-2 rounded-lg bg-white/15 border border-cosmic-gold/20 text-cosmic-gold placeholder-cosmic-gold/60 focus:outline-none focus:border-cosmic-gold/70 relative z-20"
+                suppressHydrationWarning
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-cosmic-gold mb-2">
+                {t.dialogues.email}
+              </label>
+              <input
+                type="email"
+                value={birthData.email}
+                onChange={(e) => setBirthData({ ...birthData, email: e.target.value })}
+                placeholder={t.dialogues.emailPlaceholder}
                 className="w-full px-4 py-2 rounded-lg bg-white/15 border border-cosmic-gold/20 text-cosmic-gold placeholder-cosmic-gold/60 focus:outline-none focus:border-cosmic-gold/70 relative z-20"
                 suppressHydrationWarning
               />
@@ -436,6 +489,16 @@ export default function Dialogues() {
               </>
             )}
           </button>
+
+          {emailStatus !== 'idle' ? (
+            <div className="mb-6 text-sm text-cosmic-gold/85">
+              {emailStatus === 'sending'
+                ? t.dialogues.emailSending
+                : emailStatus === 'sent'
+                  ? t.dialogues.emailSent.replace('{email}', birthData.email)
+                  : t.dialogues.emailFailed}
+            </div>
+          ) : null}
           <div className="flex justify-end">
             <button
               type="button"

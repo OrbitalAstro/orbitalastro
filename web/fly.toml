@@ -16,6 +16,7 @@ primary_region = "yyz"
   PORT = "8080"
   NODE_ENV = "production"
   NEXT_TELEMETRY_DISABLED = "1"
+  FEEDBACK_SURVEY_URL = "https://forms.gle/eyPRR4Bicf32dCGg6"
 
 [http_service]
   internal_port = 8080
