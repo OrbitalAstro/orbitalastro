@@ -95,7 +95,7 @@ export default function Reading2026Page() {
         return
       }
 
-      if (!birthData.email || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(birthData.email.trim())) {
+      if (!birthData.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(birthData.email.trim())) {
         alert(t.reading2026.validationEmailRequired)
         setLoading(false)
         return

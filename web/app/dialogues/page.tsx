@@ -254,7 +254,7 @@ export default function Dialogues() {
         return
       }
 
-      if (!birthData.email || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(birthData.email.trim())) {
+      if (!birthData.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(birthData.email.trim())) {
         alert(t.dialogues.validationEmailRequired)
         setLoading(false)
         return
