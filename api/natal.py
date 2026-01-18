@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import os
 import time
 from datetime import date, datetime, time as dtime, timedelta, timezone
 from math import pi
@@ -138,35 +139,46 @@ app = FastAPI(
     version="2.0.0",
 )
 
-# CORS configuration - allow all origins for Vercel deployments
-# In production, we allow all origins since we're behind Vercel's protection
+def _cors_allow_origins() -> List[str]:
+    raw = (os.environ.get("CORS_ALLOW_ORIGINS") or "").strip()
+    if raw:
+        return [origin.strip().rstrip("/") for origin in raw.split(",") if origin.strip()]
+
+    # Safe defaults for local dev + Fly default hostname + custom domain.
+    return [
+        "https://www.orbitalastro.ca",
+        "https://orbitalastro.ca",
+        "https://orbitalastro-web.fly.dev",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ]
+
+
+CORS_ALLOW_ORIGINS = _cors_allow_origins()
+
+# CORS configuration (direct browser calls from the Next.js frontend)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins (Vercel frontend URLs are dynamic)
-    allow_credentials=True,
+    allow_origins=CORS_ALLOW_ORIGINS,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # Exception handler to ensure CORS headers are added to all error responses
-# Note: This matches the CORS middleware configuration (allow_origins=["*"])
-# When allow_origins=["*"] with allow_credentials=True, FastAPI mirrors the request origin
+# Note: FastAPI's CORSMiddleware may not attach CORS headers on unhandled exceptions.
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     logger.exception("Unhandled exception", exc_info=exc)
-    # Mirror the request origin to match FastAPI CORS middleware behavior
-    # Cross-origin requests always include an Origin header
-    origin = request.headers.get("origin")
+    origin = (request.headers.get("origin") or "").rstrip("/")
     cors_headers = {}
-    
-    # Only add CORS headers for cross-origin requests (when Origin header is present)
-    # This matches the middleware behavior when allow_origins=["*"] with credentials
-    if origin:
+
+    if origin and origin in CORS_ALLOW_ORIGINS:
         cors_headers = {
-            "Access-Control-Allow-Origin": origin,  # Mirror the request origin
-            "Access-Control-Allow-Credentials": "true",
+            "Access-Control-Allow-Origin": origin,
             "Access-Control-Allow-Methods": "*",
             "Access-Control-Allow-Headers": "*",
+            "Vary": "Origin",
         }
     
     return JSONResponse(

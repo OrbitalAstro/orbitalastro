@@ -9,6 +9,9 @@ primary_region = "yyz"
 
 [env]
   PORT = "8080"
+  # Frontend origins allowed to call the API directly (CORS).
+  # Comma-separated list (no spaces required). Add/remove as needed.
+  CORS_ALLOW_ORIGINS = "https://www.orbitalastro.ca,https://orbitalastro.ca,https://orbitalastro-web.fly.dev,http://localhost:3000,http://127.0.0.1:3000"
 
 [http_service]
   internal_port = 8080
@@ -22,6 +25,7 @@ primary_region = "yyz"
   memory = "512mb"
   cpu_kind = "shared"
   cpus = 1
+
 
 
 

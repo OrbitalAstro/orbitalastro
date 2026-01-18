@@ -1,5 +1,36 @@
 // API client
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+const stripTrailingSlashes = (value: string) => value.replace(/\/+$/, '');
+
+const resolveApiBases = () => {
+  const envBase = (process.env.NEXT_PUBLIC_API_URL || '').trim();
+  const fallbackFly = 'https://orbitalastro-api.fly.dev';
+
+  if (envBase) {
+    const primary = stripTrailingSlashes(envBase);
+    const fallback = primary === 'https://api.orbitalastro.ca' ? fallbackFly : undefined;
+    return { primary, fallback };
+  }
+
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname.toLowerCase();
+
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return { primary: 'http://127.0.0.1:8000' };
+    }
+
+    if (hostname === 'www.orbitalastro.ca' || hostname === 'orbitalastro.ca') {
+      return { primary: 'https://api.orbitalastro.ca', fallback: fallbackFly };
+    }
+
+    if (hostname.endsWith('.fly.dev')) {
+      return { primary: fallbackFly };
+    }
+  }
+
+  return { primary: 'http://127.0.0.1:8000' };
+};
+
+const { primary: API_BASE, fallback: API_FALLBACK } = resolveApiBases();
 const VERCEL_BYPASS_TOKEN = process.env.NEXT_PUBLIC_VERCEL_BYPASS_TOKEN || '8tPx2wLmV7H9rQ4sK1dJ0aYbU3zN5eTf';
 
 interface ApiResponse<T = unknown> {
@@ -23,23 +54,48 @@ interface TransitData {
 
 class ApiClient {
   private baseUrl: string;
-  private getHeaders(): HeadersInit {
+  private fallbackUrl?: string;
+
+  private getHeaders(baseUrl: string): HeadersInit {
     const headers: HeadersInit = { 'Content-Type': 'application/json' };
     // Add Vercel bypass headers if the API URL is a Vercel deployment
-    if (this.baseUrl.includes('vercel.app')) {
+    if (baseUrl.includes('vercel.app')) {
       headers['x-vercel-set-bypass-cookie'] = 'true';
       headers['x-vercel-protection-bypass'] = VERCEL_BYPASS_TOKEN;
     }
     return headers;
   }
 
-  constructor(baseUrl: string) {
+  constructor(baseUrl: string, fallbackUrl?: string) {
     this.baseUrl = baseUrl;
+    this.fallbackUrl = fallbackUrl;
+  }
+
+  private async fetchWithFallback(url: string, init: RequestInit, fallbackUrl?: string): Promise<Response> {
+    try {
+      return await fetch(url, init);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      const isNetworkError =
+        error instanceof TypeError ||
+        message.includes('Failed to fetch') ||
+        message.includes('NetworkError') ||
+        message.includes('ENOTFOUND') ||
+        message.includes('getaddrinfo');
+
+      if (!fallbackUrl || !isNetworkError) throw error;
+
+      const fallbackRequestUrl = fallbackUrl + url.slice(this.baseUrl.length);
+      const response = await fetch(fallbackRequestUrl, init);
+      this.baseUrl = fallbackUrl;
+      this.fallbackUrl = undefined;
+      return response;
+    }
   }
 
   async get<T = unknown>(endpoint: string): Promise<ApiResponse<T>> {
     try {
-      const headers = this.getHeaders();
+      const headers = this.getHeaders(this.baseUrl);
       delete (headers as Record<string, string>)['Content-Type']; // GET doesn't need Content-Type
       
       // For Vercel deployments, add bypass parameters to URL
@@ -49,7 +105,7 @@ class ApiClient {
         url += `${separator}x-vercel-set-bypass-cookie=true&x-vercel-protection-bypass=${VERCEL_BYPASS_TOKEN}`;
       }
       
-      const response = await fetch(url, { headers });
+      const response = await this.fetchWithFallback(url, { headers }, this.fallbackUrl);
       
       if (!response.ok) {
         let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
@@ -73,7 +129,7 @@ class ApiClient {
     let url = `${this.baseUrl}${endpoint}`;
     try {
       // For Vercel deployments, add bypass parameters to URL as well as headers
-      const headers = this.getHeaders();
+      const headers = this.getHeaders(this.baseUrl);
       
       // Add bypass token to URL if it's a Vercel deployment (Vercel accepts both headers and query params)
       if (this.baseUrl.includes('vercel.app')) {
@@ -82,11 +138,11 @@ class ApiClient {
       }
       
       console.log('[API Client] Fetching:', { method: 'POST', url, headers: Object.keys(headers), bodySize: JSON.stringify(body).length });
-      const response = await fetch(url, {
+      const response = await this.fetchWithFallback(url, {
         method: 'POST',
         headers: headers,
         body: JSON.stringify(body)
-      });
+      }, this.fallbackUrl);
       console.log('[API Client] Fetch response:', { status: response.status, statusText: response.statusText, ok: response.ok });
       
       if (!response.ok) {
@@ -160,7 +216,7 @@ class ApiClient {
   };
 }
 
-export const apiClient = new ApiClient(API_BASE);
+export const apiClient = new ApiClient(API_BASE, API_FALLBACK);
 
 export const api = {
   get: async (endpoint: string) => {
