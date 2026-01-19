@@ -7,16 +7,18 @@ const GOLD_DARK = '#8b6914'
 const TEXT_BLACK = '#000000'
 
 let greatVibesLoaded = false
-if (typeof window !== 'undefined') {
-  try {
-    Font.register({
-      family: 'GreatVibes',
-      src: `${window.location.origin}/fonts/GreatVibes-Regular.ttf`,
-    })
-    greatVibesLoaded = true
-  } catch (error) {
-    console.warn('Failed to register GreatVibes font from local file:', error)
+try {
+  const getFontUrl = () => {
+    if (typeof window !== 'undefined') return `${window.location.origin}/fonts/GreatVibes-Regular.ttf`
+    return 'public/fonts/GreatVibes-Regular.ttf'
   }
+  Font.register({
+    family: 'GreatVibes',
+    src: getFontUrl(),
+  })
+  greatVibesLoaded = true
+} catch (error) {
+  console.warn('Failed to register GreatVibes font from local file:', error)
 }
 
 const styles = StyleSheet.create({
