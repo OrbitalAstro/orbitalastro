@@ -135,22 +135,22 @@ function buildMessage(args: { kind: PdfKind; language: Language; firstName?: str
   const nameLine = firstName ? ` ${firstName}` : ''
   const isDialogue = kind === 'dialogue'
 
-  const subjectFr = isDialogue ? 'Votre dialogue pre-incarnation (PDF)' : 'Votre lecture 2026 (PDF)'
+  const subjectFr = isDialogue ? 'Votre dialogue pré-incarnation (PDF)' : 'Votre lecture 2026 (PDF)'
   const subjectEn = isDialogue ? 'Your pre-incarnation dialogue (PDF)' : 'Your 2026 reading (PDF)'
   const subjectEs = isDialogue ? 'Tu dialogo de preencarnacion (PDF)' : 'Tu lectura 2026 (PDF)'
 
   const subject = language === 'en' ? subjectEn : language === 'es' ? subjectEs : subjectFr
 
-  const introFr = `Bonjour${nameLine},\n\nVoici votre PDF OrbitalAstro en piece jointe.`
+  const introFr = `Bonjour${nameLine},\n\nVoici votre PDF OrbitalAstro en pièce jointe.`
   const introEn = `Hi${nameLine},\n\nHere is your OrbitalAstro PDF attached.`
   const introEs = `Hola${nameLine},\n\nAqui tienes tu PDF de OrbitalAstro adjunto.`
 
-  const helpFr = `\n\nBesoin d'aide? Ecrivez-nous: ${supportEmail}`
+  const helpFr = `\n\nBesoin d'aide? Écrivez-nous: ${supportEmail}`
   const helpEn = `\n\nNeed help? Email us: ${supportEmail}`
   const helpEs = `\n\nNecesitas ayuda? Escribenos: ${supportEmail}`
 
   const legalFr =
-    "\n\nVous recevez ce courriel parce qu'une demande de PDF a ete faite sur orbitalastro.ca. Si ce n'etait pas vous, ignorez ce message."
+    "\n\nVous recevez ce courriel parce qu'une demande de PDF a été faite sur orbitalastro.ca. Si ce n'était pas vous, ignorez ce message."
   const legalEn =
     '\n\nYou received this email because a PDF was requested on orbitalastro.ca. If this was not you, you can ignore this message.'
   const legalEs =
