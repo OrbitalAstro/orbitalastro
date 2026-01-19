@@ -19,6 +19,25 @@ class InterpretationRequest(BaseModel):
 class InterpretationResponse(BaseModel):
     content: str
 
+def _normalize_referer(value: str) -> str:
+    value = (value or "").strip()
+    if not value:
+        return value
+
+    # If someone pastes an allowlist pattern like "https://example.com/*",
+    # normalize it to a valid Referer value.
+    if value.endswith("/*"):
+        value = value[:-1]
+
+    if value.endswith("*"):
+        value = value[:-1]
+
+    # Common referrer allowlist patterns include a trailing slash; add one when absent.
+    if (value.startswith("http://") or value.startswith("https://")) and not value.endswith("/"):
+        value = f"{value}/"
+
+    return value
+
 @router.post("/interpret", response_model=InterpretationResponse)
 async def generate_interpretation(req: Request, request: InterpretationRequest):
     """
@@ -40,16 +59,23 @@ async def generate_interpretation(req: Request, request: InterpretationRequest):
     last_error = None
     
     # If the user restricted their key by HTTP referrers, Gemini may require a Referer header.
-    # We mirror the browser Origin/Referer when available, otherwise fall back to localhost.
+    # Prefer a fixed server-side referer (GEMINI_REFERER) to avoid mirroring untrusted browser headers.
     #
     # Note: browsers send Origin like "https://example.com" (no trailing slash) while
     # Google API key referrer patterns are often configured as "https://example.com/*".
     # Add a trailing slash when we use Origin so it matches common patterns.
-    origin = req.headers.get("origin")
-    referer_header = req.headers.get("referer")
-    referer = origin or referer_header or "http://localhost:3000/"
-    if origin and not origin.endswith("/"):
-        referer = f"{origin}/"
+    referer: Optional[str] = None
+
+    configured_referer = os.environ.get("GEMINI_REFERER")
+    if configured_referer:
+        referer = _normalize_referer(configured_referer)
+    else:
+        origin = req.headers.get("origin")
+        referer_header = req.headers.get("referer")
+        if origin:
+            referer = _normalize_referer(origin)
+        elif referer_header:
+            referer = referer_header.strip()
 
     # Sensible defaults: long-form interpretations easily exceed 2k tokens.
     # Keep a ceiling to avoid excessively large responses.
@@ -86,7 +112,7 @@ def _call_gemini_api(
     model: str,
     prompt: str,
     system_instruction: Optional[str] = None,
-    referer: str = "http://localhost:3000",
+    referer: Optional[str] = None,
     temperature: float = 0.7,
     max_output_tokens: int = 8192,
 ) -> InterpretationResponse:
@@ -94,9 +120,10 @@ def _call_gemini_api(
     
     headers = {
         "Content-Type": "application/json",
-        # Required when the API key is restricted to HTTP referrers
-        "Referer": referer,
     }
+
+    if referer:
+        headers["Referer"] = referer
     
     payload = {
         "contents": [
@@ -129,6 +156,16 @@ def _call_gemini_api(
         if response.status_code != 200:
             error_data = response.json() if response.content else {}
             error_msg = error_data.get('error', {}).get('message', response.text)
+
+            if response.status_code == 403 and isinstance(error_msg, str):
+                lower = error_msg.lower()
+                if "referer" in lower and "blocked" in lower:
+                    error_msg = (
+                        f"{error_msg} — Votre clé Gemini est probablement restreinte par 'HTTP referrers'. "
+                        "Ajoutez ces valeurs dans la liste autorisée (exemples): "
+                        "https://www.orbitalastro.ca/*, https://orbitalastro.ca/*, http://localhost:3000/* "
+                        "ou retirez la restriction pour un usage serveur."
+                    )
             raise Exception(f"API Error {response.status_code}: {error_msg}")
             
         data = response.json()
