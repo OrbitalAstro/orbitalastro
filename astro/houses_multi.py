@@ -1,6 +1,6 @@
 """Multi-house system implementations."""
 
-from math import atan, atan2, cos, degrees, pi, radians, sin, tan
+from math import atan, atan2, cos, degrees, pi, radians, sin, tan, asin
 from typing import List, Tuple
 
 from astro.houses import compute_asc_mc
@@ -104,14 +104,103 @@ def koch_cusps(JD: float, latitude_deg: float, longitude_deg: float) -> List[flo
     Returns:
         List of 12 house cusps in degrees
     """
-    # Koch is very similar to Placidus, using the same iterative approach
-    # but with different time divisions. For simplicity, we'll use a Placidus-like
-    # approach with Koch-specific time offsets.
-    from astro.houses import placidus_cusps
+    # Koch system fails at polar circles, fallback to Porphyry
+    if abs(latitude_deg) > 66.0:
+        asc_deg, mc_deg = compute_asc_mc(JD, latitude_deg, longitude_deg)
+        return porphyry_cusps(asc_deg, mc_deg)
 
-    # Koch uses the same basic formula as Placidus but with different house divisions
-    # This is a simplified implementation - full Koch requires more complex calculations
-    return placidus_cusps(JD, latitude_deg, longitude_deg)
+    # Import helpers from astro.houses (inside function to avoid circular imports)
+    from astro.houses import (
+        _solve_placidus_alpha,
+        _ra_to_ecliptic_longitude
+    )
+
+    asc_deg, mc_deg = compute_asc_mc(JD, latitude_deg, longitude_deg)
+    eps = mean_obliquity(JD)
+    lst_rad = lst_from_jd_and_longitude(JD, longitude_deg)
+    ramc = lst_rad
+    phi = radians(latitude_deg)
+
+    # Calculate Ascensional Difference of MC (AD_MC)
+    # sin(declination) = sin(longitude) * sin(epsilon)
+    mc_rad = radians(mc_deg)
+    sin_dec_mc = sin(mc_rad) * sin(eps)
+
+    # Calculate AD_MC = asin(tan(phi) * tan(dec_mc))
+    # Note: tan(dec) = sin(dec) / cos(dec)
+    # cos(dec) = sqrt(1 - sin^2(dec))
+    # So tan(dec) = sin(dec) / sqrt(1 - sin^2(dec))
+
+    # Check for validity (although outside polar circles should be fine)
+    if abs(sin_dec_mc) >= 1.0:
+        # Should not happen if epsilon is correct and we are not in weird state
+        return porphyry_cusps(asc_deg, mc_deg)
+
+    tan_dec_mc = sin_dec_mc / (1.0 - sin_dec_mc**2)**0.5
+
+    # Check if tan(phi) * tan(dec_mc) is valid for asin
+    arg = tan(phi) * tan_dec_mc
+    if abs(arg) > 1.0:
+        # Fallback for extreme cases
+        return porphyry_cusps(asc_deg, mc_deg)
+
+    ad_mc = asin(arg)
+
+    # Calculate offsets for Koch houses
+    # House 11: RAMC + 30 - 2/3 * AD_MC
+    # House 12: RAMC + 60 - 1/3 * AD_MC
+    # House 2:  RAMC + 120 + 1/3 * AD_MC
+    # House 3:  RAMC + 150 + 2/3 * AD_MC
+
+    # We pass 'h_angle_rad' to _solve_placidus_alpha which solves:
+    # alpha - AD(alpha) = RAMC + h_angle_rad
+    # So h_angle_rad should be the Offset relative to RAMC.
+
+    h30 = radians(30.0)
+    h60 = radians(60.0)
+    h120 = radians(120.0)
+    h150 = radians(150.0)
+
+    # Note: ad_mc sign logic.
+    # If AD_MC is calculated as asin(tan(phi)*tan(dec)), then:
+    # Formula for House 11 OA is: OA = RAMC + 30 - 2/3 AD_MC
+    # So h_angle_rad = 30 - 2/3 AD_MC
+
+    offsets = {
+        11: h30 - (2.0/3.0) * ad_mc,
+        12: h60 - (1.0/3.0) * ad_mc,
+        2:  h120 + (1.0/3.0) * ad_mc,
+        3:  h150 + (2.0/3.0) * ad_mc,
+    }
+
+    cusps = [0.0] * 12
+    cusps[0] = asc_deg
+    cusps[9] = mc_deg
+
+    intermediate = {}
+
+    try:
+        for house, offset_rad in offsets.items():
+            alpha = _solve_placidus_alpha(ramc, eps, phi, offset_rad)
+            lam = _ra_to_ecliptic_longitude(alpha, eps)
+            intermediate[house] = normalize_angle_deg(degrees(lam))
+    except ValueError:
+        return porphyry_cusps(asc_deg, mc_deg)
+
+    cusps[10] = intermediate[11]
+    cusps[11] = intermediate[12]
+    cusps[1] = intermediate[2]
+    cusps[2] = intermediate[3]
+
+    # Oppositions
+    cusps[3] = (cusps[9] + 180.0) % 360.0
+    cusps[4] = (cusps[10] + 180.0) % 360.0
+    cusps[5] = (cusps[11] + 180.0) % 360.0
+    cusps[6] = (cusps[0] + 180.0) % 360.0
+    cusps[7] = (cusps[1] + 180.0) % 360.0
+    cusps[8] = (cusps[2] + 180.0) % 360.0
+
+    return cusps
 
 
 def regiomontanus_cusps(JD: float, latitude_deg: float, longitude_deg: float) -> List[float]:
@@ -406,15 +495,3 @@ def compute_houses(
         return topocentric_cusps(JD, lat_deg, lon_deg)
     else:
         raise ValueError(f"Unknown house system: {system}")
-
-
-
-
-
-
-
-
-
-
-
-
