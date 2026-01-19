@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { renderToBuffer } from '@react-pdf/renderer'
 import type { Language } from '@/lib/i18n'
 import React from 'react'
+import { randomUUID } from 'crypto'
 
 import DialoguePdf from '@/app/dialogues/DialoguePdf'
 import Reading2026Pdf from '@/app/reading-2026/Reading2026Pdf'
@@ -110,6 +111,58 @@ async function sendWithResend(args: {
     const body = await response.text().catch(() => '')
     throw new Error(`Resend error (${response.status}): ${body || response.statusText}`)
   }
+
+  const data = (await response.json().catch(() => null)) as null | { id?: string }
+  return data?.id
+}
+
+function maskEmail(email: string) {
+  const trimmed = (email || '').trim()
+  const at = trimmed.indexOf('@')
+  if (at <= 1) return '<redacted>'
+  const name = trimmed.slice(0, at)
+  const domain = trimmed.slice(at + 1)
+  return `${name[0]}***@${domain}`
+}
+
+function extractEmail(fromValue: string) {
+  const match = (fromValue || '').match(/<([^>]+)>/)
+  return (match?.[1] || fromValue || '').trim()
+}
+
+function buildMessage(args: { kind: PdfKind; language: Language; firstName?: string; supportEmail: string }) {
+  const { kind, language, firstName, supportEmail } = args
+  const nameLine = firstName ? ` ${firstName}` : ''
+  const isDialogue = kind === 'dialogue'
+
+  const subjectFr = isDialogue ? 'Votre dialogue pre-incarnation (PDF)' : 'Votre lecture 2026 (PDF)'
+  const subjectEn = isDialogue ? 'Your pre-incarnation dialogue (PDF)' : 'Your 2026 reading (PDF)'
+  const subjectEs = isDialogue ? 'Tu dialogo de preencarnacion (PDF)' : 'Tu lectura 2026 (PDF)'
+
+  const subject = language === 'en' ? subjectEn : language === 'es' ? subjectEs : subjectFr
+
+  const introFr = `Bonjour${nameLine},\n\nVoici votre PDF OrbitalAstro en piece jointe.`
+  const introEn = `Hi${nameLine},\n\nHere is your OrbitalAstro PDF attached.`
+  const introEs = `Hola${nameLine},\n\nAqui tienes tu PDF de OrbitalAstro adjunto.`
+
+  const helpFr = `\n\nBesoin d'aide? Ecrivez-nous: ${supportEmail}`
+  const helpEn = `\n\nNeed help? Email us: ${supportEmail}`
+  const helpEs = `\n\nNecesitas ayuda? Escribenos: ${supportEmail}`
+
+  const legalFr =
+    "\n\nVous recevez ce courriel parce qu'une demande de PDF a ete faite sur orbitalastro.ca. Si ce n'etait pas vous, ignorez ce message."
+  const legalEn =
+    '\n\nYou received this email because a PDF was requested on orbitalastro.ca. If this was not you, you can ignore this message.'
+  const legalEs =
+    '\n\nRecibiste este correo porque se solicito un PDF en orbitalastro.ca. Si no fuiste tu, puedes ignorar este mensaje.'
+
+  const signature = '\n\n- OrbitalAstro'
+
+  const intro = language === 'en' ? introEn : language === 'es' ? introEs : introFr
+  const help = language === 'en' ? helpEn : language === 'es' ? helpEs : helpFr
+  const legal = language === 'en' ? legalEn : language === 'es' ? legalEs : legalFr
+
+  return { subject, text: `${intro}${help}${legal}${signature}` }
 }
 
 function buildFilename(kind: PdfKind, firstName?: string) {
@@ -121,6 +174,7 @@ function buildFilename(kind: PdfKind, firstName?: string) {
 
 export async function POST(req: Request) {
   try {
+    const requestId = randomUUID()
     const origin = normalizeOrigin(req.headers.get('origin') || '')
     const allowed = allowedOrigins()
     if (origin && !allowed.includes(origin)) {
@@ -151,7 +205,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Missing content' }, { status: 400 })
     }
 
+    const perRecipient = checkRateLimit(`email:${to.toLowerCase()}:d`, 5, 24 * 60 * 60 * 1000)
+    if (!perRecipient.allowed) {
+      return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+    }
+
     const filename = buildFilename(kind, firstName)
+    console.log(`[email-pdf] ${requestId} start kind=${kind} to=${maskEmail(to)} origin=${origin || 'n/a'}`)
 
     const doc =
       kind === 'dialogue'
@@ -175,18 +235,19 @@ export async function POST(req: Request) {
       throw new Error('Failed to generate a valid PDF')
     }
 
-    const subject =
-      kind === 'dialogue'
-        ? 'Votre dialogue pré‑incarnation (PDF)'
-        : 'Votre lecture 2026 (PDF)'
+    const fromValue = process.env.RESEND_FROM || ''
+    const supportEmail = (process.env.SUPPORT_EMAIL || extractEmail(fromValue) || 'support@orbitalastro.ca').trim()
+    const message = buildMessage({ kind, language, firstName, supportEmail })
 
-    await sendWithResend({
+    const resendId = await sendWithResend({
       to,
-      subject,
-      text: `Bonjour${firstName ? ` ${firstName}` : ''},\n\nVoici votre PDF OrbitalAstro.\n\n— OrbitalAstro`,
+      subject: message.subject,
+      text: message.text,
       filename,
       contentBase64: buffer.toString('base64'),
     })
+
+    console.log(`[email-pdf] ${requestId} sent kind=${kind} to=${maskEmail(to)} resendId=${resendId || 'n/a'}`)
 
     return NextResponse.json({ ok: true })
   } catch (error) {
