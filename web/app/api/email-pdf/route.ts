@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { pdf } from '@react-pdf/renderer'
+import { renderToBuffer } from '@react-pdf/renderer'
 import type { Language } from '@/lib/i18n'
 import React from 'react'
 
@@ -112,35 +112,6 @@ async function sendWithResend(args: {
   }
 }
 
-async function toPdfBuffer(value: unknown): Promise<Buffer> {
-  if (!value) throw new Error('Failed to generate PDF')
-  if (Buffer.isBuffer(value)) return value
-  if (value instanceof Uint8Array) return Buffer.from(value)
-
-  const streamLike = value as { on?: unknown; end?: unknown }
-  if (typeof streamLike.on === 'function') {
-    return await new Promise<Buffer>((resolve, reject) => {
-      const chunks: Buffer[] = []
-      ;(streamLike as any).on('data', (chunk: unknown) => {
-        if (!chunk) return
-        chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk as any))
-      })
-      ;(streamLike as any).on('end', () => resolve(Buffer.concat(chunks)))
-      ;(streamLike as any).on('error', (err: unknown) => reject(err))
-
-      if (typeof streamLike.end === 'function') {
-        try {
-          ;(streamLike as any).end()
-        } catch {
-          // ignore
-        }
-      }
-    })
-  }
-
-  throw new Error('Failed to generate PDF')
-}
-
 function buildFilename(kind: PdfKind, firstName?: string) {
   const safeName = (firstName || '').trim().replace(/[^\p{L}\p{N}\-_. ]/gu, '').trim()
   const suffix = safeName ? `-${safeName}` : ''
@@ -199,8 +170,7 @@ export async function POST(req: Request) {
             birthPlace: data.birthPlace,
           })
 
-    const generated = await pdf(doc).toBuffer()
-    const buffer = await toPdfBuffer(generated)
+    const buffer = await renderToBuffer(doc)
     if (buffer.subarray(0, 4).toString() !== '%PDF') {
       throw new Error('Failed to generate a valid PDF')
     }
