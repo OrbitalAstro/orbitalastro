@@ -100,7 +100,7 @@ async function sendWithResend(args: {
         {
           filename: args.filename,
           content: args.contentBase64,
-          content_type: 'application/pdf',
+          contentType: 'application/pdf',
         },
       ],
     }),
@@ -170,7 +170,11 @@ export async function POST(req: Request) {
             birthPlace: data.birthPlace,
           })
 
-    const buffer = await pdf(doc).toBuffer()
+    const generated = await pdf(doc).toBuffer()
+    const buffer = Buffer.isBuffer(generated) ? generated : Buffer.from(generated)
+    if (buffer.subarray(0, 4).toString() !== '%PDF') {
+      throw new Error('Failed to generate a valid PDF')
+    }
 
     const subject =
       kind === 'dialogue'
