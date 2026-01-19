@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React from 'react'
 import { Document, Page, StyleSheet, Text, View, Font, Link, Svg, Path } from '@react-pdf/renderer'
 import { translations, type Language } from '@/lib/i18n'
 
@@ -9,24 +9,16 @@ const TEXT_BLACK = '#000000'
 // Enregistrement de la police Great Vibes depuis le dossier public
 // Le fichier est téléchargé automatiquement dans public/fonts/GreatVibes-Regular.ttf
 let greatVibesLoaded = false
-try {
-  // Dans Next.js, les fichiers public sont servis depuis la racine
-  // On construit l'URL complète pour react-pdf
-  const getFontUrl = () => {
-    if (typeof window !== 'undefined') {
-      return `${window.location.origin}/fonts/GreatVibes-Regular.ttf`
-    }
-    // Fallback pour le serveur (utilisé lors du SSR)
-    return 'http://localhost:3000/fonts/GreatVibes-Regular.ttf'
+if (typeof window !== 'undefined') {
+  try {
+    Font.register({
+      family: 'GreatVibes',
+      src: `${window.location.origin}/fonts/GreatVibes-Regular.ttf`,
+    })
+    greatVibesLoaded = true
+  } catch (error) {
+    console.warn('Failed to register GreatVibes font from local file:', error)
   }
-  
-  Font.register({
-    family: 'GreatVibes',
-    src: getFontUrl(),
-  })
-  greatVibesLoaded = true
-} catch (error) {
-  console.warn('Failed to register GreatVibes font from local file:', error)
 }
 
 const styles = StyleSheet.create({
@@ -497,13 +489,13 @@ export default function DialoguePdf({
   firstName,
 }: DialoguePdfProps) {
   const t = translations[language] || translations.fr
-  const firstNameRegex = useMemo(() => buildFirstNameRegex(firstName), [firstName])
+  const firstNameRegex = buildFirstNameRegex(firstName)
   const renderText = (text: string, base?: { script?: boolean }) =>
     renderRichText(text, { script: base?.script, extraScriptRegex: firstNameRegex })
   const pdfSubtitle = (t.dialogues.pdfSubtitle || '')
     .replace(/&/g, '-')
     .replace(/[\u2010\u2011\u2012\u2013\u2014\u2212]/g, '-')
-  const paragraphs = useMemo(() => {
+  const paragraphs = (() => {
     const rawDialogue = dialogue || ''
     const hasBlankLine = /\n\s*\n/.test(rawDialogue)
     const lines = rawDialogue.split(/\r?\n/)
@@ -595,11 +587,8 @@ export default function DialoguePdf({
       cleaned = cleaned.replace(/^#{1,6}\s+/, '') // Retire #, ##, ###, ####, #####, ###### suivi d'un espace
       return cleaned
     }).filter(Boolean)
-  }, [dialogue])
-  const firstFootnoteIndex = useMemo(
-    () => paragraphs.findIndex((p) => p.toLowerCase().startsWith('ce dialogue est symbolique')),
-    [paragraphs]
-  )
+  })()
+  const firstFootnoteIndex = paragraphs.findIndex((p) => p.toLowerCase().startsWith('ce dialogue est symbolique'))
   const finalPhraseIndex = firstFootnoteIndex > 0 ? firstFootnoteIndex - 1 : -1
 
   return (

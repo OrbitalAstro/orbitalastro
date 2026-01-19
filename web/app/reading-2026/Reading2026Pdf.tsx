@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React from 'react'
 import { Document, Page, StyleSheet, Text, View } from '@react-pdf/renderer'
 import { translations, type Language } from '@/lib/i18n'
 
@@ -146,7 +146,7 @@ export default function Reading2026Pdf({
 }: Reading2026PdfProps) {
   const t = translations[language] || translations.fr
 
-  const blocks = useMemo(() => parseBlocks(reading), [reading])
+  const blocks = parseBlocks(reading)
 
   const metaLines = [
     firstName ? `${t.dialogues.firstName.replace(/\s*\(.*?\)\s*$/, '')}: ${firstName}` : null,
@@ -208,4 +208,3 @@ export default function Reading2026Pdf({
     </Document>
   )
 }
-
