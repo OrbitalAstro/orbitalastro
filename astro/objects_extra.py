@@ -1,6 +1,6 @@
 """Extra astrological objects computation (Arabic Parts, Vertex, etc.)."""
 
-from math import cos, radians, sin
+from math import atan2, cos, degrees, radians, sin, tan, copysign
 from typing import Dict, Optional
 
 from astro.utils import normalize_angle_deg
@@ -29,20 +29,83 @@ def part_of_fortune(sun_long: float, moon_long: float, asc_long: float, is_day_c
     return normalize_angle_deg(pof)
 
 
-def vertex(asc_long: float, mc_long: float, latitude_deg: float) -> float:
+def vertex(
+    asc_long: float,
+    mc_long: float,
+    latitude_deg: float,
+    ramc_rad: Optional[float] = None,
+    obliquity_rad: Optional[float] = None,
+) -> float:
     """
     Compute Vertex (intersection of prime vertical and ecliptic).
+
+    The Vertex is the point where the Prime Vertical intersects the Ecliptic in the West.
+    It is effectively the Ascendant of the co-latitude.
 
     Args:
         asc_long: Ascendant longitude in degrees
         mc_long: Midheaven longitude in degrees
         latitude_deg: Latitude in degrees
+        ramc_rad: Right Ascension of Midheaven in radians (LST). Optional but recommended for precision.
+        obliquity_rad: Obliquity of ecliptic in radians. Optional but recommended.
 
     Returns:
         Vertex longitude in degrees
     """
+    # Use precise calculation if RAMC and Obliquity are provided
+    if ramc_rad is not None and obliquity_rad is not None:
+        # Handle small latitude to avoid division by zero
+        # We clamp phi to a small value if it is effectively zero
+        phi = radians(latitude_deg)
+        if abs(phi) < 1e-9:
+             # Use 1e-9 with the sign of latitude (default to positive if 0)
+             phi = copysign(1e-9, latitude_deg) if latitude_deg != 0 else 1e-9
+
+        eps = obliquity_rad
+
+        # Formula for intersection of Prime Vertical and Ecliptic
+        # tan(V) = sin(RAMC) / (cos(RAMC)*cos(eps) - sin(eps)/tan(phi))
+        y = sin(ramc_rad)
+        x = cos(ramc_rad) * cos(eps) - sin(eps) / tan(phi)
+
+        v_rad = atan2(y, x)
+        v_deg = normalize_angle_deg(degrees(v_rad))
+
+        # Ensure Vertex is in the Western Hemisphere
+        # The Vertex is always the Western intersection.
+        # The range [IC, MC] moving via DSC covers the Western Hemisphere.
+        # Longitude of MC is roughly 270 (Capricorn) for Aries rising.
+        # Longitude of IC is roughly 90 (Cancer).
+        # Western hemisphere is from IC to MC (90 -> 270).
+        # Wait, Zodiac increases Counter-Clockwise.
+        # MC (top) -> ASC (left/east) -> IC (bottom) -> DSC (right/west) -> MC
+        # West is centered on DSC.
+        # Arc is from IC (Bottom) to MC (Top) via DSC (West).
+        # IC is MC + 180.
+        # So we want the point that falls in the interval [IC, MC] that contains DSC.
+
+        ic_long = normalize_angle_deg(mc_long + 180.0)
+
+        # Distance from IC in direction of zodiac
+        # If we start at IC and go to MC, does DSC lie there?
+        # MC=270, IC=90. DSC=180.
+        # 90 -> 180 -> 270. Yes.
+        # So we want v_deg to be between IC and MC (in increasing longitude order).
+        # Check if v_deg is "between" IC and MC.
+
+        # Normalize everything relative to IC being 0
+        rel_v = normalize_angle_deg(v_deg - ic_long)
+        rel_mc = normalize_angle_deg(mc_long - ic_long) # Should be 180
+
+        # If rel_v is between 0 and 180, it is on the Western side (IC -> DSC -> MC)
+        if rel_v > 180.0:
+            # It's on the Eastern side, so flip it
+            v_deg = normalize_angle_deg(v_deg + 180.0)
+
+        return v_deg
+
+    # Fallback to simplified calculation
     # Vertex is approximately 90° from ASC in the direction of the MC
-    # More precisely, it's the intersection of prime vertical and ecliptic
     # Simplified calculation: Vertex ≈ ASC + 90° (adjusted for latitude)
     vertex_long = normalize_angle_deg(asc_long + 90.0)
     
@@ -130,6 +193,9 @@ def compute_arabic_parts(
     mc_long: float,
     is_day_chart: bool,
     include_vertex: bool = True,
+    latitude_deg: float = 0.0,
+    ramc_rad: Optional[float] = None,
+    obliquity_rad: Optional[float] = None,
 ) -> Dict[str, float]:
     """
     Compute common Arabic Parts and sensitive points.
@@ -141,6 +207,9 @@ def compute_arabic_parts(
         mc_long: Midheaven longitude in degrees
         is_day_chart: True if Sun is above horizon
         include_vertex: Whether to include Vertex calculation
+        latitude_deg: Latitude in degrees (required for Vertex)
+        ramc_rad: RAMC/LST in radians (required for accurate Vertex)
+        obliquity_rad: Obliquity in radians (required for accurate Vertex)
 
     Returns:
         Dictionary mapping part names to longitudes in degrees
@@ -152,18 +221,6 @@ def compute_arabic_parts(
     }
     
     if include_vertex:
-        # Would need latitude for accurate Vertex, using simplified version
-        parts["vertex"] = normalize_angle_deg(asc_long + 90.0)
+        parts["vertex"] = vertex(asc_long, mc_long, latitude_deg, ramc_rad, obliquity_rad)
     
     return parts
-
-
-
-
-
-
-
-
-
-
-
