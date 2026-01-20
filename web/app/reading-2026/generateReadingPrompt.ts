@@ -246,6 +246,13 @@ export function generateReadingPrompt(
       ? "Nunca haces predicciones fatalistas ni médicas: hablas de tendencias, dinámicas internas y potencial de evolución."
       : "Tu ne fais jamais de prédictions fatalistes ni médicales : tu parles de tendances, de dynamiques intérieures et de potentiel d'évolution."
 
+  const lengthInstruction =
+    language === 'en'
+      ? 'Length: 1600–1800 words.'
+      : language === 'es'
+        ? 'Longitud: 1600–1800 palabras.'
+        : 'Longueur : 1600 à 1800 mots.'
+
   const systemPrompt = `[RÔLE]
 ${roleIntro}
 
@@ -275,7 +282,7 @@ Toujours :
 
 Lecture 2026 — Évolution personnelle et mission de vie
 
-Longueur : environ 1400 mots.
+${lengthInstruction}
 
 Objectif de la lecture :
 - Montrer comment 2026 soutient l'évolution personnelle de [PRÉNOM].
