@@ -64,6 +64,12 @@ dist/
 *.tsbuildinfo
 .cache/
 .turbo/
+.deploy_web/
+.deploy_web.zip
+
+# Generated PDFs
+dialogues_pdf/
+dialogues_pdf_test/
 
 # Vercel
 .vercel
