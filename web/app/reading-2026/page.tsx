@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic'
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Calendar, Sparkles } from 'lucide-react'
+import { Calendar, Download, Sparkles } from 'lucide-react'
 import { useSettingsStore } from '@/lib/store'
 import { apiClient } from '@/lib/api'
 import ReactMarkdown from 'react-markdown'
@@ -13,6 +13,8 @@ import BackButton from '@/components/BackButton'
 import { generateReadingPrompt } from './generateReadingPrompt'
 import { formatBirthDateInput } from '@/lib/sanitizeBirthDateYear'
 import { useTranslation } from '@/lib/useTranslation'
+import { pdf } from '@react-pdf/renderer'
+import Reading2026Pdf from './Reading2026Pdf'
 
 export default function Reading2026Page() {
   const settings = useSettingsStore()
@@ -31,6 +33,7 @@ export default function Reading2026Page() {
   const [reading, setReading] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [emailStatus, setEmailStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
+  const [downloading, setDownloading] = useState(false)
 
   const resetForm = () => {
     setBirthData({
@@ -232,6 +235,52 @@ export default function Reading2026Page() {
     }
   }
 
+  const handleDownloadPdf = async () => {
+    if (!reading) return
+    setDownloading(true)
+    try {
+      const lang = (settings.language || 'fr') as 'en' | 'fr' | 'es'
+      const pdfPromise = pdf(
+        <Reading2026Pdf
+          reading={reading}
+          language={lang}
+          firstName={birthData.firstName || undefined}
+          birthDate={birthData.birth_date || undefined}
+          birthTime={birthData.birth_time || undefined}
+          birthPlace={birthData.birth_place || undefined}
+        />
+      ).toBlob()
+      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('PDF generation timeout')), 30000))
+
+      const blob = (await Promise.race([pdfPromise, timeoutPromise])) as Blob
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      const baseName = t.locale === 'fr' ? 'Lecture-2026' : t.locale === 'es' ? 'Lectura-2026' : '2026-Reading'
+      const defaultName = t.locale === 'fr' ? 'lecture' : t.locale === 'es' ? 'lectura' : 'reading'
+      link.download = `${baseName}-${birthData.firstName || defaultName}.pdf`
+      link.click()
+      URL.revokeObjectURL(url)
+    } catch (err: any) {
+      console.error('Error generating PDF', err)
+      const errorMessage = err?.message || err?.toString() || 'Erreur inconnue'
+      const userMessage = errorMessage.includes('timeout')
+        ? t.locale === 'fr'
+          ? 'La génération du PDF prend trop de temps. Veuillez réessayer.'
+          : t.locale === 'es'
+            ? 'La generación del PDF tarda demasiado. Inténtalo de nuevo.'
+            : 'PDF generation is taking too long. Please try again.'
+        : t.locale === 'fr'
+          ? `Échec de la génération du PDF: ${errorMessage}`
+          : t.locale === 'es'
+            ? `Error al generar el PDF: ${errorMessage}`
+            : `Failed to generate PDF: ${errorMessage}`
+      alert(userMessage)
+    } finally {
+      setDownloading(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-cosmic-purple via-magenta-purple to-cosmic-purple relative">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
@@ -284,7 +333,7 @@ export default function Reading2026Page() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-cosmic-gold mb-2">
-                    Date de naissance
+                    {t.reading2026.birthDate}
                   </label>
                   <input
                     type="text"
@@ -397,8 +446,17 @@ export default function Reading2026Page() {
               </motion.div>
 
               <button
+                onClick={handleDownloadPdf}
+                disabled={downloading}
+                className="mt-6 w-full px-6 py-2 bg-cosmic-gold/20 text-cosmic-gold rounded-lg border border-cosmic-gold/40 hover:bg-cosmic-gold/30 transition disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                <Download className="h-4 w-4" />
+                {downloading ? t.reading2026.downloadingPdf : t.reading2026.downloadPdf}
+              </button>
+
+              <button
                 onClick={() => setReading(null)}
-                className="mt-6 px-6 py-2 bg-cosmic-gold/20 text-cosmic-gold rounded-lg border border-cosmic-gold/40 hover:bg-cosmic-gold/30 transition"
+                className="mt-3 w-full px-6 py-2 bg-cosmic-gold/10 text-cosmic-gold/90 rounded-lg border border-cosmic-gold/30 hover:bg-cosmic-gold/20 transition"
               >
                 {t.reading2026.generateAnother}
               </button>
