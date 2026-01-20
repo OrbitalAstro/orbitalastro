@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic'
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Download, Heart, Sparkles } from 'lucide-react'
+import { Heart, Sparkles } from 'lucide-react'
 import { useSettingsStore } from '@/lib/store'
 import { apiClient } from '@/lib/api'
 import ReactMarkdown from 'react-markdown'
@@ -227,6 +227,10 @@ export default function SaintValentinPage() {
     }
   }
 
+  const pdfSubtitle = (t.valentine.title || 'Synastrie Saint-Valentin')
+    .replace(/&/g, '-')
+    .replace(/[\u2010\u2011\u2012\u2013\u2014\u2212]/g, '-')
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-cosmic-purple via-magenta-purple to-cosmic-purple relative">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
@@ -435,22 +439,51 @@ export default function SaintValentinPage() {
             </>
           ) : (
             <>
-              <div className="bg-white/5 rounded-lg p-6 mb-6 border border-cosmic-gold/20">
-                <ReactMarkdown className="prose prose-invert max-w-none prose-p:text-cosmic-gold/90 prose-headings:text-cosmic-gold prose-strong:text-cosmic-gold prose-li:text-cosmic-gold/90">
-                  {content}
-                </ReactMarkdown>
-              </div>
-
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={handleDownloadPdf}
-                disabled={downloading}
-                className="w-full bg-gradient-to-r from-cosmic-gold to-yellow-500 text-black font-semibold py-3 px-6 rounded-lg flex items-center justify-center gap-2 hover:from-cosmic-gold/90 hover:to-yellow-500/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed mb-4"
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-gradient-to-br from-cosmic-purple/40 to-magenta-purple/40 rounded-xl p-6 border border-cosmic-gold/20"
               >
-                <Download className="h-5 w-5" />
-                {downloading ? t.valentine.downloadingPdf : t.valentine.downloadPdf}
-              </motion.button>
+                <div className="flex flex-col sm:flex-row sm:justify-end sm:items-center gap-2 mb-4">
+                  <button
+                    type="button"
+                    onClick={handleDownloadPdf}
+                    disabled={downloading}
+                    className="w-full sm:w-auto px-4 py-2 bg-cosmic-gold/20 text-cosmic-gold rounded-lg border border-cosmic-gold/40 hover:bg-cosmic-gold/30 transition disabled:opacity-50"
+                  >
+                    {downloading ? t.valentine.downloadingPdf : t.valentine.downloadPdf}
+                  </button>
+                </div>
+
+                <div className="pdf-card max-w-3xl mx-auto">
+                  <div className="pdf-header">
+                    <img
+                      src="/orbital-astro-logo.png"
+                      alt="Orbital Astro"
+                      className="pdf-logo"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement
+                        if (target) target.style.display = 'none'
+                      }}
+                    />
+                    <div className="pdf-brand">
+                      <span className="brand-script">Orbital</span>
+                      <span className="brand-sans">Astro</span>
+                    </div>
+                    <div className="pdf-subtitle">{pdfSubtitle}</div>
+                  </div>
+
+                  <div className="pdf-scroll custom-scrollbar text-cosmic-gold/90">
+                    <ReactMarkdown className="dialogue-prose px-6 py-4 pdf-body pdf-panel">{content}</ReactMarkdown>
+                  </div>
+
+                  <div className="pdf-footnote">{pdfSubtitle}</div>
+                </div>
+
+                <div className="mt-6 pt-4 border-t border-cosmic-gold/20 text-xs text-cosmic-gold/60 italic text-center footnote-small">
+                  {t.valentine.disclaimer}
+                </div>
+              </motion.div>
 
               <motion.button
                 whileHover={{ scale: 1.02 }}

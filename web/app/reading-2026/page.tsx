@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic'
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Calendar, Download, Sparkles } from 'lucide-react'
+import { Calendar, Sparkles } from 'lucide-react'
 import { useSettingsStore } from '@/lib/store'
 import { apiClient } from '@/lib/api'
 import ReactMarkdown from 'react-markdown'
@@ -281,6 +281,10 @@ export default function Reading2026Page() {
     }
   }
 
+  const pdfSubtitle = (t.reading2026.title || 'Lecture 2026')
+    .replace(/&/g, '-')
+    .replace(/[\u2010\u2011\u2012\u2013\u2014\u2212]/g, '-')
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-cosmic-purple via-magenta-purple to-cosmic-purple relative">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
@@ -436,23 +440,46 @@ export default function Reading2026Page() {
                 animate={{ opacity: 1, y: 0 }}
                 className="bg-gradient-to-br from-cosmic-purple/40 to-magenta-purple/40 rounded-xl p-6 border border-cosmic-gold/20 relative z-10"
               >
-                <div className="prose prose-invert max-w-none max-h-[70vh] overflow-y-auto pr-4 custom-scrollbar text-cosmic-gold/90">
-                  <ReactMarkdown>{reading}</ReactMarkdown>
+                <div className="flex flex-col sm:flex-row sm:justify-end sm:items-center gap-2 mb-4">
+                  <button
+                    type="button"
+                    onClick={handleDownloadPdf}
+                    disabled={downloading}
+                    className="w-full sm:w-auto px-4 py-2 bg-cosmic-gold/20 text-cosmic-gold rounded-lg border border-cosmic-gold/40 hover:bg-cosmic-gold/30 transition disabled:opacity-50"
+                  >
+                    {downloading ? t.reading2026.downloadingPdf : t.reading2026.downloadPdf}
+                  </button>
                 </div>
-                {/* Note de bas de page */}
-                <div className="mt-6 pt-4 border-t border-cosmic-gold/20 text-sm text-cosmic-gold/70 italic text-center">
+
+                <div className="pdf-card max-w-3xl mx-auto">
+                  <div className="pdf-header">
+                    <img
+                      src="/orbital-astro-logo.png"
+                      alt="Orbital Astro"
+                      className="pdf-logo"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement
+                        if (target) target.style.display = 'none'
+                      }}
+                    />
+                    <div className="pdf-brand">
+                      <span className="brand-script">Orbital</span>
+                      <span className="brand-sans">Astro</span>
+                    </div>
+                    <div className="pdf-subtitle">{pdfSubtitle}</div>
+                  </div>
+
+                  <div className="pdf-scroll custom-scrollbar text-cosmic-gold/90">
+                    <ReactMarkdown className="dialogue-prose px-6 py-4 pdf-body pdf-panel">{reading}</ReactMarkdown>
+                  </div>
+
+                  <div className="pdf-footnote">{pdfSubtitle}</div>
+                </div>
+
+                <div className="mt-6 pt-4 border-t border-cosmic-gold/20 text-xs text-cosmic-gold/60 italic text-center footnote-small">
                   {t.reading2026.disclaimer}
                 </div>
               </motion.div>
-
-              <button
-                onClick={handleDownloadPdf}
-                disabled={downloading}
-                className="mt-6 w-full px-6 py-2 bg-cosmic-gold/20 text-cosmic-gold rounded-lg border border-cosmic-gold/40 hover:bg-cosmic-gold/30 transition disabled:opacity-50 flex items-center justify-center gap-2"
-              >
-                <Download className="h-4 w-4" />
-                {downloading ? t.reading2026.downloadingPdf : t.reading2026.downloadPdf}
-              </button>
 
               <button
                 onClick={() => setReading(null)}
