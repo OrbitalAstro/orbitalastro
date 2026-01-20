@@ -6,16 +6,19 @@ import { randomUUID } from 'crypto'
 
 import DialoguePdf from '@/app/dialogues/DialoguePdf'
 import Reading2026Pdf from '@/app/reading-2026/Reading2026Pdf'
+import ValentinePdf from '@/app/saint-valentin/ValentinePdf'
 
 export const runtime = 'nodejs'
 
-type PdfKind = 'dialogue' | 'reading-2026'
+type PdfKind = 'dialogue' | 'reading-2026' | 'saint-valentin'
 
 type EmailPdfRequest = {
   kind: PdfKind
   to: string
   language?: Language
   firstName?: string
+  partnerName?: string
+  relationshipContext?: string
   birthDate?: string
   birthTime?: string
   birthPlace?: string
@@ -133,28 +136,42 @@ function extractEmail(fromValue: string) {
 function buildMessage(args: { kind: PdfKind; language: Language; firstName?: string; supportEmail: string }) {
   const { kind, language, firstName, supportEmail } = args
   const nameLine = firstName ? ` ${firstName}` : ''
-  const isDialogue = kind === 'dialogue'
 
-  const subjectFr = isDialogue ? 'Votre dialogue pré-incarnation (PDF)' : 'Votre lecture 2026 (PDF)'
-  const subjectEn = isDialogue ? 'Your pre-incarnation dialogue (PDF)' : 'Your 2026 reading (PDF)'
-  const subjectEs = isDialogue ? 'Tu dialogo de preencarnacion (PDF)' : 'Tu lectura 2026 (PDF)'
+  const subjectFr =
+    kind === 'dialogue'
+      ? 'Votre dialogue pré-incarnation (PDF)'
+      : kind === 'reading-2026'
+        ? 'Votre lecture 2026 (PDF)'
+        : 'Votre synastrie Saint-Valentin (PDF)'
+  const subjectEn =
+    kind === 'dialogue'
+      ? 'Your pre-incarnation dialogue (PDF)'
+      : kind === 'reading-2026'
+        ? 'Your 2026 reading (PDF)'
+        : 'Your Valentine synastry (PDF)'
+  const subjectEs =
+    kind === 'dialogue'
+      ? 'Tu diálogo de preencarnación (PDF)'
+      : kind === 'reading-2026'
+        ? 'Tu lectura 2026 (PDF)'
+        : 'Tu sinastría de San Valentín (PDF)'
 
   const subject = language === 'en' ? subjectEn : language === 'es' ? subjectEs : subjectFr
 
   const introFr = `Bonjour${nameLine},\n\nVoici votre PDF OrbitalAstro en pièce jointe.`
   const introEn = `Hi${nameLine},\n\nHere is your OrbitalAstro PDF attached.`
-  const introEs = `Hola${nameLine},\n\nAqui tienes tu PDF de OrbitalAstro adjunto.`
+  const introEs = `Hola${nameLine},\n\nAquí tienes tu PDF de OrbitalAstro adjunto.`
 
   const helpFr = `\n\nBesoin d'aide? Écrivez-nous: ${supportEmail}`
   const helpEn = `\n\nNeed help? Email us: ${supportEmail}`
-  const helpEs = `\n\nNecesitas ayuda? Escribenos: ${supportEmail}`
+  const helpEs = `\n\n¿Necesitas ayuda? Escríbenos: ${supportEmail}`
 
   const legalFr =
     "\n\nVous recevez ce courriel parce qu'une demande de PDF a été faite sur orbitalastro.ca. Si ce n'était pas vous, ignorez ce message."
   const legalEn =
     '\n\nYou received this email because a PDF was requested on orbitalastro.ca. If this was not you, you can ignore this message.'
   const legalEs =
-    '\n\nRecibiste este correo porque se solicito un PDF en orbitalastro.ca. Si no fuiste tu, puedes ignorar este mensaje.'
+    '\n\nRecibiste este correo porque se solicitó un PDF en orbitalastro.ca. Si no fuiste tú, puedes ignorar este mensaje.'
 
   const signature = '\n\n- OrbitalAstro'
 
@@ -169,7 +186,8 @@ function buildFilename(kind: PdfKind, firstName?: string) {
   const safeName = (firstName || '').trim().replace(/[^\p{L}\p{N}\-_. ]/gu, '').trim()
   const suffix = safeName ? `-${safeName}` : ''
   if (kind === 'dialogue') return `Dialogue-pre-incarnation${suffix}.pdf`
-  return `Lecture-2026${suffix}.pdf`
+  if (kind === 'reading-2026') return `Lecture-2026${suffix}.pdf`
+  return `Synastrie-Saint-Valentin${suffix}.pdf`
 }
 
 export async function POST(req: Request) {
@@ -195,7 +213,7 @@ export async function POST(req: Request) {
     const language = (data.language || 'fr') as Language
     const firstName = (data.firstName || '').trim() || undefined
 
-    if (kind !== 'dialogue' && kind !== 'reading-2026') {
+    if (kind !== 'dialogue' && kind !== 'reading-2026' && kind !== 'saint-valentin') {
       return NextResponse.json({ error: 'Invalid kind' }, { status: 400 })
     }
     if (!isEmail(to)) {
@@ -221,14 +239,22 @@ export async function POST(req: Request) {
             firstName,
             feedbackSurveyUrl: process.env.FEEDBACK_SURVEY_URL || undefined,
           })
-        : React.createElement(Reading2026Pdf, {
-            reading: content,
-            language,
-            firstName,
-            birthDate: data.birthDate,
-            birthTime: data.birthTime,
-            birthPlace: data.birthPlace,
-          })
+        : kind === 'reading-2026'
+          ? React.createElement(Reading2026Pdf, {
+              reading: content,
+              language,
+              firstName,
+              birthDate: data.birthDate,
+              birthTime: data.birthTime,
+              birthPlace: data.birthPlace,
+            })
+          : React.createElement(ValentinePdf, {
+              content,
+              language,
+              youName: firstName,
+              partnerName: (data.partnerName || '').trim() || undefined,
+              relationshipContext: (data.relationshipContext || '').trim() || undefined,
+            })
 
     const buffer = await renderToBuffer(doc)
     if (buffer.subarray(0, 4).toString() !== '%PDF') {

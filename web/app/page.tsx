@@ -112,6 +112,7 @@ export default function LandingPage() {
               <ul className="space-y-2 text-cosmic-gold/80">
                 <li><Link href="/dialogues" className="hover:text-cosmic-gold transition text-base">{t.dialogues.title}</Link></li>
                 <li><Link href="/reading-2026" className="hover:text-cosmic-gold transition text-base">{t.reading2026.title}</Link></li>
+                <li><Link href="/saint-valentin" className="hover:text-cosmic-gold transition text-base">{t.valentine.title}</Link></li>
               </ul>
             </div>
 
