@@ -31,16 +31,11 @@ export async function POST(request: NextRequest) {
     // En développement local, utiliser localhost:3000 explicitement
     let baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin
     
-    // Corriger les URLs invalides (0.0.0.0, etc.) en développement
-    if (baseUrl.includes('0.0.0.0') || baseUrl.includes('127.0.0.1')) {
+    // Corriger les URLs invalides en développement
+    // Si l'URL contient 0.0.0.0, 127.0.0.1, ou le port 8080, utiliser localhost:3000
+    if (baseUrl.includes('0.0.0.0') || baseUrl.includes('127.0.0.1') || baseUrl.includes(':8080')) {
       // En développement, utiliser localhost:3000
-      const port = process.env.PORT || '3000'
-      baseUrl = `http://localhost:${port}`
-    }
-    
-    // S'assurer que l'URL ne contient pas de port incorrect
-    if (baseUrl.includes(':8080') && !baseUrl.includes('localhost')) {
-      baseUrl = baseUrl.replace(':8080', ':3000')
+      baseUrl = 'http://localhost:3000'
     }
     
     const sessionConfig: Stripe.Checkout.SessionCreateParams = {
