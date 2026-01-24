@@ -28,14 +28,20 @@ export async function POST(request: NextRequest) {
     
     // Déterminer l'URL de base pour les redirections
     // Utiliser NEXT_PUBLIC_APP_URL si défini, sinon utiliser l'origin de la requête
-    // En développement local, utiliser localhost:3000 explicitement
     let baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin
     
-    // Corriger les URLs invalides en développement
-    // Si l'URL contient 0.0.0.0, 127.0.0.1, ou le port 8080, utiliser localhost:3000
-    if (baseUrl.includes('0.0.0.0') || baseUrl.includes('127.0.0.1') || baseUrl.includes(':8080')) {
-      // En développement, utiliser localhost:3000
-      baseUrl = 'http://localhost:3000'
+    // Corriger les URLs invalides UNIQUEMENT en développement local
+    // Ne pas forcer localhost:3000 en production
+    const isDevelopment = process.env.NODE_ENV === 'development' || 
+                         baseUrl.includes('localhost') || 
+                         baseUrl.includes('127.0.0.1') ||
+                         baseUrl.includes('0.0.0.0')
+    
+    if (isDevelopment) {
+      // En développement, corriger les URLs invalides vers localhost:3000
+      if (baseUrl.includes('0.0.0.0') || baseUrl.includes('127.0.0.1') || baseUrl.includes(':8080')) {
+        baseUrl = 'http://localhost:3000'
+      }
     }
     
     const sessionConfig: Stripe.Checkout.SessionCreateParams = {
