@@ -431,7 +431,7 @@ export default function Dialogues() {
                 <Sparkles className="h-8 w-8 text-cosmic-gold mx-auto mb-3" />
                 <h3 className="text-xl font-bold text-cosmic-gold mb-2">Découvrez votre dialogue pré-incarnation</h3>
                 <p className="text-cosmic-gold/90 mb-4">
-                  Pour générer votre dialogue symbolique unique, commandez votre accès ci-dessous.
+                  Pour générer un dialogue symbolique unique, commandez ci-dessous.
                 </p>
                 <p className="text-sm text-cosmic-gold/70 mb-6">
                   Offre de lancement à 9,99$ CAD
