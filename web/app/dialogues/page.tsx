@@ -19,6 +19,8 @@ import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
 import { pdf } from '@react-pdf/renderer'
 import DialoguePdf from './DialoguePdf'
+import { checkAccessFromURL, markProductAsPaid } from '@/lib/checkPayment'
+import { useRouter } from 'next/navigation'
 
 const FEEDBACK_SURVEY_URL = 'https://forms.gle/eyPRR4Bicf32dCGg6'
 const DIALOGUE_WORD_COUNT_TARGET = 1700
@@ -92,7 +94,10 @@ function normalizeGeneratedDialogue(
 export default function Dialogues() {
   const settings = useSettingsStore()
   const t = useTranslation()
+  const router = useRouter()
   const exportRef = useRef<HTMLDivElement>(null)
+  const [hasAccess, setHasAccess] = useState<boolean | null>(null)
+  const [checkingAccess, setCheckingAccess] = useState(true)
   const [birthData, setBirthData] = useState({
     birth_date: settings.defaultBirthDate || '',
     birth_time: settings.defaultBirthTime || '12:00',
@@ -111,6 +116,30 @@ export default function Dialogues() {
   const pdfSubtitle = t.dialogues.pdfSubtitle
     .replace(/&/g, '-')
     .replace(/[\u2010\u2011\u2012\u2013\u2014\u2212]/g, '-')
+
+  // Vérifier l'accès au chargement de la page
+  useEffect(() => {
+    const checkAccess = async () => {
+      // Récupérer l'email depuis localStorage ou le formulaire
+      const savedEmail = localStorage.getItem('last_email_dialogue')
+      const emailInput = document.querySelector('input[type="email"]') as HTMLInputElement
+      const email = emailInput?.value || savedEmail || null
+
+      const access = await checkAccessFromURL('dialogue')
+      setHasAccess(access)
+      setCheckingAccess(false)
+      
+      if (access) {
+        markProductAsPaid('dialogue')
+        // Nettoyer l'URL
+        const url = new URL(window.location.href)
+        url.searchParams.delete('purchased')
+        url.searchParams.delete('session_id')
+        window.history.replaceState({}, '', url.toString())
+      }
+    }
+    checkAccess()
+  }, [])
 
   const resetForm = () => {
     setBirthData({
@@ -236,6 +265,23 @@ export default function Dialogues() {
   }
 
   const handleGenerateDialogue = async () => {
+    // Vérifier l'accès avant de générer
+    const email = birthData.email?.trim() || null
+    if (!email) {
+      alert(t.dialogues.validationEmailRequired)
+      return
+    }
+
+    // Sauvegarder l'email pour la vérification
+    localStorage.setItem(`last_email_dialogue`, email)
+
+    const access = await checkAccessFromURL('dialogue')
+    if (!access) {
+      // Rediriger vers la page de tarification
+      router.push('/pricing?redirect=dialogue')
+      return
+    }
+
     // API key check moved to backend
 
     setLoading(true)
@@ -374,8 +420,34 @@ export default function Dialogues() {
 
           <p className="text-cosmic-gold/90 mb-6">{t.dialogues.description}</p>
 
+          {/* Message de paiement requis */}
+          {checkingAccess ? (
+            <div className="mb-6 p-4 bg-cosmic-gold/20 border border-cosmic-gold/50 rounded-lg">
+              <p className="text-cosmic-gold text-center">Vérification de l'accès...</p>
+            </div>
+          ) : !hasAccess ? (
+            <div className="mb-6 p-6 bg-gradient-to-br from-cosmic-purple/40 to-magenta-purple/40 border border-cosmic-gold/30 rounded-xl backdrop-blur-sm">
+              <div className="text-center mb-4">
+                <Sparkles className="h-8 w-8 text-cosmic-gold mx-auto mb-3" />
+                <h3 className="text-xl font-bold text-cosmic-gold mb-2">Découvrez votre dialogue pré-incarnation</h3>
+                <p className="text-cosmic-gold/90 mb-4">
+                  Pour générer votre dialogue symbolique unique, commandez votre accès ci-dessous.
+                </p>
+                <p className="text-sm text-cosmic-gold/70 mb-6">
+                  Offre de lancement à 9,99$ CAD
+                </p>
+              </div>
+              <button
+                onClick={() => router.push('/pricing?redirect=dialogue')}
+                className="w-full px-6 py-3 bg-gradient-to-r from-cosmic-gold via-rose-gold to-cosmic-gold text-cosmic-purple rounded-lg font-semibold hover:shadow-lg hover:shadow-cosmic-gold/50 transition transform hover:scale-105"
+              >
+                Commander maintenant - 9,99$ CAD
+              </button>
+            </div>
+          ) : null}
+
           {/* Input Form */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 relative z-20">
+          <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 relative z-20 ${!hasAccess ? 'opacity-50 pointer-events-none' : ''}`}>
             <div>
               <label className="block text-sm font-medium text-cosmic-gold mb-2">
                 {t.dialogues.firstName}
@@ -474,7 +546,7 @@ export default function Dialogues() {
 
           <button
             onClick={handleGenerateDialogue}
-            disabled={loading || !birthData.birth_date}
+            disabled={loading || !birthData.birth_date || !hasAccess || checkingAccess}
             className="w-full px-6 py-3 bg-gradient-to-r from-cosmic-gold via-rose-gold to-cosmic-gold text-cosmic-purple rounded-lg font-semibold hover:shadow-lg transition disabled:opacity-50 mb-8 flex items-center justify-center"
           >
             {loading ? (
