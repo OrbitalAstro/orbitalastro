@@ -60,6 +60,12 @@ export async function POST(request: NextRequest) {
         productId: productId || 'unknown',
         promoCode: promoCode || '',
       },
+      // Forcer l'envoi automatique du reçu par email pour les paiements uniques
+      ...(email && !isSubscription ? {
+        payment_intent_data: {
+          receipt_email: email,
+        },
+      } : {}),
     }
 
     // Obtenir l'instance Stripe
