@@ -24,14 +24,33 @@ export async function GET(request: NextRequest) {
     }
 
     const stripe = getStripe()
-    const session = await stripe.checkout.sessions.retrieve(sessionId)
+    const session = await stripe.checkout.sessions.retrieve(sessionId, {
+      expand: ['line_items'],
+    })
 
     if (session.payment_status === 'paid') {
       const productId = session.metadata?.productId || 'unknown'
+      
+      // Calculer la quantité totale achetée
+      let quantity = 1 // Par défaut, 1 unité
+      if (session.line_items && 'data' in session.line_items) {
+        // Si line_items est une liste
+        quantity = session.line_items.data.reduce((sum, item) => sum + (item.quantity || 1), 0)
+      } else if (session.line_items && Array.isArray(session.line_items)) {
+        // Si line_items est un tableau
+        quantity = session.line_items.reduce((sum: number, item: any) => sum + (item.quantity || 1), 0)
+      }
+      
+      // Récupérer le nombre de générations depuis les métadonnées
+      const generations = parseInt(session.metadata?.generations || '0', 10)
+      
       return NextResponse.json({
         paid: true,
         productId,
         customerEmail: session.customer_email,
+        quantity, // Nombre d'unités achetées
+        generations, // Nombre de générations déjà effectuées
+        sessionId: session.id,
       })
     }
 

@@ -19,7 +19,7 @@ import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
 import { pdf } from '@react-pdf/renderer'
 import DialoguePdf from './DialoguePdf'
-import { checkAccessFromURL, markProductAsPaid } from '@/lib/checkPayment'
+import { checkAccessFromURL, markProductAsPaid, recordGeneration, type AccessResult } from '@/lib/checkPayment'
 import { useRouter } from 'next/navigation'
 
 const FEEDBACK_SURVEY_URL = 'https://forms.gle/eyPRR4Bicf32dCGg6'
@@ -98,6 +98,7 @@ export default function Dialogues() {
   const exportRef = useRef<HTMLDivElement>(null)
   const [hasAccess, setHasAccess] = useState<boolean | null>(null)
   const [checkingAccess, setCheckingAccess] = useState(true)
+  const [accessInfo, setAccessInfo] = useState<AccessResult | null>(null)
   const [birthData, setBirthData] = useState({
     birth_date: settings.defaultBirthDate || '',
     birth_time: settings.defaultBirthTime || '12:00',
@@ -125,11 +126,12 @@ export default function Dialogues() {
       const emailInput = document.querySelector('input[type="email"]') as HTMLInputElement
       const email = emailInput?.value || savedEmail || null
 
-      const access = await checkAccessFromURL('dialogue')
-      setHasAccess(access)
+      const accessResult = await checkAccessFromURL('dialogue')
+      setAccessInfo(accessResult)
+      setHasAccess(accessResult.hasAccess)
       setCheckingAccess(false)
       
-      if (access) {
+      if (accessResult.hasAccess) {
         markProductAsPaid('dialogue')
         // Nettoyer l'URL
         const url = new URL(window.location.href)
@@ -275,9 +277,12 @@ export default function Dialogues() {
     // Sauvegarder l'email pour la vérification
     localStorage.setItem(`last_email_dialogue`, email)
 
-    const access = await checkAccessFromURL('dialogue')
-    if (!access) {
+    const accessResult = await checkAccessFromURL('dialogue')
+    if (!accessResult.hasAccess) {
       // Rediriger vers la page de tarification
+      if (accessResult.quantityRemaining === 0 && accessResult.quantityPurchased > 0) {
+        alert('Vous avez déjà utilisé toutes vos générations. Veuillez commander à nouveau pour générer un autre dialogue.')
+      }
       router.push('/pricing?redirect=dialogue')
       return
     }
@@ -391,6 +396,15 @@ export default function Dialogues() {
       console.log('Dialogue generated successfully')
       setDialogue(dialogueText)
       await sendDialoguePdfByEmail(dialogueText)
+      
+      // Enregistrer la génération
+      const sessionId = accessInfo?.sessionId || localStorage.getItem('session_dialogue')
+      await recordGeneration('dialogue', email, sessionId || undefined)
+      
+      // Mettre à jour l'accès
+      const newAccessResult = await checkAccessFromURL('dialogue')
+      setAccessInfo(newAccessResult)
+      setHasAccess(newAccessResult.hasAccess)
     } catch (error: any) {
       console.error('Error generating dialogue:', error)
       const errorMsg = error.message || 'Erreur inconnue'
@@ -430,19 +444,38 @@ export default function Dialogues() {
               <div className="text-center mb-4">
                 <Sparkles className="h-8 w-8 text-cosmic-gold mx-auto mb-3" />
                 <h3 className="text-xl font-bold text-cosmic-gold mb-2">Découvrez votre dialogue pré-incarnation</h3>
-                <p className="text-cosmic-gold/90 mb-4">
-                  Pour générer un dialogue symbolique unique, commandez ci-dessous.
-                </p>
-                <p className="text-sm text-cosmic-gold/70 mb-6">
-                  Offre de lancement à 9,99$ CAD
-                </p>
+                {accessInfo && accessInfo.quantityPurchased > 0 && accessInfo.quantityRemaining === 0 ? (
+                  <>
+                    <p className="text-cosmic-gold/90 mb-4">
+                      Vous avez déjà utilisé toutes vos générations ({accessInfo.quantityUsed}/{accessInfo.quantityPurchased}).
+                    </p>
+                    <p className="text-cosmic-gold/90 mb-4">
+                      Commandez à nouveau pour générer un autre dialogue.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-cosmic-gold/90 mb-4">
+                      Pour générer un dialogue symbolique unique, commandez ci-dessous.
+                    </p>
+                    <p className="text-sm text-cosmic-gold/70 mb-6">
+                      Offre de lancement à 9,99$ CAD
+                    </p>
+                  </>
+                )}
               </div>
               <button
                 onClick={() => router.push('/pricing?redirect=dialogue')}
                 className="w-full px-6 py-3 bg-gradient-to-r from-cosmic-gold via-rose-gold to-cosmic-gold text-cosmic-purple rounded-lg font-semibold hover:shadow-lg hover:shadow-cosmic-gold/50 transition transform hover:scale-105"
               >
-                Commander maintenant - 9,99$ CAD
+                {accessInfo && accessInfo.quantityPurchased > 0 ? 'Commander à nouveau - 9,99$ CAD' : 'Commander maintenant - 9,99$ CAD'}
               </button>
+            </div>
+          ) : accessInfo && accessInfo.quantityRemaining > 0 ? (
+            <div className="mb-6 p-4 bg-green-500/20 border border-green-400/50 rounded-lg">
+              <p className="text-green-300 text-center">
+                Vous pouvez générer {accessInfo.quantityRemaining} dialogue{accessInfo.quantityRemaining > 1 ? 's' : ''} ({accessInfo.quantityUsed}/{accessInfo.quantityPurchased} utilisé{accessInfo.quantityUsed > 1 ? 's' : ''})
+              </p>
             </div>
           ) : null}
 

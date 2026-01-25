@@ -44,14 +44,43 @@ export async function GET(request: NextRequest) {
     })
 
     // Vérifier si une session payée correspond au produit demandé
+    // Calculer la quantité totale achetée pour ce produit
+    let totalQuantity = 0
+    let lastSessionId: string | null = null
+    
     for (const session of sessions.data) {
       if (session.payment_status === 'paid' && session.metadata?.productId === productId) {
-        return NextResponse.json({
-          paid: true,
-          productId: session.metadata.productId,
-          sessionId: session.id,
-        })
+        lastSessionId = session.id
+        
+        // Récupérer les détails de la session pour obtenir la quantité
+        try {
+          const sessionDetails = await stripe.checkout.sessions.retrieve(session.id, {
+            expand: ['line_items'],
+          })
+          
+          let quantity = 1
+          if (sessionDetails.line_items && 'data' in sessionDetails.line_items) {
+            quantity = sessionDetails.line_items.data.reduce((sum, item) => sum + (item.quantity || 1), 0)
+          } else if (sessionDetails.line_items && Array.isArray(sessionDetails.line_items)) {
+            quantity = sessionDetails.line_items.reduce((sum: number, item: any) => sum + (item.quantity || 1), 0)
+          }
+          
+          totalQuantity += quantity
+        } catch (err) {
+          console.error(`Error retrieving session ${session.id}:`, err)
+          // En cas d'erreur, compter 1 unité par défaut
+          totalQuantity += 1
+        }
       }
+    }
+
+    if (totalQuantity > 0) {
+      return NextResponse.json({
+        paid: true,
+        productId,
+        quantity: totalQuantity, // Nombre total d'unités achetées
+        sessionId: lastSessionId,
+      })
     }
 
     return NextResponse.json({ paid: false })
