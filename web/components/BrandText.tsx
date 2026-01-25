@@ -16,13 +16,14 @@ export default function BrandText({ size = 'lg', className = '' }: BrandTextProp
   }
 
   const opalescentStyle = {
-    background: 'linear-gradient(135deg, #FFE5B4 0%, #FFB6C1 12%, #DDA0DD 25%, #B0E0E6 37%, #F0E68C 50%, #FFA07A 62%, #98D8C8 75%, #FFDAB9 87%, #FFE5B4 100%)',
+    background: 'linear-gradient(135deg, #FFD700 0%, #FF69B4 12%, #DA70D6 25%, #87CEEB 37%, #FFD700 50%, #FF6347 62%, #40E0D0 75%, #FFD700 87%, #FFD700 100%)',
     backgroundSize: '300% 300%',
     WebkitBackgroundClip: 'text',
     WebkitTextFillColor: 'transparent',
     backgroundClip: 'text',
-    filter: 'drop-shadow(0 0 12px rgba(255, 182, 193, 0.5)) drop-shadow(0 0 24px rgba(221, 160, 221, 0.4)) drop-shadow(0 0 36px rgba(176, 224, 230, 0.3))',
-    textShadow: '0 0 20px rgba(255, 182, 193, 0.3)',
+    filter: 'drop-shadow(0 0 15px rgba(255, 215, 0, 0.8)) drop-shadow(0 0 30px rgba(255, 105, 180, 0.6)) drop-shadow(0 0 45px rgba(218, 112, 214, 0.4))',
+    textShadow: '0 0 30px rgba(255, 215, 0, 0.5)',
+    opacity: 1,
   }
 
   return (
