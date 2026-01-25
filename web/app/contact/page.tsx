@@ -59,7 +59,7 @@ export default function ContactPage() {
           </div>
 
           <p className="text-cosmic-gold/90 mb-8 text-center">
-            Une question ? Une suggestion ? Écrivez-nous et nous vous répondrons dans les plus brefs délais.
+            Une question ? Une suggestion ? Écrivez-nous.
           </p>
 
           {status === 'success' ? (
