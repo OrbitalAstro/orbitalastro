@@ -46,13 +46,14 @@ export async function GET(request: NextRequest) {
     // Vérifier si une session payée correspond au produit demandé
     // Calculer la quantité totale achetée pour ce produit
     let totalQuantity = 0
+    let totalGenerations = 0
     let lastSessionId: string | null = null
     
     for (const session of sessions.data) {
       if (session.payment_status === 'paid' && session.metadata?.productId === productId) {
         lastSessionId = session.id
         
-        // Récupérer les détails de la session pour obtenir la quantité
+        // Récupérer les détails de la session pour obtenir la quantité et les générations
         try {
           const sessionDetails = await stripe.checkout.sessions.retrieve(session.id, {
             expand: ['line_items'],
@@ -66,6 +67,10 @@ export async function GET(request: NextRequest) {
           }
           
           totalQuantity += quantity
+          
+          // Récupérer les générations depuis les métadonnées
+          const generations = parseInt(sessionDetails.metadata?.generations || '0', 10)
+          totalGenerations += generations
         } catch (err) {
           console.error(`Error retrieving session ${session.id}:`, err)
           // En cas d'erreur, compter 1 unité par défaut
@@ -79,6 +84,7 @@ export async function GET(request: NextRequest) {
         paid: true,
         productId,
         quantity: totalQuantity, // Nombre total d'unités achetées
+        generations: totalGenerations, // Nombre total de générations effectuées
         sessionId: lastSessionId,
       })
     }

@@ -80,10 +80,8 @@ export async function checkProductAccess(
 
       if (data.paid) {
         const quantityPurchased = data.quantity || 1
-        // Pour l'email, on doit récupérer le nombre de générations depuis toutes les sessions
-        // Pour simplifier, on utilise le localStorage comme cache
-        const cachedUsed = parseInt(localStorage.getItem(`used_${productId}`) || '0', 10)
-        const quantityRemaining = quantityPurchased - cachedUsed
+        const quantityUsed = data.generations || 0
+        const quantityRemaining = quantityPurchased - quantityUsed
         
         // Mettre en cache
         localStorage.setItem(`paid_${productId}`, 'true')
