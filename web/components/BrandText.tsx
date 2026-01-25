@@ -16,14 +16,14 @@ export default function BrandText({ size = 'lg', className = '' }: BrandTextProp
   }
 
   const getOpalescentStyle = () => ({
-    color: '#B0E0E6', // Silver blue comme couleur de base
+    color: '#E6E6FA', // Lavender comme couleur de base pour équilibrer
     textShadow: `
-      0 0 8px rgba(176, 224, 230, 0.7),
-      0 0 16px rgba(230, 230, 250, 0.5),
-      0 0 24px rgba(221, 160, 221, 0.4),
-      0 0 32px rgba(255, 127, 80, 0.3)
+      0 0 8px rgba(255, 127, 80, 0.6),
+      0 0 16px rgba(221, 160, 221, 0.5),
+      0 0 24px rgba(175, 238, 238, 0.4),
+      0 0 32px rgba(176, 224, 230, 0.3)
     `,
-    filter: 'drop-shadow(0 0 6px rgba(176, 224, 230, 0.6)) drop-shadow(0 0 12px rgba(230, 230, 250, 0.4))',
+    filter: 'drop-shadow(0 0 6px rgba(255, 127, 80, 0.5)) drop-shadow(0 0 12px rgba(221, 160, 221, 0.4))',
     opacity: 1,
     display: 'inline-block',
   })
@@ -43,11 +43,11 @@ export default function BrandText({ size = 'lg', className = '' }: BrandTextProp
         }}
         animate={{
           textShadow: [
-            '0 0 8px rgba(176, 224, 230, 0.7), 0 0 16px rgba(230, 230, 250, 0.5), 0 0 24px rgba(221, 160, 221, 0.4), 0 0 32px rgba(255, 127, 80, 0.3)',
-            '0 0 8px rgba(230, 230, 250, 0.7), 0 0 16px rgba(221, 160, 221, 0.5), 0 0 24px rgba(255, 127, 80, 0.4), 0 0 32px rgba(176, 196, 222, 0.3)',
-            '0 0 8px rgba(221, 160, 221, 0.7), 0 0 16px rgba(255, 127, 80, 0.5), 0 0 24px rgba(176, 196, 222, 0.4), 0 0 32px rgba(176, 224, 230, 0.3)',
-            '0 0 8px rgba(255, 127, 80, 0.7), 0 0 16px rgba(176, 196, 222, 0.5), 0 0 24px rgba(176, 224, 230, 0.4), 0 0 32px rgba(230, 230, 250, 0.3)',
-            '0 0 8px rgba(176, 224, 230, 0.7), 0 0 16px rgba(230, 230, 250, 0.5), 0 0 24px rgba(221, 160, 221, 0.4), 0 0 32px rgba(255, 127, 80, 0.3)',
+            '0 0 8px rgba(255, 127, 80, 0.6), 0 0 16px rgba(221, 160, 221, 0.5), 0 0 24px rgba(175, 238, 238, 0.4), 0 0 32px rgba(176, 224, 230, 0.3)',
+            '0 0 8px rgba(221, 160, 221, 0.6), 0 0 16px rgba(175, 238, 238, 0.5), 0 0 24px rgba(176, 224, 230, 0.4), 0 0 32px rgba(255, 127, 80, 0.3)',
+            '0 0 8px rgba(175, 238, 238, 0.6), 0 0 16px rgba(176, 224, 230, 0.5), 0 0 24px rgba(255, 127, 80, 0.4), 0 0 32px rgba(221, 160, 221, 0.3)',
+            '0 0 8px rgba(176, 224, 230, 0.6), 0 0 16px rgba(255, 127, 80, 0.5), 0 0 24px rgba(221, 160, 221, 0.4), 0 0 32px rgba(175, 238, 238, 0.3)',
+            '0 0 8px rgba(255, 127, 80, 0.6), 0 0 16px rgba(221, 160, 221, 0.5), 0 0 24px rgba(175, 238, 238, 0.4), 0 0 32px rgba(176, 224, 230, 0.3)',
           ],
         }}
         transition={{
@@ -69,11 +69,11 @@ export default function BrandText({ size = 'lg', className = '' }: BrandTextProp
         }}
         animate={{
           textShadow: [
-            '0 0 8px rgba(176, 224, 230, 0.7), 0 0 16px rgba(230, 230, 250, 0.5), 0 0 24px rgba(221, 160, 221, 0.4), 0 0 32px rgba(255, 127, 80, 0.3)',
-            '0 0 8px rgba(230, 230, 250, 0.7), 0 0 16px rgba(221, 160, 221, 0.5), 0 0 24px rgba(255, 127, 80, 0.4), 0 0 32px rgba(176, 196, 222, 0.3)',
-            '0 0 8px rgba(221, 160, 221, 0.7), 0 0 16px rgba(255, 127, 80, 0.5), 0 0 24px rgba(176, 196, 222, 0.4), 0 0 32px rgba(176, 224, 230, 0.3)',
-            '0 0 8px rgba(255, 127, 80, 0.7), 0 0 16px rgba(176, 196, 222, 0.5), 0 0 24px rgba(176, 224, 230, 0.4), 0 0 32px rgba(230, 230, 250, 0.3)',
-            '0 0 8px rgba(176, 224, 230, 0.7), 0 0 16px rgba(230, 230, 250, 0.5), 0 0 24px rgba(221, 160, 221, 0.4), 0 0 32px rgba(255, 127, 80, 0.3)',
+            '0 0 8px rgba(255, 127, 80, 0.6), 0 0 16px rgba(221, 160, 221, 0.5), 0 0 24px rgba(175, 238, 238, 0.4), 0 0 32px rgba(176, 224, 230, 0.3)',
+            '0 0 8px rgba(221, 160, 221, 0.6), 0 0 16px rgba(175, 238, 238, 0.5), 0 0 24px rgba(176, 224, 230, 0.4), 0 0 32px rgba(255, 127, 80, 0.3)',
+            '0 0 8px rgba(175, 238, 238, 0.6), 0 0 16px rgba(176, 224, 230, 0.5), 0 0 24px rgba(255, 127, 80, 0.4), 0 0 32px rgba(221, 160, 221, 0.3)',
+            '0 0 8px rgba(176, 224, 230, 0.6), 0 0 16px rgba(255, 127, 80, 0.5), 0 0 24px rgba(221, 160, 221, 0.4), 0 0 32px rgba(175, 238, 238, 0.3)',
+            '0 0 8px rgba(255, 127, 80, 0.6), 0 0 16px rgba(221, 160, 221, 0.5), 0 0 24px rgba(175, 238, 238, 0.4), 0 0 32px rgba(176, 224, 230, 0.3)',
           ],
         }}
         transition={{
