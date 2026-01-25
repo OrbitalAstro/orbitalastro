@@ -49,7 +49,7 @@ export default function LandingPage() {
       {/* HERO SECTION */}
       <section className="relative min-h-screen flex items-center justify-center px-4 pt-16">
         {/* Brand Text - Logo style */}
-        <div className="absolute top-24 md:top-32 left-1/2 transform -translate-x-1/2 z-20">
+        <div className="absolute top-24 md:top-32 left-1/2 transform -translate-x-1/2 z-20 overflow-visible w-full max-w-full">
           <BrandText size="lg" />
         </div>
         
