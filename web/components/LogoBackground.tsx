@@ -13,7 +13,7 @@ export default function LogoBackground({ opacity = 0.15, className = '' }: LogoB
       <div className="absolute inset-0 flex items-center justify-center">
         <motion.svg
           viewBox="0 0 400 400"
-          className="w-full h-full max-w-4xl max-h-4xl"
+          className="w-full h-full max-w-7xl max-h-7xl"
           animate={{ rotate: 360 }}
           transition={{ duration: 120, repeat: Infinity, ease: "linear" }}
         >
