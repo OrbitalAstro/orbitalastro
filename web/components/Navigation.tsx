@@ -9,6 +9,7 @@ import {
   CreditCard,
   Settings, 
   Info,
+  Mail,
   Menu,
   X
 } from 'lucide-react'
@@ -65,7 +66,7 @@ export default function Navigation() {
                 </Link>
               ))}
               
-              {/* Settings and About */}
+              {/* Settings, About and Contact */}
               <div className="flex items-center gap-2 ml-2 pl-2 border-l border-white/10">
                 <Link
                   href="/settings"
@@ -91,6 +92,18 @@ export default function Navigation() {
                   `}
                 >
                   {t.nav.about}
+                </Link>
+                <Link
+                  href="/contact"
+                  className={`
+                    px-3 py-2 rounded-lg text-sm font-medium transition-all
+                    ${isActive('/contact')
+                      ? 'bg-white/10 text-white'
+                      : 'text-white/70 hover:text-white hover:bg-white/10'
+                    }
+                  `}
+                >
+                  {t.nav.contact}
                 </Link>
               </div>
             </div>
@@ -184,6 +197,20 @@ export default function Navigation() {
                     >
                       <Info className="h-5 w-5 text-cosmic-gold" />
                       <span className="font-medium">{t.nav.about}</span>
+                    </Link>
+                    <Link
+                      href="/contact"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={`
+                        flex items-center gap-3 p-3 rounded-lg transition text-white
+                        ${isActive('/contact')
+                          ? 'bg-white/10'
+                          : 'hover:bg-white/10'
+                        }
+                      `}
+                    >
+                      <Mail className="h-5 w-5 text-cosmic-gold" />
+                      <span className="font-medium">{t.nav.contact}</span>
                     </Link>
                   </div>
                 </nav>

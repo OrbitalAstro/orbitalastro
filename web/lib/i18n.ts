@@ -27,6 +27,7 @@ export const translations = {
       pricing: "Pricing",
       settings: "Settings",
       about: "About",
+      contact: "Contact",
       beginJourney: "Begin Journey",
     },
     home: {
@@ -363,6 +364,7 @@ export const translations = {
       pricing: "Tarifs",
       settings: "Paramètres",
       about: "À propos",
+      contact: "Contact",
       beginJourney: "Commencer",
     },
     home: {
@@ -681,6 +683,7 @@ export const translations = {
       pricing: "Precios",
       settings: "Configuración",
       about: "Acerca de",
+      contact: "Contacto",
       beginJourney: "Comenzar",
     },
     home: {
