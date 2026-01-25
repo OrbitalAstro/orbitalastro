@@ -46,16 +46,10 @@ export default function BrandText({ size = 'lg', className = '' }: BrandTextProp
           ...getOpalescentStyle(),
         }}
         animate={{
-          textShadow: [
-            '0 0 8px rgba(255, 127, 80, 0.6), 0 0 16px rgba(221, 160, 221, 0.5), 0 0 24px rgba(175, 238, 238, 0.4), 0 0 32px rgba(176, 224, 230, 0.3)',
-            '0 0 8px rgba(221, 160, 221, 0.6), 0 0 16px rgba(175, 238, 238, 0.5), 0 0 24px rgba(176, 224, 230, 0.4), 0 0 32px rgba(255, 127, 80, 0.3)',
-            '0 0 8px rgba(175, 238, 238, 0.6), 0 0 16px rgba(176, 224, 230, 0.5), 0 0 24px rgba(255, 127, 80, 0.4), 0 0 32px rgba(221, 160, 221, 0.3)',
-            '0 0 8px rgba(176, 224, 230, 0.6), 0 0 16px rgba(255, 127, 80, 0.5), 0 0 24px rgba(221, 160, 221, 0.4), 0 0 32px rgba(175, 238, 238, 0.3)',
-            '0 0 8px rgba(255, 127, 80, 0.6), 0 0 16px rgba(221, 160, 221, 0.5), 0 0 24px rgba(175, 238, 238, 0.4), 0 0 32px rgba(176, 224, 230, 0.3)',
-          ],
+          backgroundPosition: ['0% 0%', '100% 100%', '0% 0%'],
         }}
         transition={{
-          duration: 8,
+          duration: 10,
           repeat: Infinity,
           ease: 'linear',
         }}
@@ -72,16 +66,10 @@ export default function BrandText({ size = 'lg', className = '' }: BrandTextProp
           ...getOpalescentStyle(),
         }}
         animate={{
-          textShadow: [
-            '0 0 8px rgba(255, 127, 80, 0.6), 0 0 16px rgba(221, 160, 221, 0.5), 0 0 24px rgba(175, 238, 238, 0.4), 0 0 32px rgba(176, 224, 230, 0.3)',
-            '0 0 8px rgba(221, 160, 221, 0.6), 0 0 16px rgba(175, 238, 238, 0.5), 0 0 24px rgba(176, 224, 230, 0.4), 0 0 32px rgba(255, 127, 80, 0.3)',
-            '0 0 8px rgba(175, 238, 238, 0.6), 0 0 16px rgba(176, 224, 230, 0.5), 0 0 24px rgba(255, 127, 80, 0.4), 0 0 32px rgba(221, 160, 221, 0.3)',
-            '0 0 8px rgba(176, 224, 230, 0.6), 0 0 16px rgba(255, 127, 80, 0.5), 0 0 24px rgba(221, 160, 221, 0.4), 0 0 32px rgba(175, 238, 238, 0.3)',
-            '0 0 8px rgba(255, 127, 80, 0.6), 0 0 16px rgba(221, 160, 221, 0.5), 0 0 24px rgba(175, 238, 238, 0.4), 0 0 32px rgba(176, 224, 230, 0.3)',
-          ],
+          backgroundPosition: ['0% 0%', '100% 100%', '0% 0%'],
         }}
         transition={{
-          duration: 8,
+          duration: 10,
           repeat: Infinity,
           ease: 'linear',
         }}
