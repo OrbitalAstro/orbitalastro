@@ -15,16 +15,24 @@ export default function BrandText({ size = 'lg', className = '' }: BrandTextProp
     xl: 'text-9xl',
   }
 
-  const opalescentStyle = {
-    background: 'linear-gradient(135deg, #FFD700 0%, #FF69B4 12%, #DA70D6 25%, #87CEEB 37%, #FFD700 50%, #FF6347 62%, #40E0D0 75%, #FFD700 87%, #FFD700 100%)',
+  const getOpalescentStyle = (isAnimating: boolean) => ({
+    color: '#FFD700',
+    textShadow: `
+      0 0 10px rgba(255, 215, 0, 0.8),
+      0 0 20px rgba(255, 105, 180, 0.6),
+      0 0 30px rgba(218, 112, 214, 0.5),
+      0 0 40px rgba(135, 206, 235, 0.4),
+      0 0 50px rgba(255, 99, 71, 0.3),
+      0 0 60px rgba(64, 224, 208, 0.2)
+    `,
+    filter: 'drop-shadow(0 0 8px rgba(255, 215, 0, 0.6))',
+    background: isAnimating ? 'linear-gradient(135deg, #FFD700 0%, #FF69B4 12%, #DA70D6 25%, #87CEEB 37%, #FFD700 50%, #FF6347 62%, #40E0D0 75%, #FFD700 87%, #FFD700 100%)' : 'linear-gradient(135deg, #FFD700, #FF69B4, #DA70D6, #87CEEB, #FFD700, #FF6347, #40E0D0, #FFD700)',
     backgroundSize: '300% 300%',
     WebkitBackgroundClip: 'text',
     WebkitTextFillColor: 'transparent',
     backgroundClip: 'text',
-    filter: 'drop-shadow(0 0 15px rgba(255, 215, 0, 0.8)) drop-shadow(0 0 30px rgba(255, 105, 180, 0.6)) drop-shadow(0 0 45px rgba(218, 112, 214, 0.4))',
-    textShadow: '0 0 30px rgba(255, 215, 0, 0.5)',
     opacity: 1,
-  }
+  })
 
   return (
     <div className={`flex flex-col items-center justify-center ${className} overflow-visible`}>
@@ -37,7 +45,7 @@ export default function BrandText({ size = 'lg', className = '' }: BrandTextProp
           letterSpacing: '0.02em',
           padding: '0.2em 0.5em',
           display: 'inline-block',
-          ...opalescentStyle,
+          ...getOpalescentStyle(true),
         }}
         animate={{
           backgroundPosition: ['0% 0%', '100% 100%', '0% 0%'],
@@ -57,7 +65,7 @@ export default function BrandText({ size = 'lg', className = '' }: BrandTextProp
         style={{
           fontSize: size === 'sm' ? '1.2rem' : size === 'md' ? '2rem' : size === 'lg' ? '2.8rem' : '4rem',
           letterSpacing: '0.15em',
-          ...opalescentStyle,
+          ...getOpalescentStyle(true),
         }}
         animate={{
           backgroundPosition: ['0% 0%', '100% 100%', '0% 0%'],
