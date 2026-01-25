@@ -291,14 +291,14 @@ Objectif de la lecture :
 
 [STRUCTURE À RESPECTER]
 
-1) ✨ Synthèse générale
+1) Synthèse générale
 En 1–3 paragraphes :
 - Donne le ton global de l'année 2026 pour [PRÉNOM].
 - Explique que cette année est une phase d'évolution : intégration de ce qui a été travaillé dans les années précédentes, libération de certains anciens modes de fonctionnement.
 - Appuie-toi sur les transits lents (Saturne, Uranus, Neptune, Pluton) et sur les maisons/signes qu'ils activent pour décrire les grands thèmes (ex. travail, vie intérieure, relations, mission, famille, etc.).
 - Garde un langage simple : parle de « cycle », « période », « étape », jamais de destin figé.
 
-2) 🪶 Les grandes dynamiques de croissance
+2) Les grandes dynamiques de croissance
 Crée 2 à 3 sous-sections numérotées.
 Chaque sous-section met en lumière un transit majeur et ce qu'il propose comme apprentissage.
 
@@ -309,14 +309,14 @@ Par exemple (à adapter selon les transits reçus) :
 
 (Adapte le nombre exact de sous-sections, le nom des titres et les thèmes selon les transits fournis.)
 
-3) 🌙 Les cycles intérieurs : Lune, émotions et guérison
+3) Les cycles intérieurs : Lune, émotions et guérison
 À partir de la Lune natale (signe, maison, aspects) et des transits importants :
 - Décris la manière dont [PRÉNOM] ressent, réagit et se sécurise émotionnellement.
 - Explique comment 2026 l'encourage à plus de bienveillance envers lui/elle-même (dans le style qui convient à sa personnalité : doux, direct, imagé, etc.).
 - Parle des besoins émotionnels clés de l'année : besoin de repos, de relations plus justes, de créativité, de profondeur, de légèreté… selon la carte.
 - Mentionne comment certains transits peuvent soutenir une forme de guérison intérieure (prise de conscience, nouveau regard sur le passé, lâcher prise, etc.).
 
-4) 💎 Mission de vie (Nœud Nord et maisons reliées à la vocation)
+4) Mission de vie (Nœud Nord et maisons reliées à la vocation)
 Appuie-toi sur :
 - Le Nœud Nord (signe, maison, aspects).
 - Les maisons liées à la mission / direction (souvent maison 10, maison 11, maison 6, MC, selon les données).
@@ -326,14 +326,14 @@ Explique :
 - Comment les transits de 2026 (surtout Saturne, Neptune, Jupiter, Pluton, selon les cas) activent ce chemin.
 - Donne des exemples concrets de domaines ou types de contributions : ambiance générale, pas de prédictions précises (par ex. « tu pourrais te sentir appelé·e à… », « cette année t'encourage à… »).
 
-5) 🌸 Image symbolique de ton année 2026
+5) Image symbolique de ton année 2026
 Propose une image simple et parlante, adaptée à la personnalité et au climat des transits :
 - ex. un jardin qui prend racine, un pont entre deux rives, une lanterne dans la nuit, une vague qui se retire pour revenir plus claire, etc.
 
 En quelques phrases :
 - Explique ce que cette image symbolise pour [PRÉNOM] : intégration, floraison, passage, recentrage, libération, etc.
 
-6) 💫 En résumé
+6) En résumé
 Termine avec 3 à 5 puces synthétiques qui résument :
 - Les grandes invitations de l'année (authenticité, responsabilité, liberté, guérison, etc.).
 - Les axes principaux d'évolution (mission, relations, monde intérieur, corps, créativité, etc.).
@@ -344,7 +344,7 @@ Termine avec 3 à 5 puces synthétiques qui résument :
 - Utilise des formulations comme : « tu pourrais ressentir… », « cette année t'invite à… », « c'est un temps pour… ».
 - Reste psychologique et symbolique, sans jargon technique excessif (tu peux nommer les planètes et les maisons, mais en expliquant le vécu derrière).
 - Termine par une phrase douce, par exemple :
-  « Prends ce qui résonne et laisse le reste. 🌙 »
+  « Prends ce qui résonne et laisse le reste. »
 
 [RÈGLE TYPO — STRICTE — OBLIGATOIRE]
 

@@ -91,6 +91,16 @@ export default function LandingPage() {
                   {t.reading2026.title}
                 </motion.button>
               </Link>
+
+              <Link href="/pricing">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="px-10 py-4 bg-gradient-to-r from-purple-600/20 to-pink-600/20 backdrop-blur-sm text-white rounded-xl font-semibold text-lg border border-purple-500/40 hover:bg-purple-600/30 hover:border-purple-500/60 transition"
+                >
+                  {t.nav.pricing}
+                </motion.button>
+              </Link>
             </div>
           </motion.div>
         </motion.div>
@@ -113,6 +123,7 @@ export default function LandingPage() {
                 <li><Link href="/dialogues" className="hover:text-cosmic-gold transition text-base">{t.dialogues.title}</Link></li>
                 <li><Link href="/reading-2026" className="hover:text-cosmic-gold transition text-base">{t.reading2026.title}</Link></li>
                 <li><Link href="/saint-valentin" className="hover:text-cosmic-gold transition text-base">{t.valentine.title}</Link></li>
+                <li><Link href="/pricing" className="hover:text-cosmic-gold transition text-base">{t.nav.pricing}</Link></li>
               </ul>
             </div>
 

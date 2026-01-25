@@ -6,6 +6,7 @@ import {
   MessageSquare, 
   Calendar,
   Heart,
+  CreditCard,
   Settings, 
   Info,
   Menu,
@@ -25,6 +26,7 @@ export default function Navigation() {
     { href: '/dialogues', label: t.nav.dialogues, icon: MessageSquare },
     { href: '/reading-2026', label: t.nav.reading2026, icon: Calendar },
     { href: '/saint-valentin', label: t.nav.valentine, icon: Heart },
+    { href: '/pricing', label: t.nav.pricing, icon: CreditCard },
   ]
 
   const isActive = (href: string) => {

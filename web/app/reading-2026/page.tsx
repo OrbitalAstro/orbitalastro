@@ -15,10 +15,17 @@ import { formatBirthDateInput } from '@/lib/sanitizeBirthDateYear'
 import { useTranslation } from '@/lib/useTranslation'
 import { pdf } from '@react-pdf/renderer'
 import Reading2026Pdf from './Reading2026Pdf'
+import { checkAccessFromURL, markProductAsPaid } from '@/lib/checkPayment'
+import { useRouter } from 'next/navigation'
+import { useEffect } from 'react'
+import { cleanText } from '@/lib/cleanText'
 
 export default function Reading2026Page() {
   const settings = useSettingsStore()
   const t = useTranslation()
+  const router = useRouter()
+  const [hasAccess, setHasAccess] = useState<boolean | null>(null)
+  const [checkingAccess, setCheckingAccess] = useState(true)
   const [birthData, setBirthData] = useState({
     birth_date: settings.defaultBirthDate || '',
     birth_time: settings.defaultBirthTime || '12:00',
@@ -34,6 +41,30 @@ export default function Reading2026Page() {
   const [loading, setLoading] = useState(false)
   const [emailStatus, setEmailStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
   const [downloading, setDownloading] = useState(false)
+
+  // Vérifier l'accès au chargement de la page
+  useEffect(() => {
+    const checkAccess = async () => {
+      // Récupérer l'email depuis localStorage ou le formulaire
+      const savedEmail = localStorage.getItem('last_email_reading-2026')
+      const emailInput = document.querySelector('input[type="email"]') as HTMLInputElement
+      const email = emailInput?.value || savedEmail || null
+
+      const access = await checkAccessFromURL('reading-2026')
+      setHasAccess(access)
+      setCheckingAccess(false)
+      
+      if (access) {
+        markProductAsPaid('reading-2026')
+        // Nettoyer l'URL
+        const url = new URL(window.location.href)
+        url.searchParams.delete('purchased')
+        url.searchParams.delete('session_id')
+        window.history.replaceState({}, '', url.toString())
+      }
+    }
+    checkAccess()
+  }, [])
 
   const resetForm = () => {
     setBirthData({
@@ -82,6 +113,23 @@ export default function Reading2026Page() {
   }
 
   const handleGenerateReading = async () => {
+    // Vérifier l'accès avant de générer
+    const email = birthData.email?.trim() || null
+    if (!email) {
+      alert(t.reading2026.validationEmailRequired)
+      return
+    }
+
+    // Sauvegarder l'email pour la vérification
+    localStorage.setItem(`last_email_reading-2026`, email)
+
+    const access = await checkAccessFromURL('reading-2026')
+    if (!access) {
+      // Rediriger vers la page de tarification
+      router.push('/pricing?redirect=reading-2026')
+      return
+    }
+
     setEmailStatus('idle')
     setLoading(true)
     try {
@@ -223,9 +271,10 @@ export default function Reading2026Page() {
       }
 
       const readingText = response.data?.content || ''
+      const cleanedText = cleanText(readingText)
 
-      setReading(readingText)
-      await sendReadingPdfByEmail(readingText)
+      setReading(cleanedText)
+      await sendReadingPdfByEmail(cleanedText)
     } catch (error: any) {
       console.error('Error generating reading:', error)
       const errorMsg = error.message || 'Erreur inconnue'
@@ -305,10 +354,36 @@ export default function Reading2026Page() {
             {t.reading2026.description}
           </p>
 
+          {/* Message de paiement requis */}
+          {checkingAccess ? (
+            <div className="mb-6 p-4 bg-cosmic-gold/20 border border-cosmic-gold/50 rounded-lg">
+              <p className="text-cosmic-gold text-center">Vérification de l'accès...</p>
+            </div>
+          ) : !hasAccess ? (
+            <div className="mb-6 p-6 bg-gradient-to-br from-cosmic-purple/40 to-magenta-purple/40 border border-cosmic-gold/30 rounded-xl backdrop-blur-sm">
+              <div className="text-center mb-4">
+                <Calendar className="h-8 w-8 text-cosmic-gold mx-auto mb-3" />
+                <h3 className="text-xl font-bold text-cosmic-gold mb-2">Explorez votre année 2026</h3>
+                <p className="text-cosmic-gold/90 mb-4">
+                  Pour recevoir votre lecture astrologique personnalisée pour 2026, commandez votre accès ci-dessous.
+                </p>
+                <p className="text-sm text-cosmic-gold/70 mb-6">
+                  Offre de lancement à 9,99$ CAD
+                </p>
+              </div>
+              <button
+                onClick={() => router.push('/pricing?redirect=reading-2026')}
+                className="w-full px-6 py-3 bg-gradient-to-r from-cosmic-gold via-rose-gold to-cosmic-gold text-cosmic-purple rounded-lg font-semibold hover:shadow-lg hover:shadow-cosmic-gold/50 transition transform hover:scale-105"
+              >
+                Commander maintenant - 9,99$ CAD
+              </button>
+            </div>
+          ) : null}
+
           {!reading ? (
             <>
               {/* Input Form */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8 relative z-40">
+              <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 mb-8 relative z-40 ${!hasAccess ? 'opacity-50 pointer-events-none' : ''}`}>
                 <div>
                   <label className="block text-sm font-medium text-cosmic-gold mb-2">
                     {t.reading2026.firstName}
@@ -395,7 +470,7 @@ export default function Reading2026Page() {
               <div className="mt-12 mb-4">
                 <button
                   onClick={handleGenerateReading}
-                  disabled={loading || !birthData.birth_date}
+                  disabled={loading || !birthData.birth_date || !hasAccess || checkingAccess}
                   className="w-full px-6 py-3 bg-gradient-to-r from-cosmic-gold via-rose-gold to-cosmic-gold text-cosmic-purple rounded-lg font-semibold hover:shadow-lg transition disabled:opacity-50 flex items-center justify-center relative z-20"
                 >
                 {loading ? (

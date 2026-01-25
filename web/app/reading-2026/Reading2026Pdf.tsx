@@ -162,8 +162,21 @@ type Block =
   | { type: 'bullet'; text: string }
   | { type: 'paragraph'; text: string }
 
+// Fonction pour nettoyer le texte : retirer astérisques et émoticônes
+function cleanText(text: string): string {
+  if (!text) return ''
+  // Retirer les astérisques (***, **, *, * * *)
+  let cleaned = text.replace(/\*{1,3}/g, '').replace(/\*\s*\*\s*\*/g, '')
+  // Retirer tous les émoticônes courants
+  cleaned = cleaned.replace(/[\u{1F300}-\u{1F9FF}]/gu, '') // Émoticônes Unicode
+  cleaned = cleaned.replace(/[\u{2600}-\u{26FF}]/gu, '') // Symboles divers
+  cleaned = cleaned.replace(/[\u{2700}-\u{27BF}]/gu, '') // Symboles décoratifs
+  cleaned = cleaned.replace(/[💎🔥🤖✨🌙🧠💻🤝💫🪶🌸]/gu, '') // Émoticônes spécifiques
+  return cleaned.trim()
+}
+
 function parseBlocks(markdown: string): Block[] {
-  const text = (markdown || '').replace(/\r\n/g, '\n').trim()
+  const text = cleanText((markdown || '').replace(/\r\n/g, '\n')).trim()
   if (!text) return []
 
   const blocks: Block[] = []
