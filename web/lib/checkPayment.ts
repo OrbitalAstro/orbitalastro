@@ -13,15 +13,7 @@ export async function checkProductAccess(
   email?: string | null,
   sessionId?: string | null
 ): Promise<boolean> {
-  // Vérifier dans localStorage (cache local)
-  const storedAccess = localStorage.getItem(`paid_${productId}`)
-  if (storedAccess === 'true') {
-    // Si on a l'accès en cache, l'accorder directement
-    // (on peut ajouter une vérification DB plus tard si nécessaire)
-    return true
-  }
-
-  // Si une session_id est fournie, vérifier avec Stripe d'abord
+  // PRIORITÉ 1: Si une session_id est fournie, TOUJOURS vérifier avec Stripe
   if (sessionId) {
     try {
       console.log(`[checkPayment] Vérification du paiement pour ${productId} avec session_id: ${sessionId}`)
@@ -30,21 +22,60 @@ export async function checkProductAccess(
       console.log(`[checkPayment] Réponse Stripe:`, data)
 
       if (data.paid && data.productId === productId) {
-        // Si Stripe confirme le paiement, accorder l'accès immédiatement
+        // Si Stripe confirme le paiement, accorder l'accès et mettre en cache
         console.log(`[checkPayment] Paiement confirmé, accès accordé pour ${productId}`)
         localStorage.setItem(`paid_${productId}`, 'true')
         return true
       } else {
+        // Si Stripe dit que le paiement n'est pas valide, retirer du cache
         console.log(`[checkPayment] Paiement non confirmé ou produit incorrect. paid: ${data.paid}, productId: ${data.productId}, attendu: ${productId}`)
+        localStorage.removeItem(`paid_${productId}`)
+        return false
       }
     } catch (error) {
       console.error('[checkPayment] Erreur lors de la vérification du paiement:', error)
+      return false
     }
   }
 
-  // Si on arrive ici, pas d'accès trouvé
-  // (on peut ajouter une vérification DB plus tard si nécessaire)
+  // PRIORITÉ 2: Si un email est fourni, vérifier avec Stripe via l'email
+  if (email) {
+    try {
+      console.log(`[checkPayment] Vérification du paiement pour ${productId} avec email: ${email}`)
+      const response = await fetch(`/api/stripe/verify-email?email=${encodeURIComponent(email)}&productId=${productId}`)
+      const data = await response.json()
+      console.log(`[checkPayment] Réponse Stripe (email):`, data)
 
+      if (data.paid) {
+        // Si Stripe confirme le paiement, accorder l'accès et mettre en cache
+        console.log(`[checkPayment] Paiement confirmé via email, accès accordé pour ${productId}`)
+        localStorage.setItem(`paid_${productId}`, 'true')
+        return true
+      } else {
+        // Si Stripe dit que le paiement n'est pas valide, retirer du cache
+        console.log(`[checkPayment] Pas de paiement trouvé pour cet email`)
+        localStorage.removeItem(`paid_${productId}`)
+        return false
+      }
+    } catch (error) {
+      console.error('[checkPayment] Erreur lors de la vérification du paiement par email:', error)
+      // En cas d'erreur, ne pas faire confiance au cache
+      localStorage.removeItem(`paid_${productId}`)
+      return false
+    }
+  }
+
+  // PRIORITÉ 3: Si pas de session_id ni d'email, vérifier le cache localStorage
+  // MAIS seulement comme fallback temporaire - idéalement on devrait toujours avoir un email
+  const storedAccess = localStorage.getItem(`paid_${productId}`)
+  if (storedAccess === 'true') {
+    console.log(`[checkPayment] Accès trouvé dans le cache pour ${productId} (sans vérification Stripe)`)
+    // ATTENTION: Ceci est un fallback temporaire. En production, on devrait toujours vérifier avec Stripe.
+    // Pour l'instant, on retourne false pour forcer la vérification avec Stripe
+    return false
+  }
+
+  // Si on arrive ici, pas d'accès trouvé
   return false
 }
 
