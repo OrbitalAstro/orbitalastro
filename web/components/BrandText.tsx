@@ -17,16 +17,17 @@ export default function BrandText({ size = 'lg', className = '' }: BrandTextProp
 
   const getOpalescentStyle = () => ({
     color: '#FFD700',
-    background: 'linear-gradient(135deg, #FFD700 0%, #FF69B4 12%, #DA70D6 25%, #87CEEB 37%, #FFD700 50%, #FF6347 62%, #40E0D0 75%, #FFD700 87%, #FFD700 100%)',
-    backgroundSize: '300% 300%',
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-    backgroundClip: 'text',
-    textShadow: '0 0 20px rgba(255, 215, 0, 0.6), 0 0 40px rgba(255, 105, 180, 0.4), 0 0 60px rgba(218, 112, 214, 0.3)',
-    filter: 'drop-shadow(0 0 8px rgba(255, 215, 0, 0.5))',
+    textShadow: `
+      0 0 10px rgba(255, 215, 0, 0.9),
+      0 0 20px rgba(255, 105, 180, 0.7),
+      0 0 30px rgba(218, 112, 214, 0.6),
+      0 0 40px rgba(135, 206, 235, 0.5),
+      0 0 50px rgba(255, 99, 71, 0.4),
+      0 0 60px rgba(64, 224, 208, 0.3)
+    `,
+    filter: 'drop-shadow(0 0 10px rgba(255, 215, 0, 0.8)) drop-shadow(0 0 20px rgba(255, 105, 180, 0.6))',
     opacity: 1,
     display: 'inline-block',
-    mixBlendMode: 'screen',
   })
 
   return (
@@ -43,10 +44,15 @@ export default function BrandText({ size = 'lg', className = '' }: BrandTextProp
           ...getOpalescentStyle(),
         }}
         animate={{
-          backgroundPosition: ['0% 0%', '100% 100%', '0% 0%'],
+          textShadow: [
+            '0 0 10px rgba(255, 215, 0, 0.9), 0 0 20px rgba(255, 105, 180, 0.7), 0 0 30px rgba(218, 112, 214, 0.6), 0 0 40px rgba(135, 206, 235, 0.5)',
+            '0 0 10px rgba(255, 105, 180, 0.9), 0 0 20px rgba(218, 112, 214, 0.7), 0 0 30px rgba(135, 206, 235, 0.6), 0 0 40px rgba(255, 99, 71, 0.5)',
+            '0 0 10px rgba(218, 112, 214, 0.9), 0 0 20px rgba(135, 206, 235, 0.7), 0 0 30px rgba(255, 99, 71, 0.6), 0 0 40px rgba(64, 224, 208, 0.5)',
+            '0 0 10px rgba(255, 215, 0, 0.9), 0 0 20px rgba(255, 105, 180, 0.7), 0 0 30px rgba(218, 112, 214, 0.6), 0 0 40px rgba(135, 206, 235, 0.5)',
+          ],
         }}
         transition={{
-          duration: 10,
+          duration: 8,
           repeat: Infinity,
           ease: 'linear',
         }}
@@ -63,10 +69,15 @@ export default function BrandText({ size = 'lg', className = '' }: BrandTextProp
           ...getOpalescentStyle(),
         }}
         animate={{
-          backgroundPosition: ['0% 0%', '100% 100%', '0% 0%'],
+          textShadow: [
+            '0 0 10px rgba(255, 215, 0, 0.9), 0 0 20px rgba(255, 105, 180, 0.7), 0 0 30px rgba(218, 112, 214, 0.6), 0 0 40px rgba(135, 206, 235, 0.5)',
+            '0 0 10px rgba(255, 105, 180, 0.9), 0 0 20px rgba(218, 112, 214, 0.7), 0 0 30px rgba(135, 206, 235, 0.6), 0 0 40px rgba(255, 99, 71, 0.5)',
+            '0 0 10px rgba(218, 112, 214, 0.9), 0 0 20px rgba(135, 206, 235, 0.7), 0 0 30px rgba(255, 99, 71, 0.6), 0 0 40px rgba(64, 224, 208, 0.5)',
+            '0 0 10px rgba(255, 215, 0, 0.9), 0 0 20px rgba(255, 105, 180, 0.7), 0 0 30px rgba(218, 112, 214, 0.6), 0 0 40px rgba(135, 206, 235, 0.5)',
+          ],
         }}
         transition={{
-          duration: 10,
+          duration: 8,
           repeat: Infinity,
           ease: 'linear',
         }}
