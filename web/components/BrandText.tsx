@@ -39,10 +39,10 @@ export default function BrandText({ size = 'lg', className = '' }: BrandTextProp
           ...opalescentStyle,
         }}
         animate={{
-          backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
+          backgroundPosition: ['0% 0%', '100% 100%', '0% 0%'],
         }}
         transition={{
-          duration: 8,
+          duration: 10,
           repeat: Infinity,
           ease: 'linear',
         }}
@@ -59,10 +59,10 @@ export default function BrandText({ size = 'lg', className = '' }: BrandTextProp
           ...opalescentStyle,
         }}
         animate={{
-          backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
+          backgroundPosition: ['0% 0%', '100% 100%', '0% 0%'],
         }}
         transition={{
-          duration: 8,
+          duration: 10,
           repeat: Infinity,
           ease: 'linear',
         }}
