@@ -1,5 +1,7 @@
 'use client'
 
+import { motion } from 'framer-motion'
+
 interface BrandTextProps {
   size?: 'sm' | 'md' | 'lg' | 'xl'
   className?: string
@@ -13,36 +15,59 @@ export default function BrandText({ size = 'lg', className = '' }: BrandTextProp
     xl: 'text-9xl',
   }
 
+  const opalescentStyle = {
+    background: 'linear-gradient(135deg, #ffffff 0%, #f0e6ff 15%, #ffe6f0 30%, #e6f0ff 45%, #fff0e6 60%, #f0ffe6 75%, #ffe6ff 90%, #ffffff 100%)',
+    backgroundSize: '200% 200%',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+    backgroundClip: 'text',
+    filter: 'drop-shadow(0 0 8px rgba(255, 255, 255, 0.3)) drop-shadow(0 0 16px rgba(240, 230, 255, 0.2))',
+  }
+
   return (
     <div className={`flex flex-col items-center justify-center ${className} overflow-visible`}>
       {/* Orbital in script font */}
-      <span 
-        className={`${sizeClasses[size]} font-['Great_Vibes',cursive] leading-none mb-1 bg-gradient-to-r from-yellow-200 via-yellow-100 to-yellow-200 bg-clip-text text-transparent`}
+      <motion.span 
+        className={`${sizeClasses[size]} font-['Great_Vibes',cursive] leading-none mb-1`}
         style={{
           fontFamily: "'Great Vibes', cursive",
           fontWeight: 400,
           letterSpacing: '0.02em',
-          textShadow: '0 0 20px rgba(255, 255, 200, 0.5)',
-          filter: 'brightness(1.2)',
           padding: '0.2em 0.5em',
           display: 'inline-block',
+          ...opalescentStyle,
+        }}
+        animate={{
+          backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
+        }}
+        transition={{
+          duration: 8,
+          repeat: Infinity,
+          ease: 'linear',
         }}
       >
         Orbital
-      </span>
+      </motion.span>
       
       {/* ASTRO in sans-serif - smaller than Orbital */}
-      <span 
-        className="font-heading font-bold tracking-wider leading-none bg-gradient-to-r from-yellow-200 via-yellow-100 to-yellow-200 bg-clip-text text-transparent"
+      <motion.span 
+        className="font-heading font-bold tracking-wider leading-none"
         style={{
           fontSize: size === 'sm' ? '1.2rem' : size === 'md' ? '2rem' : size === 'lg' ? '2.8rem' : '4rem',
           letterSpacing: '0.15em',
-          textShadow: '0 0 20px rgba(255, 255, 200, 0.5)',
-          filter: 'brightness(1.2)',
+          ...opalescentStyle,
+        }}
+        animate={{
+          backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
+        }}
+        transition={{
+          duration: 8,
+          repeat: Infinity,
+          ease: 'linear',
         }}
       >
         ASTRO
-      </span>
+      </motion.span>
     </div>
   )
 }
