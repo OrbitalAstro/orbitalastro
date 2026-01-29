@@ -46,23 +46,37 @@ export default function Reading2026Page() {
   // Vérifier l'accès au chargement de la page
   useEffect(() => {
     const checkAccess = async () => {
+      setCheckingAccess(true)
+      
       // Récupérer l'email depuis localStorage ou le formulaire
       const savedEmail = localStorage.getItem('last_email_reading-2026')
       const emailInput = document.querySelector('input[type="email"]') as HTMLInputElement
       const email = emailInput?.value || savedEmail || null
 
+      console.log('[Reading2026] Vérification de l\'accès au chargement...', { email, savedEmail })
+      
       const accessResult = await checkAccessFromURL('reading-2026')
+      console.log('[Reading2026] Résultat de la vérification:', accessResult)
+      
       setAccessInfo(accessResult)
       setHasAccess(accessResult.hasAccess)
       setCheckingAccess(false)
       
       if (accessResult.hasAccess) {
         markProductAsPaid('reading-2026')
-        // Nettoyer l'URL
-        const url = new URL(window.location.href)
-        url.searchParams.delete('purchased')
-        url.searchParams.delete('session_id')
-        window.history.replaceState({}, '', url.toString())
+        // Nettoyer l'URL après un court délai pour laisser le temps à la vérification
+        setTimeout(() => {
+          const url = new URL(window.location.href)
+          url.searchParams.delete('purchased')
+          url.searchParams.delete('session_id')
+          window.history.replaceState({}, '', url.toString())
+        }, 1000)
+      } else {
+        console.log('[Reading2026] Pas d\'accès trouvé. Détails:', {
+          quantityPurchased: accessResult.quantityPurchased,
+          quantityUsed: accessResult.quantityUsed,
+          quantityRemaining: accessResult.quantityRemaining,
+        })
       }
     }
     checkAccess()

@@ -86,7 +86,7 @@ export async function checkProductAccess(
         // Mettre en cache
         localStorage.setItem(`paid_${productId}`, 'true')
         localStorage.setItem(`quantity_${productId}`, String(quantityPurchased))
-        localStorage.setItem(`used_${productId}`, String(cachedUsed))
+        localStorage.setItem(`used_${productId}`, String(quantityUsed))
         if (data.sessionId) {
           localStorage.setItem(`session_${productId}`, data.sessionId)
         }
@@ -94,7 +94,7 @@ export async function checkProductAccess(
         return {
           hasAccess: quantityRemaining > 0,
           quantityPurchased,
-          quantityUsed: cachedUsed,
+          quantityUsed,
           quantityRemaining,
           sessionId: data.sessionId,
         }
