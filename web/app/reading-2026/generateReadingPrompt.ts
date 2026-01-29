@@ -466,35 +466,44 @@ Maintenant, écris le plan de jeu astrologique 2026 complet pour [PRÉNOM] en su
   const transitsText = formatTransits(transits, chart)
   
   const userPrompt = `====================================================
-DONNÉES NATALES ET TRANSITS POUR LA LECTURE 2026
+DONNÉES NATALES ET TRANSITS POUR LE PLAN DE JEU 2026
 ====================================================
 
-[PRÉNOM] : ${birthData.firstName}
+[PROFIL]
+Prénom : ${birthData.firstName}
+Langue : ${language === 'fr' ? 'Français' : language === 'en' ? 'Anglais' : 'Espagnol'}
+
+[DONNÉES NATALES]
 Date de naissance : ${birthData.birth_date}, ${birthData.birth_time}
 Lieu : ${formattedBirthPlace}
 
-[DONNÉES NATALES]
-
 Ascendant : ${ascendantSign ? getSignInFrench(ascendantSign) : 'Non spécifié'} ${ascendantSign && chart.ascendant ? (typeof chart.ascendant === 'number' ? `(${chart.ascendant.toFixed(2)}°)` : '') : ''} (Maison 1)
-${sun ? `Soleil : ${getSignInFrench(sun.sign)} (Maison ${getHouse(sun)})${getMainAspect(chart.aspects, 'sun') ? ` - ${getMainAspect(chart.aspects, 'sun')}` : ''}` : ''}
-${moon ? `Lune : ${getSignInFrench(moon.sign)} (Maison ${getHouse(moon)})${getMainAspect(chart.aspects, 'moon') ? ` - ${getMainAspect(chart.aspects, 'moon')}` : ''}` : ''}
+${sun ? `Soleil : ${getSignInFrench(sun.sign)} (Maison ${getHouse(sun)})` : ''}
+${moon ? `Lune : ${getSignInFrench(moon.sign)} (Maison ${getHouse(moon)})` : ''}
 ${venus ? `Vénus : ${getSignInFrench(venus.sign)} (Maison ${getHouse(venus)})` : ''}
 ${mars ? `Mars : ${getSignInFrench(mars.sign)} (Maison ${getHouse(mars)})` : ''}
 ${jupiter ? `Jupiter : ${getSignInFrench(jupiter.sign)} (Maison ${getHouse(jupiter)})` : ''}
-${saturn ? `Saturne : ${getSignInFrench(saturn.sign)} (Maison ${getHouse(saturn)})${getMainAspect(chart.aspects, 'saturn') ? ` - ${getMainAspect(chart.aspects, 'saturn')}` : ''}` : ''}
+${saturn ? `Saturne : ${getSignInFrench(saturn.sign)} (Maison ${getHouse(saturn)})` : ''}
 ${uranus ? `Uranus : ${getSignInFrench(uranus.sign)} (Maison ${getHouse(uranus)})` : ''}
 ${neptune ? `Neptune : ${getSignInFrench(neptune.sign)} (Maison ${getHouse(neptune)})` : ''}
 ${pluto ? `Pluton : ${getSignInFrench(pluto.sign)} (Maison ${getHouse(pluto)})` : ''}
-${trueNode ? `Nœud Nord : ${getSignInFrench(trueNode.sign)} (Maison ${getHouse(trueNode)})${getMainAspect(chart.aspects, 'true_node') || getMainAspect(chart.aspects, 'north_node') ? ` - ${getMainAspect(chart.aspects, 'true_node') || getMainAspect(chart.aspects, 'north_node')}` : ''}` : ''}
+${trueNode ? `Nœud Nord : ${getSignInFrench(trueNode.sign)} (Maison ${getHouse(trueNode)})` : ''}
 ${chart.midheaven ? `MC : ${chart.midheaven.toFixed(2)}°` : ''}
 
+[TRANSITS 2026]
 ${transitsText}
+
+[ASCENDANT POUR PHRASE FINALE]
+Ascendant : ${ascendantSign || 'Non spécifié'}
+IMPORTANT : Utilise la phrase correspondant à cet ascendant dans la conclusion finale, sans nommer l'ascendant.
 
 ====================================================
 RAPPEL FINAL
-Tu produis uniquement le texte final de la lecture, sans aucun autre texte.
-Après la lecture complète, ajoute cette note de bas de page :
-Ce dialogue est symbolique, un échange interprété pour le plaisir et la réflexion : il est offert à des fins de divertissement et d'inspiration, sans prétention de vérité absolue ni de certitude. - OrbitalAstro.ca`
+Tu produis uniquement le texte final du plan de jeu astrologique 2026, sans aucun autre texte.
+Respecte exactement la structure demandée avec tous les dialogues.
+La phrase finale doit être celle correspondant à l'ascendant ${ascendantSign ? getSignInFrench(ascendantSign) : 'du client'}.
+Après le plan complet, ajoute cette note de bas de page :
+Ce plan de jeu est symbolique, une interprétation offerte pour le plaisir et la réflexion : il est proposé à des fins de divertissement et d'inspiration, sans prétention de vérité absolue ni de certitude. - OrbitalAstro.ca`
 
   return { systemPrompt, userPrompt }
 }
