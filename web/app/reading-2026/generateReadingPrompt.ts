@@ -232,6 +232,30 @@ export function generateReadingPrompt(
   // Format birth place to show only city, province, and country
   const formattedBirthPlace = formatBirthPlace(birthData.birth_place)
   
+  // Obtenir le signe de l'ascendant pour la phrase finale
+  const getAscendantPhrase = (ascSign: string | null): string => {
+    if (!ascSign) return "Prends ce qui résonne et laisse le reste."
+    
+    const ascPhrases: { [key: string]: string } = {
+      'Aries': 'Embrasse ce qui t\'éveille et laisse le reste se consumer doucement.',
+      'Taurus': 'Savoure ce qui te nourrit et relâche le reste avec sérénité.',
+      'Gemini': 'Accueille ce qui t\'inspire et laisse le reste s\'envoler avec légèreté.',
+      'Cancer': 'Accueille ce qui fait vibrer ton cœur et laisse le reste flotter en douceur.',
+      'Leo': 'Reçois ce qui illumine ton cœur et laisse le reste se dissiper en chaleur.',
+      'Virgo': 'Accueille ce qui s\'enracine en toi et laisse le reste reposer en paix.',
+      'Libra': 'Reçois ce qui fait vibrer ton esprit et laisse le reste flotter vers l\'espace.',
+      'Scorpio': 'Reçois ce qui coule dans tes profondeurs et laisse le reste se dissoudre lentement.',
+      'Sagittarius': 'Intègre ce qui te fait briller et laisse le reste s\'échapper vers la clarté.',
+      'Capricorn': 'Intègre ce qui te stabilise et laisse le reste se déposer doucement.',
+      'Aquarius': 'Laisse entrer ce qui te soulève et laisse le reste voyager librement.',
+      'Pisces': 'Laisse entrer ce qui t\'anime et laisse le reste glisser comme un doux courant.'
+    }
+    
+    return ascPhrases[ascSign] || "Prends ce qui résonne et laisse le reste."
+  }
+
+  const ascendantPhrase = getAscendantPhrase(ascendantSign)
+  
   const roleIntro =
     language === 'en'
       ? "You are a psychological astrologer: nuanced, playful, and adult. You write in English, with a warm, clear, accessible style for the general public."
@@ -274,8 +298,6 @@ export function generateReadingPrompt(
     
     return ascPhrases[ascSign] || "Prends ce qui résonne et laisse le reste."
   }
-
-  const ascendantPhrase = getAscendantPhrase(ascendantSign)
 
   const systemPrompt = `[TITRE]
 [PRÉNOM] - Plan de jeu astrologique 2026
