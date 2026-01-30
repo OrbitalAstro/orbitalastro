@@ -137,10 +137,20 @@ export default function Reading2026Page() {
   }
 
   const handleGenerateReading = async () => {
-    // Vérifier l'accès avant de générer
+    // Vérifier d'abord les champs requis avant de vérifier l'accès
     const email = birthData.email?.trim() || null
     if (!email) {
       alert(t.reading2026.validationEmailRequired)
+      return
+    }
+
+    if (!birthData.birth_date || !birthData.birth_time) {
+      alert(t.reading2026.validationBirthDateTimeRequired)
+      return
+    }
+
+    if (!birthData.latitude || !birthData.longitude) {
+      alert(t.reading2026.validationBirthPlaceRequired)
       return
     }
 
@@ -174,19 +184,7 @@ export default function Reading2026Page() {
     setEmailStatus('idle')
     setLoading(true)
     try {
-      // Validate required fields
-      if (!birthData.birth_date || !birthData.birth_time) {
-        alert(t.reading2026.validationBirthDateTimeRequired)
-        setLoading(false)
-        return
-      }
-
-      if (!birthData.latitude || !birthData.longitude) {
-        alert(t.reading2026.validationBirthPlaceRequired)
-        setLoading(false)
-        return
-      }
-
+      // Validation finale de l'email (déjà vérifié avant, mais on double-vérifie)
       if (!birthData.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(birthData.email.trim())) {
         alert(t.reading2026.validationEmailRequired)
         setLoading(false)
@@ -539,7 +537,7 @@ export default function Reading2026Page() {
               <div className="mt-12 mb-4">
                 <button
                   onClick={handleGenerateReading}
-                  disabled={loading || !birthData.birth_date || !hasAccess || checkingAccess}
+                  disabled={loading || !birthData.birth_date || checkingAccess}
                   className="w-full px-6 py-3 bg-gradient-to-r from-cosmic-gold via-rose-gold to-cosmic-gold text-cosmic-purple rounded-lg font-semibold hover:shadow-lg transition disabled:opacity-50 flex items-center justify-center relative z-20"
                 >
                 {loading ? (
