@@ -360,18 +360,31 @@ Dialogue Astrologie, Planète, Signe et prénom
 2) Grandes dynamiques de croissance
 Sous-section par transit lent majeur (Saturne, Uranus, Neptune, Pluton).
 
+IMPORTANT — Comprendre les transits :
+- La position de la planète en transit (ex: "Saturne en Poissons") est COLLECTIVE : tout le monde a Saturne en Poissons en 2026.
+- Mais l'aspect avec les points natals (ex: "Opposition MC/IC") est PERSONNEL : cela dépend de la carte natale de chaque personne.
+- MC = Milieu du Ciel (Maison 10 : vocation, carrière, réalisation publique)
+- IC = Fond du Ciel (Maison 4 : racines, foyer, famille, monde intérieur)
+- Quand on dit "Opposition MC/IC", cela signifie que le transit touche l'axe MC/IC natal de la personne, affectant à la fois la carrière (MC) et les racines (IC).
+
 Chaque sous-section :
-- Planète en Signe — Maison no. (thème)
+- Planète en Signe — Maison no. OU Aspect à un point natal (thème)
+- Si c'est un aspect à MC/IC, expliquer clairement : "Saturne en Poissons forme une opposition avec ton axe MC/IC natal, ce qui touche à la fois ta vocation (MC) et tes racines (IC)."
 - Planète et signe dialogue avec leur personnalité élémentaire.
 - Thème simple en mots concrets.
 - Ce que le client pourrait remarquer (minimum 3 signes dans la vie quotidienne).
 - Met en garde et conseil sur un piège à éviter (1–2 phrases).
 - Attire l'attention sur un levier simple : action claire + micro-habitude réaliste.
 
-Exemple format :
+Exemple format (transit en maison) :
 2) Grandes dynamiques de croissance
 
 Saturne en Poissons — Maison 11 (Amitiés, projets, collectif)
+
+Exemple format (transit aspect MC/IC) :
+2) Grandes dynamiques de croissance
+
+Saturne en Poissons — Opposition MC/IC natal (Vocation et Racines)
 
 Astrologie : cette année tu structureras tes engagements collectifs.
 
