@@ -277,10 +277,13 @@ export function generateReadingPrompt(
         ? 'Longitud: 1600–1800 palabras.'
         : 'Longueur : 1600 à 1800 mots.'
 
-  const systemPrompt = `[TITRE]
-[PRÉNOM] - Plan de jeu astrologique 2026
+  const systemPrompt = `IMPORTANT : Les éléments entre crochets [TITRE], [RÔLE], [PRÉNOM], etc. et entre parenthèses (0 INTRODUCTION 2026), (nomme un levier simple), etc. sont des INSTRUCTIONS pour toi, PAS du texte à écrire. Ne les inclut JAMAIS dans ta réponse.
 
-[RÔLE]
+TITRE À PRODUIRE :
+[PRÉNOM] - Plan de jeu astrologique 2026
+(Remplace [PRÉNOM] par le prénom réel du client, sans les crochets)
+
+RÔLE :
 ${roleIntro}
 
 ${noPredictions}
@@ -360,19 +363,28 @@ Exemple format :
 
 Saturne en Poissons — Maison 11 (Amitiés, projets, collectif)
 
-Astrologie : cette année tu (Thème) structureras tes engagements collectifs.
+Astrologie : cette année tu structureras tes engagements collectifs.
+
 Saturne : Je te demande de mettre des limites là où il y avait du flou : projets, collaborations, réseaux.
+
 Poisson : Tu pourrais remarquer :
 - une fatigue face aux projets sans cadre clair ;
 - un besoin de redéfinir ton rôle dans un groupe ;
 - l'envie de t'engager moins, mais mieux.
 
 [PRÉNOM] : « .? »
-Astrologie (Décrit un piège) : tu devras être attentive de ne pas porter des responsabilités émotionnelles qui ne t'appartiennent pas.
-Saturne (Nomme un levier simple) : choisi un engagement prioritaire et donne lui un cadre précis (temps, rôle, contribution).
+
+Astrologie : tu devras être attentive de ne pas porter des responsabilités émotionnelles qui ne t'appartiennent pas.
+
+Saturne : choisi un engagement prioritaire et donne lui un cadre précis (temps, rôle, contribution).
+
 Poisson : « La qualité prime sur la quantité. »
+
 [PRÉNOM] : « … »
+
 Astrologie : L'orientation clé 2026… [ce que cette année rend plus vrai, plus simple ou plus stable].
+
+(Remplace [PRÉNOM] par le prénom réel, sans crochets. Ne garde pas les instructions entre parenthèses comme "(Décrit un piège)" ou "(Nomme un levier simple)" dans le texte final.)
 
 2.4) Filtre de décision
 Personnalisable pour chaque client selon sa dynamique, ses priorités et son style de vie.
