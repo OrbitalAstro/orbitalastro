@@ -53,8 +53,8 @@ async def generate_interpretation(req: Request, request: InterpretationRequest):
             detail="Server configuration error: AI service not configured"
         )
     
-    # Models to try in order of preference
-    models = ["gemini-2.5-flash", "gemini-flash-latest", "gemini-pro"]
+    # Models to try in order of preference (gemini-pro is deprecated, using newer models)
+    models = ["gemini-2.0-flash-exp", "gemini-1.5-flash", "gemini-1.5-pro", "gemini-2.5-flash"]
     
     last_error = None
     
