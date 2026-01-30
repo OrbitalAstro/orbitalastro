@@ -64,13 +64,21 @@ export default function Reading2026Page() {
       
       if (accessResult.hasAccess) {
         markProductAsPaid('reading-2026')
+        // Sauvegarder le session_id dans localStorage avant de nettoyer l'URL
+        if (accessResult.sessionId) {
+          localStorage.setItem('session_reading-2026', accessResult.sessionId)
+        }
+        // Sauvegarder aussi l'email si disponible
+        if (email) {
+          localStorage.setItem('last_email_reading-2026', email)
+        }
         // Nettoyer l'URL après un court délai pour laisser le temps à la vérification
         setTimeout(() => {
           const url = new URL(window.location.href)
           url.searchParams.delete('purchased')
           url.searchParams.delete('session_id')
           window.history.replaceState({}, '', url.toString())
-        }, 1000)
+        }, 2000) // Augmenter le délai à 2 secondes
       } else {
         console.log('[Reading2026] Pas d\'accès trouvé. Détails:', {
           quantityPurchased: accessResult.quantityPurchased,
@@ -139,12 +147,25 @@ export default function Reading2026Page() {
     // Sauvegarder l'email pour la vérification
     localStorage.setItem(`last_email_reading-2026`, email)
 
-    const accessResult = await checkAccessFromURL('reading-2026')
+    // Récupérer le session_id depuis localStorage ou l'URL
+    const params = new URLSearchParams(window.location.search)
+    const sessionIdFromUrl = params.get('session_id')
+    const sessionIdFromStorage = localStorage.getItem('session_reading-2026')
+    const sessionId = sessionIdFromUrl || sessionIdFromStorage || null
+
+    console.log('[Reading2026] Vérification de l\'accès avant génération...', { email, sessionId })
+
+    // Vérifier l'accès avec l'email et le session_id
+    const accessResult = await checkProductAccess('reading-2026', email, sessionId)
+    console.log('[Reading2026] Résultat de la vérification avant génération:', accessResult)
+    
     setAccessInfo(accessResult)
     if (!accessResult.hasAccess) {
       // Rediriger vers la page de tarification
       if (accessResult.quantityRemaining === 0 && accessResult.quantityPurchased > 0) {
         alert('Vous avez déjà utilisé toutes vos générations. Veuillez commander à nouveau pour générer une autre lecture.')
+      } else {
+        alert('Accès non autorisé. Veuillez effectuer un paiement pour générer une lecture.')
       }
       router.push('/pricing?redirect=reading-2026')
       return
