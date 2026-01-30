@@ -379,12 +379,14 @@ Chaque sous-section :
 Exemple format (transit en maison) :
 2) Grandes dynamiques de croissance
 
-Saturne en Poissons — Maison 11 (Amitiés, projets, collectif)
+Saturne en [Signe] — Maison 11 (Amitiés, projets, collectif)
+(Remplace [Signe] par le signe réel de Saturne en transit selon les données fournies)
 
 Exemple format (transit aspect MC/IC) :
 2) Grandes dynamiques de croissance
 
-Saturne en Poissons — Opposition MC/IC natal (Vocation et Racines)
+[Planète] en [Signe] — Opposition MC/IC natal (Vocation et Racines)
+(Remplace [Planète] et [Signe] par les valeurs réelles selon les transits fournis)
 
 Astrologie : cette année tu structureras tes engagements collectifs.
 
