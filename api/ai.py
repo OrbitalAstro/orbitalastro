@@ -147,7 +147,8 @@ def _call_gemini_api(
         }
         
     try:
-        response = requests.post(url, headers=headers, json=payload, timeout=30)
+        # Increased timeout to 120 seconds for long-form content generation
+        response = requests.post(url, headers=headers, json=payload, timeout=120)
         
         # Handle specific HTTP errors
         if response.status_code == 429:

@@ -125,7 +125,7 @@ class ApiClient {
     }
   }
 
-  async post<T = unknown>(endpoint: string, body: unknown): Promise<ApiResponse<T>> {
+  async post<T = unknown>(endpoint: string, body: unknown, timeout?: number): Promise<ApiResponse<T>> {
     let url = `${this.baseUrl}${endpoint}`;
     try {
       // For Vercel deployments, add bypass parameters to URL as well as headers
@@ -137,12 +137,23 @@ class ApiClient {
         url += `${separator}x-vercel-set-bypass-cookie=true&x-vercel-protection-bypass=${VERCEL_BYPASS_TOKEN}`;
       }
       
-      console.log('[API Client] Fetching:', { method: 'POST', url, headers: Object.keys(headers), bodySize: JSON.stringify(body).length });
-      const response = await this.fetchWithFallback(url, {
-        method: 'POST',
-        headers: headers,
-        body: JSON.stringify(body)
-      }, this.fallbackUrl);
+      // Use longer timeout for AI endpoints (120 seconds)
+      const requestTimeout = timeout || (endpoint.includes('/ai/') ? 120000 : 30000);
+      
+      console.log('[API Client] Fetching:', { method: 'POST', url, headers: Object.keys(headers), bodySize: JSON.stringify(body).length, timeout: requestTimeout });
+      
+      // Create AbortController for timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), requestTimeout);
+      
+      try {
+        const response = await this.fetchWithFallback(url, {
+          method: 'POST',
+          headers: headers,
+          body: JSON.stringify(body),
+          signal: controller.signal
+        }, this.fallbackUrl);
+        clearTimeout(timeoutId);
       console.log('[API Client] Fetch response:', { status: response.status, statusText: response.statusText, ok: response.ok });
       
       if (!response.ok) {
@@ -159,6 +170,13 @@ class ApiClient {
       const data = await response.json();
       console.log('[API Client] Response received:', { status: response.status, url, dataKeys: Object.keys(data || {}) });
       return { data };
+      } catch (fetchError) {
+        clearTimeout(timeoutId);
+        if (fetchError instanceof Error && fetchError.name === 'AbortError') {
+          throw new Error('Request timed out');
+        }
+        throw fetchError;
+      }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       console.error('[API Client] Request failed:', { url, error: errorMessage });
