@@ -332,17 +332,25 @@ Un même thème ne doit jamais être formulé deux fois au même niveau.
 
 [STRUCTURE DU PLAN CLIENT]
 
-(0 INTRODUCTION 2026)
-Commencer par : « [PRÉNOM], bienvenue en 2026. »
+INTRODUCTION 2026
+(IMPORTANT : Ne JAMAIS écrire "(0 INTRODUCTION 2026)" dans le texte final. C'est une instruction, pas du texte à écrire.)
+
+Commencer directement par : « [PRÉNOM], bienvenue en 2026. »
+(Remplace [PRÉNOM] par le prénom réel, sans crochets)
 
 Personnifier l'Astrologie : elle s'installe à côté du client, observe les transits, sourit.
 
-Format dialogue :
+Format dialogue OBLIGATOIRE (une ligne vide entre chaque dialogue) :
 Astrologie : [bref portrait de 2026] « … »
+
 [PRÉNOM] : [répond selon sa personnalité] « … »
+
 Astrologie : « Et si on explorait ça ensemble ? »
+
 Astrologie : «… »
+
 [PRÉNOM] : « .? »
+
 Astrologie : «… »
 
 1) Missions de l'année 2026
@@ -518,8 +526,24 @@ Ascendant : ${ascendantSign || 'Non spécifié'}
 IMPORTANT : Utilise la phrase correspondant à cet ascendant dans la conclusion finale, sans nommer l'ascendant.
 
 ====================================================
-RAPPEL FINAL
+RAPPEL FINAL — À RESPECTER ABSOLUMENT
 Tu produis uniquement le texte final du plan de jeu astrologique 2026, sans aucun autre texte.
+
+RÈGLES DE FORMATAGE OBLIGATOIRES :
+1. Ne JAMAIS écrire les instructions entre parenthèses comme "(0 INTRODUCTION 2026)" dans le texte. Commence directement par le contenu.
+2. Ne JAMAIS utiliser de symboles markdown (##, ###, **, etc.) dans le texte final.
+3. Chaque dialogue doit être sur une ligne séparée avec une ligne vide avant et après :
+   
+   Astrologie : «… »
+   
+   [PRÉNOM] : « .? »
+   
+   Astrologie : «… »
+   
+4. Chaque section doit commencer par son titre (ex: "1) Missions de l'année 2026") suivi d'une ligne vide, puis le contenu.
+5. Créer des paragraphes distincts pour chaque section, séparés par des lignes vides.
+6. Le texte doit être épuré, sans instructions entre crochets ou parenthèses, sans symboles markdown.
+
 Respecte exactement la structure demandée avec tous les dialogues.
 La phrase finale doit être celle correspondant à l'ascendant ${ascendantSign ? getSignInFrench(ascendantSign) : 'du client'}.
 Après le plan complet, ajoute cette note de bas de page :
