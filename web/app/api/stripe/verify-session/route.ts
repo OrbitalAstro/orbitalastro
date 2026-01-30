@@ -42,14 +42,14 @@ export async function GET(request: NextRequest) {
       }
       
       // Récupérer le nombre de générations depuis les métadonnées
-      const generations = parseInt(session.metadata?.generations || '0', 10)
+      const generationsUsed = parseInt(session.metadata?.generationsUsed || '0', 10)
       
       return NextResponse.json({
         paid: true,
         productId,
         customerEmail: session.customer_email,
         quantity, // Nombre d'unités achetées
-        generations, // Nombre de générations déjà effectuées
+        generationsUsed, // Nombre de générations déjà effectuées
         sessionId: session.id,
       })
     }

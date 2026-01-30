@@ -69,8 +69,8 @@ export async function GET(request: NextRequest) {
           totalQuantity += quantity
           
           // Récupérer les générations depuis les métadonnées
-          const generations = parseInt(sessionDetails.metadata?.generations || '0', 10)
-          totalGenerations += generations
+          const generationsUsed = parseInt(sessionDetails.metadata?.generationsUsed || '0', 10)
+          totalGenerations += generationsUsed
         } catch (err) {
           console.error(`Error retrieving session ${session.id}:`, err)
           // En cas d'erreur, compter 1 unité par défaut
@@ -84,7 +84,7 @@ export async function GET(request: NextRequest) {
         paid: true,
         productId,
         quantity: totalQuantity, // Nombre total d'unités achetées
-        generations: totalGenerations, // Nombre total de générations effectuées
+        generationsUsed: totalGenerations, // Nombre total de générations effectuées
         sessionId: lastSessionId,
       })
     }

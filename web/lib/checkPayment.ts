@@ -33,7 +33,7 @@ export async function checkProductAccess(
 
       if (data.paid && data.productId === productId) {
         const quantityPurchased = data.quantity || 1
-        const quantityUsed = data.generations || 0
+        const quantityUsed = data.generationsUsed || 0
         const quantityRemaining = quantityPurchased - quantityUsed
         
         // Mettre en cache les informations
@@ -80,7 +80,7 @@ export async function checkProductAccess(
 
       if (data.paid) {
         const quantityPurchased = data.quantity || 1
-        const quantityUsed = data.generations || 0
+        const quantityUsed = data.generationsUsed || 0
         const quantityRemaining = quantityPurchased - quantityUsed
         
         // Mettre en cache
