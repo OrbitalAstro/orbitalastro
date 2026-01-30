@@ -154,22 +154,22 @@ class ApiClient {
           signal: controller.signal
         }, this.fallbackUrl);
         clearTimeout(timeoutId);
-      console.log('[API Client] Fetch response:', { status: response.status, statusText: response.statusText, ok: response.ok });
-      
-      if (!response.ok) {
-        let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData.detail || errorData.message || errorMessage;
-        } catch {
-          // If JSON parsing fails, use the status text
+        console.log('[API Client] Fetch response:', { status: response.status, statusText: response.statusText, ok: response.ok });
+        
+        if (!response.ok) {
+          let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+          try {
+            const errorData = await response.json();
+            errorMessage = errorData.detail || errorData.message || errorMessage;
+          } catch {
+            // If JSON parsing fails, use the status text
+          }
+          return { error: errorMessage };
         }
-        return { error: errorMessage };
-      }
-      
-      const data = await response.json();
-      console.log('[API Client] Response received:', { status: response.status, url, dataKeys: Object.keys(data || {}) });
-      return { data };
+        
+        const data = await response.json();
+        console.log('[API Client] Response received:', { status: response.status, url, dataKeys: Object.keys(data || {}) });
+        return { data };
       } catch (fetchError) {
         clearTimeout(timeoutId);
         if (fetchError instanceof Error && fetchError.name === 'AbortError') {
