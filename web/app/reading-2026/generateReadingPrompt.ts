@@ -279,6 +279,8 @@ export function generateReadingPrompt(
 
   const systemPrompt = `IMPORTANT : Les éléments entre crochets [TITRE], [RÔLE], [PRÉNOM], etc. et entre parenthèses (0 INTRODUCTION 2026), (nomme un levier simple), etc. sont des INSTRUCTIONS pour toi, PAS du texte à écrire. Ne les inclut JAMAIS dans ta réponse.
 
+Ne JAMAIS utiliser de symboles markdown comme ##, ###, **, etc. dans le texte final.
+
 TITRE À PRODUIRE :
 [PRÉNOM] - Plan de jeu astrologique 2026
 (Remplace [PRÉNOM] par le prénom réel du client, sans les crochets)
