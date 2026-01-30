@@ -417,8 +417,14 @@ Dialogue Astrologie ↔ client.
 - 3 exemples concrets dans la vraie vie.
 
 4.5) Séquence temporelle 2026 – TABLEAU
-Format tableau :
-| Période / repère | Focus (1 phrase) | Tu pourrais remarquer… (2-3 éléments) | Geste simple (1 action + 1 micro-habitude) |
+Format tableau (IMPORTANT : ne pas inclure les symboles | ou |:--- dans le texte final) :
+Présente un tableau avec les colonnes suivantes :
+- Période / repère
+- Focus (une phrase)
+- Tu pourrais remarquer (2-3 éléments)
+- Geste simple (1 action + 1 micro-habitude)
+
+Le tableau doit être présenté de manière claire et lisible, sans symboles de formatage markdown. Les instructions entre parenthèses comme "(1 phrase)", "(2-3 éléments)" sont des indications pour toi, pas du texte à écrire.
 
 5) Image symbolique de 2026
 Dialogue direct intégré.
