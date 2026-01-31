@@ -5,6 +5,7 @@ import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { Mail, Lock, Loader2, ArrowRight } from 'lucide-react'
 import Logo from '@/components/Logo'
+import Starfield from '@/components/Starfield'
 
 export default function SignInPage() {
   const router = useRouter()
@@ -39,8 +40,9 @@ export default function SignInPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-cosmic-dark via-deep-space to-cosmic-dark flex items-center justify-center px-4 py-12">
-      <div className="max-w-md w-full">
+    <div className="min-h-screen bg-gradient-to-b from-cosmic-dark via-deep-space to-cosmic-dark flex items-center justify-center px-4 py-12 relative">
+      <Starfield />
+      <div className="max-w-md w-full relative z-10">
         <div className="text-center mb-8">
           <Logo variant="horizontal" size="md" asLink={true} />
         </div>

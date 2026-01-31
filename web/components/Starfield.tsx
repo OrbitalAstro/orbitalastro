@@ -15,11 +15,11 @@ export default function Starfield() {
   // Generate stars only on client to avoid hydration mismatch
   useEffect(() => {
     setStars(
-      Array.from({ length: 500 }).map((_, i) => ({
+      Array.from({ length: 1000 }).map((_, i) => ({
         id: i,
         x: Math.random() * 100,
         y: Math.random() * 100,
-        size: Math.random() * 2 + 0.5,
+        size: Math.random() * 2.5 + 0.5,
         duration: Math.random() * 3 + 2,
       }))
     )
@@ -38,8 +38,8 @@ export default function Starfield() {
             height: star.size,
           }}
           animate={{
-            opacity: [0.3, 1, 0.3],
-            scale: [1, 1.2, 1],
+            opacity: [0.5, 1, 0.5],
+            scale: [1, 1.3, 1],
           }}
           transition={{
             duration: star.duration,
