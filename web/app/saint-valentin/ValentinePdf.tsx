@@ -213,27 +213,49 @@ function parseBlocks(markdown: string): Block[] {
   if (!text) return []
 
   const blocks: Block[] = []
-  const paragraphs = text.split(/\n{2,}/)
+  // Diviser par lignes vides (une ou plusieurs)
+  const paragraphs = text.split(/\n\s*\n/)
 
   for (const raw of paragraphs) {
     const chunk = raw.trim()
     if (!chunk) continue
 
-    const lines = chunk
-      .split('\n')
-      .map((l) => l.trim())
-      .filter(Boolean)
+    // Si le paragraphe contient plusieurs lignes, les traiter séparément
+    const lines = chunk.split('\n').map((l) => l.trim()).filter(Boolean)
+    if (!lines.length) continue
 
-    for (const line of lines) {
+    // Si c'est une seule ligne, créer un bloc
+    if (lines.length === 1) {
+      const line = lines[0]
       if (/^#{1,6}\s+/.test(line)) {
         blocks.push({ type: 'heading', text: line.replace(/^#{1,6}\s+/, '').trim() })
-        continue
-      }
-      if (/^(?:[-•*]|\d+\.)\s+/.test(line)) {
+      } else if (/^(?:[-•*]|\d+\.)\s+/.test(line)) {
         blocks.push({ type: 'bullet', text: line.replace(/^(?:[-•*]|\d+\.)\s+/, '').trim() })
-        continue
+      } else {
+        blocks.push({ type: 'paragraph', text: line })
       }
-      blocks.push({ type: 'paragraph', text: line })
+    } else {
+      // Si plusieurs lignes, créer un bloc paragraphe avec tout le contenu
+      // (pour préserver les dialogues et les retours à la ligne)
+      const fullText = lines.join('\n')
+      if (/^#{1,6}\s+/.test(lines[0])) {
+        blocks.push({ type: 'heading', text: lines[0].replace(/^#{1,6}\s+/, '').trim() })
+        if (lines.length > 1) {
+          blocks.push({ type: 'paragraph', text: lines.slice(1).join('\n') })
+        }
+      } else if (/^(?:[-•*]|\d+\.)\s+/.test(lines[0])) {
+        // Pour les listes, créer un bloc par ligne
+        for (const line of lines) {
+          if (/^(?:[-•*]|\d+\.)\s+/.test(line)) {
+            blocks.push({ type: 'bullet', text: line.replace(/^(?:[-•*]|\d+\.)\s+/, '').trim() })
+          } else {
+            blocks.push({ type: 'paragraph', text: line })
+          }
+        }
+      } else {
+        // Paragraphe normal avec plusieurs lignes (dialogue ou texte)
+        blocks.push({ type: 'paragraph', text: fullText })
+      }
     }
   }
 
