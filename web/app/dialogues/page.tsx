@@ -633,7 +633,7 @@ export default function Dialogues() {
                   {downloading ? t.dialogues.downloadingPdf : t.dialogues.downloadPdf}
                 </button>
               </div>
-              <div className="pdf-card max-w-3xl mx-auto" ref={exportRef}>
+              <div className="pdf-card" ref={exportRef}>
                 <div className="pdf-header">
                   <img
                     src="/orbital-astro-logo.png"
@@ -651,7 +651,7 @@ export default function Dialogues() {
                   <div className="pdf-subtitle">{pdfSubtitle}</div>
                 </div>
                 <div className="pdf-scroll custom-scrollbar text-cosmic-gold/90">
-                  <div className="dialogue-prose px-6 py-4 pdf-body pdf-panel">
+                  <div className="dialogue-prose pdf-body pdf-panel">
                     <ReactMarkdown
                     components={{
                       p: ({ node, ...props }) => {
@@ -756,6 +756,7 @@ export default function Dialogues() {
                           const getSymbol = (name: string): string => {
                             const nameLower = name.toLowerCase()
                             const symbols: { [key: string]: string } = {
+                              // Planètes
                               'saturne': '♄',
                               'saturn': '♄',
                               'jupiter': '♃',
@@ -771,6 +772,31 @@ export default function Dialogues() {
                               'neptune': '♆',
                               'pluton': '♇',
                               'pluto': '♇',
+                              // Signes astrologiques
+                              'bélier': '♈',
+                              'aries': '♈',
+                              'taureau': '♉',
+                              'taurus': '♉',
+                              'gémeaux': '♊',
+                              'gemini': '♊',
+                              'cancer': '♋',
+                              'lion': '♌',
+                              'leo': '♌',
+                              'vierge': '♍',
+                              'virgo': '♍',
+                              'balance': '♎',
+                              'libra': '♎',
+                              'scorpion': '♏',
+                              'scorpio': '♏',
+                              'sagittaire': '♐',
+                              'sagittarius': '♐',
+                              'capricorne': '♑',
+                              'capricorn': '♑',
+                              'verseau': '♒',
+                              'aquarius': '♒',
+                              'poissons': '♓',
+                              'pisces': '♓',
+                              'poisson': '♓',
                             }
                             return symbols[nameLower] || ''
                           }

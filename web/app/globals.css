@@ -34,6 +34,12 @@ body {
   color: rgb(var(--foreground-rgb));
   background: linear-gradient(135deg, var(--deep-space-purple) 0%, var(--magenta-purple) 100%);
   font-family: 'Inter', sans-serif;
+  /* Effet poli au jet de sable pour le fond */
+  background-image: 
+    radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(255, 255, 255, 0.02) 0%, transparent 50%),
+    linear-gradient(135deg, var(--deep-space-purple) 0%, var(--magenta-purple) 100%);
+  background-attachment: fixed;
 }
 
 /* Focus indicators for accessibility */
@@ -193,39 +199,24 @@ body {
   animation: nebula-pulse 3s ease-in-out infinite;
 }
 
-/* Dialogue rich text styling */
+/* Dialogue rich text styling - Sans encadrés */
 .dialogue-prose {
   font-family: 'Inter', sans-serif;
   line-height: 1.7; /* 1.6-1.8, valeur médiane */
   letter-spacing: 0.01em;
   text-align: justify;
-  color: var(--cosmic-gold);
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(228, 181, 160, 0.18);
-  border-radius: 1rem;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+  color: #4A2C5A; /* Mauve très foncé */
+  background: none; /* Pas de fond */
+  border: none; /* Pas de bordure */
+  border-radius: 0; /* Pas de bordure arrondie */
+  box-shadow: none; /* Pas d'ombre */
   width: 100%; /* Utilise toute la largeur disponible */
-  margin: 0; /* Pas de marge auto pour centrer */
+  margin: 0; /* Pas de marge */
   font-size: 17.5px; /* 17-18px, valeur médiane */
-  padding-left: 12px; /* Padding réduit pour mobile */
-  padding-right: 12px; /* Padding réduit pour mobile */
+  padding: 0; /* Pas de padding */
   word-break: break-word; /* Pour les liens / mots longs */
   display: flex;
   flex-direction: column;
-}
-
-@media (min-width: 640px) {
-  .dialogue-prose {
-    padding-left: 18px; /* Padding un peu plus large sur tablette */
-    padding-right: 18px;
-  }
-}
-
-@media (min-width: 1024px) {
-  .dialogue-prose {
-    padding-left: 24px; /* Padding plus large sur desktop */
-    padding-right: 24px;
-  }
 }
 
 .dialogue-prose p {
@@ -270,11 +261,18 @@ body {
 }
 
 .dialogue-bubble-astro .dialogue-bubble-content {
-  background: linear-gradient(135deg, rgba(228, 181, 160, 0.25) 0%, rgba(228, 181, 160, 0.15) 100%);
-  border: 1px solid rgba(228, 181, 160, 0.4);
-  color: #000000; /* Texte en noir */
+  background: linear-gradient(135deg, rgba(138, 111, 159, 0.15) 0%, rgba(138, 111, 159, 0.1) 100%);
+  border: 1px solid rgba(138, 111, 159, 0.3);
+  color: #4A2C5A; /* Mauve très foncé */
   border-bottom-left-radius: 6px; /* Queue de bulle à gauche */
   position: relative;
+  /* Effet poli au jet de sable */
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  background-image: 
+    radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.03) 0%, transparent 50%),
+    linear-gradient(135deg, rgba(138, 111, 159, 0.15) 0%, rgba(138, 111, 159, 0.1) 100%);
 }
 
 /* Queue de bulle améliorée à gauche (Astrologie) */
@@ -287,7 +285,7 @@ body {
   height: 0;
   border-style: solid;
   border-width: 0 10px 14px 0;
-  border-color: transparent rgba(228, 181, 160, 0.4) transparent transparent;
+  border-color: transparent rgba(138, 111, 159, 0.3) transparent transparent;
   filter: drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.1));
 }
 
@@ -300,15 +298,22 @@ body {
   height: 0;
   border-style: solid;
   border-width: 0 9px 13px 0;
-  border-color: transparent rgba(228, 181, 160, 0.25) transparent transparent;
+  border-color: transparent rgba(138, 111, 159, 0.15) transparent transparent;
 }
 
 .dialogue-bubble-user .dialogue-bubble-content {
-  background: linear-gradient(135deg, rgba(245, 212, 193, 0.3) 0%, rgba(245, 212, 193, 0.2) 100%);
-  border: 1px solid rgba(245, 212, 193, 0.5);
-  color: #000000; /* Texte en noir */
+  background: linear-gradient(135deg, rgba(184, 162, 194, 0.2) 0%, rgba(184, 162, 194, 0.15) 100%);
+  border: 1px solid rgba(184, 162, 194, 0.4);
+  color: #4A2C5A; /* Mauve très foncé */
   border-bottom-right-radius: 6px; /* Queue de bulle à droite */
   position: relative;
+  /* Effet poli au jet de sable */
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  background-image: 
+    radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.03) 0%, transparent 50%),
+    linear-gradient(135deg, rgba(184, 162, 194, 0.2) 0%, rgba(184, 162, 194, 0.15) 100%);
 }
 
 /* Queue de bulle améliorée à droite (Utilisateur) */
@@ -321,7 +326,7 @@ body {
   height: 0;
   border-style: solid;
   border-width: 0 0 14px 10px;
-  border-color: transparent transparent transparent rgba(245, 212, 193, 0.5);
+  border-color: transparent transparent transparent rgba(184, 162, 194, 0.4);
   filter: drop-shadow(-1px 1px 2px rgba(0, 0, 0, 0.1));
 }
 
@@ -334,7 +339,7 @@ body {
   height: 0;
   border-style: solid;
   border-width: 0 0 13px 9px;
-  border-color: transparent transparent transparent rgba(245, 212, 193, 0.3);
+  border-color: transparent transparent transparent rgba(184, 162, 194, 0.2);
 }
 
 .dialogue-bubble-speaker {
@@ -398,12 +403,12 @@ body {
 }
 
 .dialogue-prose strong {
-  color: var(--cosmic-gold);
+  color: #4A2C5A; /* Mauve très foncé */
   letter-spacing: 0.05em;
 }
 
 .dialogue-prose em {
-  color: var(--rose-gold);
+  color: #5A3C6A; /* Mauve foncé légèrement plus clair */
 }
 
 .dialogue-center {
@@ -461,14 +466,15 @@ body {
   color: rgba(228, 181, 160, 0.9);
 }
 
-/* PDF export card */
+/* PDF export card - Sans encadré */
 .pdf-card {
-  background: radial-gradient(140% 130% at 20% 15%, #a17ab1 0%, #7c4f90 45%, #4c2c62 100%);
-  border-radius: 18px;
-  border: 1px solid rgba(228, 181, 160, 0.25);
-  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+  background: none; /* Pas de fond */
+  border: none; /* Pas de bordure */
+  border-radius: 0; /* Pas de bordure arrondie */
+  box-shadow: none; /* Pas d'ombre */
   position: relative;
-  padding: 24px 28px 36px;
+  padding: 0; /* Pas de padding */
+  width: 100%; /* Utilise toute la largeur */
 }
 
 .pdf-card::after {
@@ -528,25 +534,44 @@ body {
   min-height: 400px;
   overflow-y: auto;
   overflow-x: hidden;
-  padding-right: 12px;
+  padding-right: 0; /* Pas de padding pour que la barre soit complètement sur le côté */
   -webkit-overflow-scrolling: touch;
+  /* Barre de défilement personnalisée */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(138, 111, 159, 0.5) transparent;
+}
+
+.pdf-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.pdf-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.pdf-scroll::-webkit-scrollbar-thumb {
+  background: rgba(138, 111, 159, 0.5);
+  border-radius: 4px;
+}
+
+.pdf-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(138, 111, 159, 0.7);
 }
 
 .pdf-body {
   font-size: 17.5px; /* 17-18px, valeur médiane */
   line-height: 1.7; /* 1.6-1.8, valeur médiane */
-  max-width: 720px; /* 680-760px, valeur médiane */
-  margin: 0 auto; /* Centrer le contenu */
+  width: 100%; /* Utilise toute la largeur */
+  margin: 0; /* Pas de marge */
   word-break: break-word; /* Pour les liens / mots longs */
 }
 
 .pdf-panel {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(228, 181, 160, 0.35);
-  border-radius: 14px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  padding-left: 21px; /* 18-24px, valeur médiane */
-  padding-right: 21px; /* 18-24px, valeur médiane */
+  background: none; /* Pas de fond */
+  border: none; /* Pas de bordure */
+  border-radius: 0; /* Pas de bordure arrondie */
+  box-shadow: none; /* Pas d'ombre */
+  padding: 0; /* Pas de padding */
 }
 
 .pdf-panel p {
