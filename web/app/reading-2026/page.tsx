@@ -20,6 +20,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import { cleanText } from '@/lib/cleanText'
 import Starfield from '@/components/Starfield'
+import Logo from '@/components/Logo'
 
 export default function Reading2026Page() {
   const settings = useSettingsStore()
@@ -666,14 +667,10 @@ export default function Reading2026Page() {
                           
                           // Si c'est un dialogue, rendre comme une bulle
                           if (isDialogue && speakerMatch && dialogueText) {
-                            // Fonction pour obtenir le symbole (sera remplacée par la liste complète)
+                            // Fonction pour obtenir le symbole astrologique
                             const getSymbol = (name: string): string => {
                               const nameLower = name.toLowerCase()
                               const symbols: { [key: string]: string } = {
-                                'astrologie': '⭐',
-                                'astrology': '⭐',
-                                'astrología': '⭐',
-                                'astrologia': '⭐',
                                 'saturne': '♄',
                                 'saturn': '♄',
                                 'jupiter': '♃',
@@ -693,7 +690,15 @@ export default function Reading2026Page() {
                               return symbols[nameLower] || ''
                             }
                             
-                            const symbol = isAstroSpeaker ? getSymbol(speakerName) : ''
+                            const isAstrologie = (() => {
+                              const labelLower = speakerName.toLowerCase()
+                              return labelLower === 'astrologie' ||
+                                labelLower === 'astrology' ||
+                                labelLower === 'astrología' ||
+                                labelLower === 'astrologia'
+                            })()
+                            
+                            const symbol = isAstroSpeaker && !isAstrologie ? getSymbol(speakerName) : ''
                             const isClient = !isAstroSpeaker
                             
                             return (
@@ -702,7 +707,10 @@ export default function Reading2026Page() {
                                 className={`dialogue-bubble ${isAstroSpeaker ? 'dialogue-bubble-astro' : 'dialogue-bubble-user'}`}
                               >
                                 <div className="dialogue-bubble-speaker">
-                                  {isAstroSpeaker && symbol && (
+                                  {isAstroSpeaker && isAstrologie && (
+                                    <Logo variant="symbol" size="sm" className="dialogue-bubble-speaker-symbol" animated={false} asLink={false} />
+                                  )}
+                                  {isAstroSpeaker && !isAstrologie && symbol && (
                                     <span className="dialogue-bubble-speaker-symbol">{symbol}</span>
                                   )}
                                   {isClient ? (

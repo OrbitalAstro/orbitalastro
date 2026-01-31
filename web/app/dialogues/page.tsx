@@ -752,15 +752,10 @@ export default function Dialogues() {
                         
                         // Si c'est un dialogue, rendre comme une bulle
                         if (isDialogue && speakerMatch && dialogueText) {
-                          // Fonction pour obtenir le symbole (sera remplacée par la liste complète)
+                          // Fonction pour obtenir le symbole astrologique
                           const getSymbol = (name: string): string => {
                             const nameLower = name.toLowerCase()
-                            // Liste temporaire - sera remplacée par la liste complète de l'utilisateur
                             const symbols: { [key: string]: string } = {
-                              'astrologie': '⭐',
-                              'astrology': '⭐',
-                              'astrología': '⭐',
-                              'astrologia': '⭐',
                               'saturne': '♄',
                               'saturn': '♄',
                               'jupiter': '♃',
@@ -780,7 +775,15 @@ export default function Dialogues() {
                             return symbols[nameLower] || ''
                           }
                           
-                          const symbol = isAstroSpeaker ? getSymbol(speakerName) : ''
+                          const isAstrologie = (() => {
+                            const labelLower = speakerName.toLowerCase()
+                            return labelLower === 'astrologie' ||
+                              labelLower === 'astrology' ||
+                              labelLower === 'astrología' ||
+                              labelLower === 'astrologia'
+                          })()
+                          
+                          const symbol = isAstroSpeaker && !isAstrologie ? getSymbol(speakerName) : ''
                           const isClient = !isAstroSpeaker
                           
                           return (
@@ -789,7 +792,10 @@ export default function Dialogues() {
                               className={`dialogue-bubble ${isAstroSpeaker ? 'dialogue-bubble-astro' : 'dialogue-bubble-user'}`}
                             >
                               <div className="dialogue-bubble-speaker">
-                                {isAstroSpeaker && symbol && (
+                                {isAstroSpeaker && isAstrologie && (
+                                  <Logo variant="symbol" size="sm" className="dialogue-bubble-speaker-symbol" animated={false} asLink={false} />
+                                )}
+                                {isAstroSpeaker && !isAstrologie && symbol && (
                                   <span className="dialogue-bubble-speaker-symbol">{symbol}</span>
                                 )}
                                 {isClient ? (

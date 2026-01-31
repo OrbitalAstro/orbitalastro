@@ -223,12 +223,12 @@ body {
   text-indent: 0;
 }
 
-/* Bulles de conversation pour les dialogues */
+/* Bulles de conversation pour les dialogues - Style simplifié sans encadrés */
 .dialogue-bubble {
   display: flex;
   flex-direction: column;
   margin-bottom: 16px;
-  max-width: 85%;
+  width: 100%; /* Utilise toute la largeur disponible */
   word-break: break-word;
 }
 
@@ -241,78 +241,39 @@ body {
 }
 
 .dialogue-bubble-content {
-  padding: 12px 16px;
-  border-radius: 18px;
+  padding: 0; /* Pas de padding pour les bulles */
+  border-radius: 0; /* Pas de bordure arrondie */
   position: relative;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: none; /* Pas d'ombre */
   font-size: 17.5px;
   line-height: 1.7;
+  width: 100%; /* Utilise toute la largeur */
 }
 
 .dialogue-bubble-astro .dialogue-bubble-content {
-  background: linear-gradient(135deg, rgba(228, 181, 160, 0.25) 0%, rgba(228, 181, 160, 0.15) 100%);
-  border: 1px solid rgba(228, 181, 160, 0.4);
+  background: none; /* Pas de fond */
+  border: none; /* Pas de bordure */
   color: #000000; /* Texte en noir */
-  border-bottom-left-radius: 4px; /* Queue de bulle à gauche */
   position: relative;
 }
 
-/* Queue de bulle à gauche (Astrologie) */
-.dialogue-bubble-astro .dialogue-bubble-content::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: -8px;
-  width: 0;
-  height: 0;
-  border-style: solid;
-  border-width: 0 8px 12px 0;
-  border-color: transparent rgba(228, 181, 160, 0.4) transparent transparent;
-}
-
+/* Plus de queues de bulle */
+.dialogue-bubble-astro .dialogue-bubble-content::after,
 .dialogue-bubble-astro .dialogue-bubble-content::before {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: -7px;
-  width: 0;
-  height: 0;
-  border-style: solid;
-  border-width: 0 7px 11px 0;
-  border-color: transparent rgba(228, 181, 160, 0.25) transparent transparent;
+  display: none;
 }
 
 .dialogue-bubble-user .dialogue-bubble-content {
-  background: linear-gradient(135deg, rgba(245, 212, 193, 0.3) 0%, rgba(245, 212, 193, 0.2) 100%);
-  border: 1px solid rgba(245, 212, 193, 0.5);
+  background: none; /* Pas de fond */
+  border: none; /* Pas de bordure */
   color: #000000; /* Texte en noir */
-  border-bottom-right-radius: 4px; /* Queue de bulle à droite */
   position: relative;
 }
 
-/* Queue de bulle à droite (Utilisateur) */
-.dialogue-bubble-user .dialogue-bubble-content::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  right: -8px;
-  width: 0;
-  height: 0;
-  border-style: solid;
-  border-width: 0 0 12px 8px;
-  border-color: transparent transparent transparent rgba(245, 212, 193, 0.5);
-}
-
+/* Plus de queues de bulle */
+.dialogue-bubble-user .dialogue-bubble-content::after,
 .dialogue-bubble-user .dialogue-bubble-content::before {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  right: -7px;
-  width: 0;
-  height: 0;
-  border-style: solid;
-  border-width: 0 0 11px 7px;
-  border-color: transparent transparent transparent rgba(245, 212, 193, 0.3);
+  display: none;
 }
 
 .dialogue-bubble-speaker {
@@ -355,10 +316,13 @@ body {
 
 /* Symbole pour les planètes/astrologie */
 .dialogue-bubble-speaker-symbol {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-size: 18px;
   line-height: 1;
   margin-right: 4px;
+  vertical-align: middle;
 }
 
 .dialogue-bubble-text {
