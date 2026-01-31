@@ -679,7 +679,7 @@ export default function Dialogues() {
                           (lower.includes('here and now') && rawText && rawText.length < 200 && /here\s+and\s+now/i.test(rawText || '')) ||
                           ((lower.includes('aquí y ahora') || lower.includes('aqui y ahora')) && rawText && rawText.length < 200 && /aqu[ií]\s+y\s+ahora/i.test(rawText || ''))
 
-                        const speakerMatch = (rawText || '').match(/^([^\n:]{2,24})\s*:\s*/)
+                        const speakerMatch = (rawText || '').match(/^([^\n:]{2,24})\s*:\s*(.*)$/s)
                         const isDialogue = (() => {
                           if (!speakerMatch) return false
                           const label = speakerMatch[1].trim()
@@ -691,6 +691,17 @@ export default function Dialogues() {
                             labelLower === 'astrologia'
                           const looksLikeFirstName = /^[\p{L}'’-]+$/u.test(label) && label.length <= 16
                           return isAstro || looksLikeFirstName
+                        })()
+                        
+                        const speakerName = speakerMatch ? speakerMatch[1].trim() : ''
+                        const dialogueText = speakerMatch ? speakerMatch[2].trim() : ''
+                        const isAstroSpeaker = (() => {
+                          if (!speakerName) return false
+                          const labelLower = speakerName.toLowerCase()
+                          return labelLower === 'astrologie' ||
+                            labelLower === 'astrology' ||
+                            labelLower === 'astrología' ||
+                            labelLower === 'astrologia'
                         })()
                         
                         const isCountdown =
@@ -736,6 +747,21 @@ export default function Dialogues() {
                               </Fragment>
                             )
                           }
+                        }
+                        
+                        // Si c'est un dialogue, rendre comme une bulle
+                        if (isDialogue && speakerMatch && dialogueText) {
+                          return (
+                            <div 
+                              key={props.key}
+                              className={`dialogue-bubble ${isAstroSpeaker ? 'dialogue-bubble-astro' : 'dialogue-bubble-user'}`}
+                            >
+                              <div className="dialogue-bubble-speaker">{speakerName}</div>
+                              <div className="dialogue-bubble-content">
+                                <p className="dialogue-bubble-text">{dialogueText}</p>
+                              </div>
+                            </div>
+                          )
                         }
                         
                         const cls = [

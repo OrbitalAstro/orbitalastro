@@ -549,7 +549,58 @@ export default function SaintValentinPage() {
                   </div>
 
                   <div className="pdf-scroll custom-scrollbar text-cosmic-gold/90">
-                    <ReactMarkdown className="dialogue-prose px-6 py-4 pdf-body pdf-panel">{content}</ReactMarkdown>
+                    <ReactMarkdown 
+                      className="dialogue-prose px-6 py-4 pdf-body pdf-panel"
+                      components={{
+                        p: ({ node, ...props }) => {
+                          const rawText = Array.isArray(props.children)
+                            ? props.children.map((c: any) => (typeof c === 'string' ? c : '')).join('').trim()
+                            : (props.children as any)?.toString().trim()
+                          
+                          const speakerMatch = (rawText || '').match(/^([^\n:]{2,24})\s*:\s*(.*)$/s)
+                          const isDialogue = (() => {
+                            if (!speakerMatch) return false
+                            const label = speakerMatch[1].trim()
+                            const labelLower = label.toLowerCase()
+                            // Pour Saint-Valentin, on peut avoir "Toi", "L'autre", ou des noms
+                            const isYou = labelLower === 'toi' || labelLower === 'you' || labelLower === 'tú' || labelLower === 'tu'
+                            const isPartner = labelLower === "l'autre" || labelLower === "l' autre" || labelLower === 'the other' || labelLower === 'el otro' || labelLower === 'la otra'
+                            const isYouName = you.firstName && labelLower === you.firstName.toLowerCase()
+                            const isPartnerName = partner.firstName && labelLower === partner.firstName.toLowerCase()
+                            const looksLikeFirstName = /^[\p{L}'’-]+$/u.test(label) && label.length <= 16
+                            return isYou || isPartner || isYouName || isPartnerName || looksLikeFirstName
+                          })()
+                          
+                          const speakerName = speakerMatch ? speakerMatch[1].trim() : ''
+                          const dialogueText = speakerMatch ? speakerMatch[2].trim() : ''
+                          const labelLower = speakerName.toLowerCase()
+                          const isYou = labelLower === 'toi' || labelLower === 'you' || labelLower === 'tú' || labelLower === 'tu' || (you?.firstName && labelLower === you.firstName.toLowerCase())
+                          const isPartner = labelLower === "l'autre" || labelLower === "l' autre" || labelLower === 'the other' || labelLower === 'el otro' || labelLower === 'la otra' || (partner?.firstName && labelLower === partner.firstName.toLowerCase())
+                          
+                          // Si c'est un dialogue, rendre comme une bulle
+                          if (isDialogue && speakerMatch && dialogueText) {
+                            // "Toi" ou le nom de l'utilisateur = à droite (user)
+                            // "L'autre" ou le nom du partenaire = à gauche (astro style)
+                            const isUserBubble = isYou
+                            return (
+                              <div 
+                                key={props.key}
+                                className={`dialogue-bubble ${isUserBubble ? 'dialogue-bubble-user' : 'dialogue-bubble-astro'}`}
+                              >
+                                <div className="dialogue-bubble-speaker">{speakerName}</div>
+                                <div className="dialogue-bubble-content">
+                                  <p className="dialogue-bubble-text">{dialogueText}</p>
+                                </div>
+                              </div>
+                            )
+                          }
+                          
+                          return <p {...props} className="dialogue-paragraph" />
+                        },
+                      }}
+                    >
+                      {content}
+                    </ReactMarkdown>
                   </div>
 
                   <div className="pdf-footnote">{pdfSubtitle}</div>

@@ -629,7 +629,58 @@ export default function Reading2026Page() {
                   </div>
 
                   <div className="pdf-scroll custom-scrollbar text-cosmic-gold/90">
-                    <ReactMarkdown className="dialogue-prose px-6 py-4 pdf-body pdf-panel">
+                    <ReactMarkdown 
+                      className="dialogue-prose px-6 py-4 pdf-body pdf-panel"
+                      components={{
+                        p: ({ node, ...props }) => {
+                          const rawText = Array.isArray(props.children)
+                            ? props.children.map((c: any) => (typeof c === 'string' ? c : '')).join('').trim()
+                            : (props.children as any)?.toString().trim()
+                          
+                          const speakerMatch = (rawText || '').match(/^([^\n:]{2,24})\s*:\s*(.*)$/s)
+                          const isDialogue = (() => {
+                            if (!speakerMatch) return false
+                            const label = speakerMatch[1].trim()
+                            const labelLower = label.toLowerCase()
+                            const isAstro =
+                              labelLower === 'astrologie' ||
+                              labelLower === 'astrology' ||
+                              labelLower === 'astrología' ||
+                              labelLower === 'astrologia'
+                            const looksLikeFirstName = /^[\p{L}'’-]+$/u.test(label) && label.length <= 16
+                            return isAstro || looksLikeFirstName
+                          })()
+                          
+                          const speakerName = speakerMatch ? speakerMatch[1].trim() : ''
+                          const dialogueText = speakerMatch ? speakerMatch[2].trim() : ''
+                          const isAstroSpeaker = (() => {
+                            if (!speakerName) return false
+                            const labelLower = speakerName.toLowerCase()
+                            return labelLower === 'astrologie' ||
+                              labelLower === 'astrology' ||
+                              labelLower === 'astrología' ||
+                              labelLower === 'astrologia'
+                          })()
+                          
+                          // Si c'est un dialogue, rendre comme une bulle
+                          if (isDialogue && speakerMatch && dialogueText) {
+                            return (
+                              <div 
+                                key={props.key}
+                                className={`dialogue-bubble ${isAstroSpeaker ? 'dialogue-bubble-astro' : 'dialogue-bubble-user'}`}
+                              >
+                                <div className="dialogue-bubble-speaker">{speakerName}</div>
+                                <div className="dialogue-bubble-content">
+                                  <p className="dialogue-bubble-text">{dialogueText}</p>
+                                </div>
+                              </div>
+                            )
+                          }
+                          
+                          return <p {...props} className="dialogue-paragraph" />
+                        },
+                      }}
+                    >
                       {(() => {
                         // Remove the title line if it matches "FirstName - Plan de jeu astrologique 2026" pattern
                         if (!reading) return ''
