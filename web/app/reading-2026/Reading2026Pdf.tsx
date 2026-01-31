@@ -224,16 +224,45 @@ export default function Reading2026Pdf({
 }: Reading2026PdfProps) {
   const t = translations[language] || translations.fr
 
-  const blocks = parseBlocks(reading)
+  let blocks = parseBlocks(reading)
+  
+  // Remove the title line if it matches "FirstName - Plan de jeu astrologique 2026" pattern
+  if (blocks.length > 0 && blocks[0].type === 'paragraph') {
+    const firstBlockText = blocks[0].text.trim()
+    const titlePattern = /^[^-]+ - Plan de jeu astrologique 2026$/i
+    if (titlePattern.test(firstBlockText)) {
+      blocks = blocks.slice(1) // Remove the first block
+    }
+  }
+
+  // Format birth place to remove administrative region
+  const formatBirthPlaceForPdf = (place: string): string => {
+    if (!place) return ''
+    const parts = place
+      .split(',')
+      .map(p => p.trim())
+      .filter(p => p.length > 0)
+      .filter(p => !p.toLowerCase().includes('région administrative'))
+    if (parts.length >= 3) {
+      const city = parts[0]
+      const province = parts[parts.length - 2]
+      const country = parts[parts.length - 1]
+      return `${city}, ${province}, ${country}`
+    } else if (parts.length === 2) {
+      return `${parts[0]}, ${parts[1]}`
+    } else {
+      return parts[0] || place
+    }
+  }
 
   const metaLines = [
-    firstName ? `${t.reading2026.firstName.replace(/\s*\(.*?\)\s*$/, '')}: ${firstName}` : null,
+    firstName ? firstName : null, // Only show the name, no label
     birthDate ? `${t.reading2026.birthDate}: ${birthDate}` : null,
     birthTime ? `${t.reading2026.birthTime}: ${birthTime}` : null,
-    birthPlace ? `${t.reading2026.birthPlace}: ${birthPlace}` : null,
+    birthPlace ? `${t.reading2026.birthPlace}: ${formatBirthPlaceForPdf(birthPlace)}` : null,
   ].filter(Boolean) as string[]
 
-  const title = t.reading2026.title || (language === 'en' ? '2026 Reading' : language === 'es' ? 'Lectura 2026' : 'Lecture 2026')
+  const title = language === 'en' ? '2026 Astrological Game Plan' : language === 'es' ? 'Plan de juego astrológico 2026' : 'Plan de jeu astrologique 2026'
 
   return (
     <Document>

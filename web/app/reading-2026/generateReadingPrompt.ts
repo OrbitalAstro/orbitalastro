@@ -92,7 +92,12 @@ function formatBirthPlace(birthPlace: string): string {
   if (!birthPlace) return ''
   
   // Split by comma and trim each part
-  const parts = birthPlace.split(',').map(p => p.trim()).filter(p => p.length > 0)
+  // Filter out "région administrative" and similar administrative regions
+  const parts = birthPlace
+    .split(',')
+    .map(p => p.trim())
+    .filter(p => p.length > 0)
+    .filter(p => !p.toLowerCase().includes('région administrative'))
   
   if (parts.length === 0) return birthPlace
   
