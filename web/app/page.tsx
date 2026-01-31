@@ -102,6 +102,21 @@ export default function LandingPage() {
                 </motion.button>
               </Link>
             </div>
+
+            {/* Note de nouveautés */}
+            <motion.p
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.5 }}
+              className="mt-8 text-center text-cosmic-gold/80"
+              style={{
+                fontFamily: "'Great Vibes', cursive",
+                fontSize: '1.5rem',
+                letterSpacing: '0.02em',
+              }}
+            >
+              Viens nous voir souvent pour découvrir nos nouveautés.
+            </motion.p>
           </motion.div>
         </motion.div>
 
