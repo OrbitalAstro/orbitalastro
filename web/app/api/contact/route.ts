@@ -157,6 +157,35 @@ export async function POST(req: Request) {
       message,
     })
 
+    // Sauvegarder l'email dans la base de données (optionnel, pour newsletter)
+    try {
+      const { getSupabaseAdmin } = await import('@/lib/supabase')
+      const supabase = getSupabaseAdmin()
+      
+      await supabase
+        .from('subscribers')
+        .upsert(
+          {
+            email: email.toLowerCase().trim(),
+            first_name: name || null,
+            source: 'contact',
+            subscribed_to_newsletter: true,
+            subscribed_to_product_updates: true,
+            subscribed_to_promotions: true,
+            unsubscribed_at: null,
+          },
+          {
+            onConflict: 'email',
+            ignoreDuplicates: false,
+          }
+        )
+      
+      console.log('[contact] Subscriber saved to database')
+    } catch (dbError) {
+      // Ne pas faire échouer la requête si l'enregistrement DB échoue
+      console.error('[contact] Failed to save subscriber:', dbError)
+    }
+
     return NextResponse.json({ ok: true, message: 'Message envoyé avec succès' })
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error'

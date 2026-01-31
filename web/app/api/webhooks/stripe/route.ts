@@ -39,44 +39,72 @@ async function verifyWebhookSignature(
 
 // Enregistrer un paiement dans la base de données
 async function recordPayment(session: Stripe.Checkout.Session) {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-
-  if (!supabaseUrl || !supabaseKey) {
-    console.error('Supabase credentials not configured')
-    return
-  }
-
+  const { getSupabaseAdmin } = await import('@/lib/supabase')
+  
   try {
+    const supabase = getSupabaseAdmin()
     const productId = session.metadata?.productId || 'unknown'
     const amount = session.amount_total ? session.amount_total / 100 : 0 // Convertir de centimes
     const currency = session.currency || 'cad'
+    const customerEmail = session.customer_email || session.customer_details?.email || ''
+    const stripeCustomerId = typeof session.customer === 'string' ? session.customer : null
 
-    const response = await fetch(`${supabaseUrl}/rest/v1/payments`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': supabaseKey,
-        'Authorization': `Bearer ${supabaseKey}`,
-        'Prefer': 'return=representation',
-      },
-      body: JSON.stringify({
-        stripe_session_id: session.id,
-        stripe_customer_id: session.customer as string || null,
-        customer_email: session.customer_email || session.customer_details?.email || '',
-        product_id: productId,
-        amount_paid: amount,
-        currency: currency,
-        status: session.payment_status === 'paid' ? 'paid' : 'pending',
-      }),
-    })
+    // Enregistrer le paiement
+    const { data: payment, error: paymentError } = await supabase
+      .from('payments')
+      .upsert(
+        {
+          stripe_session_id: session.id,
+          stripe_customer_id: stripeCustomerId,
+          customer_email: customerEmail,
+          product_id: productId,
+          amount_paid: amount,
+          currency: currency,
+          status: session.payment_status === 'paid' ? 'paid' : 'pending',
+        },
+        {
+          onConflict: 'stripe_session_id',
+          ignoreDuplicates: false,
+        }
+      )
+      .select()
+      .single()
 
-    if (!response.ok) {
-      const error = await response.text()
-      console.error('Failed to record payment:', error)
+    if (paymentError) {
+      console.error('[webhook/stripe] Failed to record payment:', paymentError)
+      return
     }
+
+    // Le trigger automatique créera le subscriber, mais on peut aussi le faire manuellement pour être sûr
+    if (session.payment_status === 'paid' && customerEmail) {
+      // Le trigger upsert_subscriber_on_payment devrait déjà le faire, mais on le fait aussi ici pour être sûr
+      await supabase
+        .from('subscribers')
+        .upsert(
+          {
+            email: customerEmail.toLowerCase().trim(),
+            stripe_customer_id: stripeCustomerId,
+            source: 'checkout',
+            subscribed_to_newsletter: true,
+            subscribed_to_product_updates: true,
+            subscribed_to_promotions: true,
+            unsubscribed_at: null,
+          },
+          {
+            onConflict: 'email',
+            ignoreDuplicates: false,
+          }
+        )
+    }
+
+    console.log('[webhook/stripe] Payment recorded:', {
+      sessionId: session.id,
+      productId,
+      email: customerEmail,
+      paymentId: payment?.id,
+    })
   } catch (error) {
-    console.error('Error recording payment:', error)
+    console.error('[webhook/stripe] Error recording payment:', error)
   }
 }
 

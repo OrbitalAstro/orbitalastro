@@ -104,3 +104,90 @@ WHERE
   (ua.expires_at IS NULL OR ua.expires_at > NOW())
   AND p.status = 'paid';
 
+-- Table des emails et préférences pour newsletters
+CREATE TABLE IF NOT EXISTS subscribers (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email TEXT UNIQUE NOT NULL,
+  first_name TEXT,
+  language TEXT DEFAULT 'fr', -- 'fr', 'en', 'es'
+  subscribed_to_newsletter BOOLEAN DEFAULT true,
+  subscribed_to_product_updates BOOLEAN DEFAULT true,
+  subscribed_to_promotions BOOLEAN DEFAULT true,
+  source TEXT, -- 'checkout', 'contact', 'manual'
+  stripe_customer_id TEXT, -- Lien avec Stripe si disponible
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  last_email_sent_at TIMESTAMP WITH TIME ZONE,
+  email_verified BOOLEAN DEFAULT false,
+  unsubscribed_at TIMESTAMP WITH TIME ZONE
+);
+
+-- Index pour recherche rapide
+CREATE INDEX IF NOT EXISTS idx_subscribers_email ON subscribers(email);
+CREATE INDEX IF NOT EXISTS idx_subscribers_newsletter ON subscribers(subscribed_to_newsletter) WHERE subscribed_to_newsletter = true;
+CREATE INDEX IF NOT EXISTS idx_subscribers_stripe_customer ON subscribers(stripe_customer_id) WHERE stripe_customer_id IS NOT NULL;
+
+-- Table pour tracker les générations (pour limiter les quantités)
+CREATE TABLE IF NOT EXISTS generations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  customer_email TEXT NOT NULL,
+  product_id TEXT NOT NULL, -- 'dialogue', 'reading-2026', 'valentine-2026'
+  stripe_session_id TEXT,
+  payment_id UUID REFERENCES payments(id) ON DELETE SET NULL,
+  generated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  content_preview TEXT, -- Premiers 200 caractères pour référence
+  metadata JSONB -- Stocker des infos supplémentaires (firstName, etc.)
+);
+
+-- Index pour recherche rapide
+CREATE INDEX IF NOT EXISTS idx_generations_email_product ON generations(customer_email, product_id);
+CREATE INDEX IF NOT EXISTS idx_generations_session ON generations(stripe_session_id);
+CREATE INDEX IF NOT EXISTS idx_generations_created ON generations(generated_at);
+
+-- Trigger pour mettre à jour updated_at sur subscribers
+CREATE TRIGGER update_subscribers_updated_at BEFORE UPDATE ON subscribers
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Fonction pour créer/mettre à jour un subscriber après un paiement
+CREATE OR REPLACE FUNCTION upsert_subscriber_from_payment()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- Si le paiement est réussi, créer/mettre à jour le subscriber
+  IF NEW.status = 'paid' AND NEW.customer_email IS NOT NULL THEN
+    INSERT INTO subscribers (
+      email,
+      first_name,
+      language,
+      subscribed_to_newsletter,
+      subscribed_to_product_updates,
+      source,
+      stripe_customer_id
+    )
+    VALUES (
+      NEW.customer_email,
+      NULL, -- Peut être rempli plus tard
+      'fr', -- Par défaut
+      true, -- Abonné par défaut aux newsletters
+      true, -- Abonné par défaut aux mises à jour produits
+      'checkout',
+      NEW.stripe_customer_id
+    )
+    ON CONFLICT (email) 
+    DO UPDATE SET 
+      stripe_customer_id = COALESCE(EXCLUDED.stripe_customer_id, subscribers.stripe_customer_id),
+      updated_at = NOW(),
+      -- Ne pas désabonner si déjà abonné
+      subscribed_to_newsletter = COALESCE(subscribers.subscribed_to_newsletter, true),
+      subscribed_to_product_updates = COALESCE(subscribers.subscribed_to_product_updates, true),
+      unsubscribed_at = NULL; -- Réabonner si désabonné précédemment
+  END IF;
+  RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+-- Trigger pour créer/mettre à jour subscriber après paiement
+CREATE TRIGGER upsert_subscriber_on_payment AFTER INSERT OR UPDATE ON payments
+  FOR EACH ROW 
+  WHEN (NEW.status = 'paid' AND NEW.customer_email IS NOT NULL)
+  EXECUTE FUNCTION upsert_subscriber_from_payment();
+
