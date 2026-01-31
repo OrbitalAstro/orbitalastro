@@ -225,53 +225,44 @@ function parseBlocks(markdown: string): Block[] {
   const text = cleanText((markdown || '').replace(/\r\n/g, '\n')).trim()
   if (!text) return []
 
+  console.log('[parseBlocks] Texte d\'entrée (longueur):', text.length)
+  
   const blocks: Block[] = []
-  // Diviser par lignes vides (une ou plusieurs)
-  const paragraphs = text.split(/\n\s*\n/)
+  // Diviser par double saut de ligne (paragraphes), mais préserver les lignes simples
+  const parts = text.split(/\n\n+/)
+  
+  console.log('[parseBlocks] Nombre de parties après split:', parts.length)
 
-  for (const raw of paragraphs) {
+  for (const raw of parts) {
     const chunk = raw.trim()
     if (!chunk) continue
 
-    // Si le paragraphe contient plusieurs lignes, les traiter séparément
+    // Diviser en lignes individuelles
     const lines = chunk.split('\n').map((l) => l.trim()).filter(Boolean)
     if (!lines.length) continue
 
-    // Si c'est une seule ligne, créer un bloc
-    if (lines.length === 1) {
-      const line = lines[0]
+    // Traiter chaque ligne
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i]
+      
+      // Vérifier si c'est un titre
       if (/^#{1,6}\s+/.test(line)) {
         blocks.push({ type: 'heading', text: line.replace(/^#{1,6}\s+/, '').trim() })
-      } else if (/^(?:[-•*]|\d+\.)\s+/.test(line)) {
+        continue
+      }
+      
+      // Vérifier si c'est une puce
+      if (/^(?:[-•*]|\d+\.)\s+/.test(line)) {
         blocks.push({ type: 'bullet', text: line.replace(/^(?:[-•*]|\d+\.)\s+/, '').trim() })
-      } else {
-        blocks.push({ type: 'paragraph', text: line })
+        continue
       }
-    } else {
-      // Si plusieurs lignes, créer un bloc paragraphe avec tout le contenu
-      // (pour préserver les dialogues et les retours à la ligne)
-      const fullText = lines.join('\n')
-      if (/^#{1,6}\s+/.test(lines[0])) {
-        blocks.push({ type: 'heading', text: lines[0].replace(/^#{1,6}\s+/, '').trim() })
-        if (lines.length > 1) {
-          blocks.push({ type: 'paragraph', text: lines.slice(1).join('\n') })
-        }
-      } else if (/^(?:[-•*]|\d+\.)\s+/.test(lines[0])) {
-        // Pour les listes, créer un bloc par ligne
-        for (const line of lines) {
-          if (/^(?:[-•*]|\d+\.)\s+/.test(line)) {
-            blocks.push({ type: 'bullet', text: line.replace(/^(?:[-•*]|\d+\.)\s+/, '').trim() })
-          } else {
-            blocks.push({ type: 'paragraph', text: line })
-          }
-        }
-      } else {
-        // Paragraphe normal avec plusieurs lignes (dialogue ou texte)
-        blocks.push({ type: 'paragraph', text: fullText })
-      }
+      
+      // Sinon, c'est un paragraphe normal
+      blocks.push({ type: 'paragraph', text: line })
     }
   }
 
+  console.log('[parseBlocks] Nombre total de blocs créés:', blocks.length)
   return blocks
 }
 
@@ -294,7 +285,15 @@ export default function Reading2026Pdf({
 }: Reading2026PdfProps) {
   const t = translations[language] || translations.fr
 
+  console.log('[Reading2026Pdf] Texte reçu (longueur):', reading?.length || 0)
+  console.log('[Reading2026Pdf] Premiers 500 caractères:', reading?.substring(0, 500))
+  console.log('[Reading2026Pdf] Derniers 500 caractères:', reading?.substring(Math.max(0, (reading?.length || 0) - 500)))
+
   let blocks = parseBlocks(reading)
+  
+  console.log('[Reading2026Pdf] Nombre de blocs créés:', blocks.length)
+  console.log('[Reading2026Pdf] Premiers 3 blocs:', blocks.slice(0, 3).map(b => ({ type: b.type, textLength: b.text.length, preview: b.text.substring(0, 100) })))
+  console.log('[Reading2026Pdf] Derniers 3 blocs:', blocks.slice(-3).map(b => ({ type: b.type, textLength: b.text.length, preview: b.text.substring(0, 100) })))
   
   // Remove the title line if it matches "FirstName - Plan de jeu astrologique 2026" pattern
   if (blocks.length > 0 && blocks[0].type === 'paragraph') {
