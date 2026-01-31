@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
   inlineScript: {
     fontFamily: greatVibesLoaded ? 'GreatVibes' : 'Times-Italic',
     fontStyle: greatVibesLoaded ? 'normal' : 'italic',
-    fontSize: 12,
+    fontSize: 18,
   },
 })
 
