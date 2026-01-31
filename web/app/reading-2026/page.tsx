@@ -19,6 +19,7 @@ import { checkAccessFromURL, checkProductAccess, markProductAsPaid, recordGenera
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import { cleanText } from '@/lib/cleanText'
+import Starfield from '@/components/Starfield'
 
 export default function Reading2026Page() {
   const settings = useSettingsStore()
@@ -401,6 +402,7 @@ export default function Reading2026Page() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-cosmic-purple via-magenta-purple to-cosmic-purple relative">
+      <Starfield />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
         <BackButton />
         <motion.div
@@ -664,12 +666,52 @@ export default function Reading2026Page() {
                           
                           // Si c'est un dialogue, rendre comme une bulle
                           if (isDialogue && speakerMatch && dialogueText) {
+                            // Fonction pour obtenir le symbole (sera remplacée par la liste complète)
+                            const getSymbol = (name: string): string => {
+                              const nameLower = name.toLowerCase()
+                              const symbols: { [key: string]: string } = {
+                                'astrologie': '⭐',
+                                'astrology': '⭐',
+                                'astrología': '⭐',
+                                'astrologia': '⭐',
+                                'saturne': '♄',
+                                'saturn': '♄',
+                                'jupiter': '♃',
+                                'mars': '♂',
+                                'venus': '♀',
+                                'mercure': '☿',
+                                'mercury': '☿',
+                                'soleil': '☉',
+                                'sun': '☉',
+                                'lune': '☽',
+                                'moon': '☽',
+                                'uranus': '♅',
+                                'neptune': '♆',
+                                'pluton': '♇',
+                                'pluto': '♇',
+                              }
+                              return symbols[nameLower] || ''
+                            }
+                            
+                            const symbol = isAstroSpeaker ? getSymbol(speakerName) : ''
+                            const isClient = !isAstroSpeaker
+                            
                             return (
                               <div 
                                 key={props.key}
                                 className={`dialogue-bubble ${isAstroSpeaker ? 'dialogue-bubble-astro' : 'dialogue-bubble-user'}`}
                               >
-                                <div className="dialogue-bubble-speaker">{speakerName}</div>
+                                <div className="dialogue-bubble-speaker">
+                                  {isAstroSpeaker && symbol && (
+                                    <span className="dialogue-bubble-speaker-symbol">{symbol}</span>
+                                  )}
+                                  {isClient ? (
+                                    <span className="dialogue-bubble-speaker-name">
+                                      {speakerName.charAt(0).toUpperCase()}
+                                    </span>
+                                  ) : null}
+                                  <span>{speakerName}</span>
+                                </div>
                                 <div className="dialogue-bubble-content">
                                   <p className="dialogue-bubble-text">{dialogueText}</p>
                                 </div>

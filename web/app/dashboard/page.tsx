@@ -20,6 +20,7 @@ import BackButton from '@/components/BackButton'
 import { signFromLongitude } from '@/components/astrology/signTranslations'
 import { useTranslation } from '@/lib/useTranslation'
 import { formatBirthDateInput } from '@/lib/sanitizeBirthDateYear'
+import Starfield from '@/components/Starfield'
 
 export default function Dashboard() {
   const settings = useSettingsStore()
@@ -130,8 +131,9 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" aria-labelledby="main-heading">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative">
+      <Starfield />
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10" aria-labelledby="main-heading">
         <BackButton href="/" />
         <h1 className="text-4xl font-heading font-bold text-white mb-8" id="main-heading">Astrological Dashboard</h1>
 

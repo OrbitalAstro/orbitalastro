@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Loader2, CreditCard, Sparkles, Calendar, Gift, Check, Heart, Infinity } from 'lucide-react'
 import { oneTimeProducts, subscriptions, type Product } from '@/lib/stripe'
 import { useRouter } from 'next/navigation'
+import Starfield from '@/components/Starfield'
 
 export default function PricingPage() {
   const router = useRouter()
@@ -96,8 +97,9 @@ export default function PricingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-cosmic-dark via-deep-space to-cosmic-dark text-white py-20 px-4">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-b from-cosmic-dark via-deep-space to-cosmic-dark text-white py-20 px-4 relative">
+      <Starfield />
+      <div className="max-w-7xl mx-auto relative z-10">
         <div className="text-center mb-16">
           <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-cosmic-gold to-cosmic-purple bg-clip-text text-transparent">
             Nos Services

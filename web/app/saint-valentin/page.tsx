@@ -20,6 +20,7 @@ import { checkAccessFromURL, markProductAsPaid } from '@/lib/checkPayment'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import { cleanText } from '@/lib/cleanText'
+import Starfield from '@/components/Starfield'
 
 export default function SaintValentinPage() {
   const settings = useSettingsStore()
@@ -282,6 +283,7 @@ export default function SaintValentinPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-cosmic-purple via-magenta-purple to-cosmic-purple relative">
+      <Starfield />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
         <BackButton />
 
@@ -582,12 +584,22 @@ export default function SaintValentinPage() {
                             // "Toi" ou le nom de l'utilisateur = à droite (user)
                             // "L'autre" ou le nom du partenaire = à gauche (astro style)
                             const isUserBubble = isYou
+                            
                             return (
                               <div 
                                 key={props.key}
                                 className={`dialogue-bubble ${isUserBubble ? 'dialogue-bubble-user' : 'dialogue-bubble-astro'}`}
                               >
-                                <div className="dialogue-bubble-speaker">{speakerName}</div>
+                                <div className="dialogue-bubble-speaker">
+                                  {isUserBubble ? (
+                                    <span className="dialogue-bubble-speaker-name">
+                                      {speakerName === 'Toi' || speakerName === 'You' || speakerName === 'Tú' || speakerName === 'Tu' 
+                                        ? (you?.firstName?.charAt(0).toUpperCase() || 'T')
+                                        : speakerName.charAt(0).toUpperCase()}
+                                    </span>
+                                  ) : null}
+                                  <span>{speakerName}</span>
+                                </div>
                                 <div className="dialogue-bubble-content">
                                   <p className="dialogue-bubble-text">{dialogueText}</p>
                                 </div>

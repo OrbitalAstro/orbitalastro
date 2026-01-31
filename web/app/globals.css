@@ -252,15 +252,67 @@ body {
 .dialogue-bubble-astro .dialogue-bubble-content {
   background: linear-gradient(135deg, rgba(228, 181, 160, 0.25) 0%, rgba(228, 181, 160, 0.15) 100%);
   border: 1px solid rgba(228, 181, 160, 0.4);
-  color: var(--cosmic-gold);
+  color: #000000; /* Texte en noir */
   border-bottom-left-radius: 4px; /* Queue de bulle à gauche */
+  position: relative;
+}
+
+/* Queue de bulle à gauche (Astrologie) */
+.dialogue-bubble-astro .dialogue-bubble-content::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: -8px;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 8px 12px 0;
+  border-color: transparent rgba(228, 181, 160, 0.4) transparent transparent;
+}
+
+.dialogue-bubble-astro .dialogue-bubble-content::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: -7px;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 7px 11px 0;
+  border-color: transparent rgba(228, 181, 160, 0.25) transparent transparent;
 }
 
 .dialogue-bubble-user .dialogue-bubble-content {
   background: linear-gradient(135deg, rgba(245, 212, 193, 0.3) 0%, rgba(245, 212, 193, 0.2) 100%);
   border: 1px solid rgba(245, 212, 193, 0.5);
-  color: var(--rose-gold);
+  color: #000000; /* Texte en noir */
   border-bottom-right-radius: 4px; /* Queue de bulle à droite */
+  position: relative;
+}
+
+/* Queue de bulle à droite (Utilisateur) */
+.dialogue-bubble-user .dialogue-bubble-content::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: -8px;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 0 12px 8px;
+  border-color: transparent transparent transparent rgba(245, 212, 193, 0.5);
+}
+
+.dialogue-bubble-user .dialogue-bubble-content::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: -7px;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 0 11px 7px;
+  border-color: transparent transparent transparent rgba(245, 212, 193, 0.3);
 }
 
 .dialogue-bubble-speaker {
@@ -269,6 +321,9 @@ body {
   margin-bottom: 6px;
   opacity: 0.85;
   font-style: italic;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .dialogue-bubble-astro .dialogue-bubble-speaker {
@@ -279,6 +334,31 @@ body {
 .dialogue-bubble-user .dialogue-bubble-speaker {
   color: var(--rose-gold);
   text-align: right;
+  justify-content: flex-end;
+}
+
+/* Rond doux pour le nom du client */
+.dialogue-bubble-user .dialogue-bubble-speaker-name {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(245, 212, 193, 0.4) 0%, rgba(245, 212, 193, 0.3) 100%);
+  border: 1px solid rgba(245, 212, 193, 0.6);
+  font-size: 12px;
+  font-weight: 600;
+  color: #000000;
+  margin-right: 4px;
+}
+
+/* Symbole pour les planètes/astrologie */
+.dialogue-bubble-speaker-symbol {
+  display: inline-block;
+  font-size: 18px;
+  line-height: 1;
+  margin-right: 4px;
 }
 
 .dialogue-bubble-text {

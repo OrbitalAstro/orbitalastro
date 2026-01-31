@@ -11,6 +11,7 @@ import ReactMarkdown from 'react-markdown'
 import { Fragment } from 'react'
 import LocationInput from '@/components/LocationInput'
 import BackButton from '@/components/BackButton'
+import Starfield from '@/components/Starfield'
 // Removed generateDialogue import
 import { useTranslation } from '@/lib/useTranslation'
 import { generateDialoguePrompt } from './generatePrompt'
@@ -751,12 +752,53 @@ export default function Dialogues() {
                         
                         // Si c'est un dialogue, rendre comme une bulle
                         if (isDialogue && speakerMatch && dialogueText) {
+                          // Fonction pour obtenir le symbole (sera remplacée par la liste complète)
+                          const getSymbol = (name: string): string => {
+                            const nameLower = name.toLowerCase()
+                            // Liste temporaire - sera remplacée par la liste complète de l'utilisateur
+                            const symbols: { [key: string]: string } = {
+                              'astrologie': '⭐',
+                              'astrology': '⭐',
+                              'astrología': '⭐',
+                              'astrologia': '⭐',
+                              'saturne': '♄',
+                              'saturn': '♄',
+                              'jupiter': '♃',
+                              'mars': '♂',
+                              'venus': '♀',
+                              'mercure': '☿',
+                              'mercury': '☿',
+                              'soleil': '☉',
+                              'sun': '☉',
+                              'lune': '☽',
+                              'moon': '☽',
+                              'uranus': '♅',
+                              'neptune': '♆',
+                              'pluton': '♇',
+                              'pluto': '♇',
+                            }
+                            return symbols[nameLower] || ''
+                          }
+                          
+                          const symbol = isAstroSpeaker ? getSymbol(speakerName) : ''
+                          const isClient = !isAstroSpeaker
+                          
                           return (
                             <div 
                               key={props.key}
                               className={`dialogue-bubble ${isAstroSpeaker ? 'dialogue-bubble-astro' : 'dialogue-bubble-user'}`}
                             >
-                              <div className="dialogue-bubble-speaker">{speakerName}</div>
+                              <div className="dialogue-bubble-speaker">
+                                {isAstroSpeaker && symbol && (
+                                  <span className="dialogue-bubble-speaker-symbol">{symbol}</span>
+                                )}
+                                {isClient ? (
+                                  <span className="dialogue-bubble-speaker-name">
+                                    {speakerName.charAt(0).toUpperCase()}
+                                  </span>
+                                ) : null}
+                                <span>{speakerName}</span>
+                              </div>
                               <div className="dialogue-bubble-content">
                                 <p className="dialogue-bubble-text">{dialogueText}</p>
                               </div>
@@ -793,54 +835,6 @@ export default function Dialogues() {
           )}
         </motion.div>
       </div>
-    </div>
-  )
-}
-
-function Starfield() {
-  const [stars, setStars] = useState<Array<{
-    id: number
-    x: number
-    y: number
-    size: number
-    duration: number
-  }>>([])
-
-  useEffect(() => {
-    setStars(
-      Array.from({ length: 100 }).map((_, i) => ({
-        id: i,
-        x: Math.random() * 100,
-        y: Math.random() * 100,
-        size: Math.random() * 2 + 1,
-        duration: Math.random() * 3 + 2,
-      }))
-    )
-  }, [])
-
-  return (
-    <div className="fixed inset-0 pointer-events-none z-0">
-      {stars.map((star) => (
-        <motion.div
-          key={star.id}
-          className="absolute rounded-full bg-white"
-          style={{
-            left: `${star.x}%`,
-            top: `${star.y}%`,
-            width: star.size,
-            height: star.size,
-          }}
-          animate={{
-            opacity: [0.3, 1, 0.3],
-            scale: [1, 1.2, 1],
-          }}
-          transition={{
-            duration: star.duration,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
-      ))}
     </div>
   )
 }

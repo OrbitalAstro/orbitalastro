@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { Mail, Send } from 'lucide-react'
 import BackButton from '@/components/BackButton'
 import { useTranslation } from '@/lib/useTranslation'
+import Starfield from '@/components/Starfield'
 
 export default function ContactPage() {
   const t = useTranslation()
@@ -45,6 +46,7 @@ export default function ContactPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-cosmic-purple via-magenta-purple to-cosmic-purple relative">
+      <Starfield />
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
         <BackButton href="/" />
 

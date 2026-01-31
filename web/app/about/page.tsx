@@ -4,10 +4,12 @@ import { motion } from 'framer-motion'
 import { HeartHandshake, Star } from 'lucide-react'
 import BackButton from '@/components/BackButton'
 import Logo from '@/components/Logo'
+import Starfield from '@/components/Starfield'
 
 export default function AboutPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-cosmic-purple via-magenta-purple to-cosmic-purple relative">
+      <Starfield />
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-20 relative z-10">
         <BackButton href="/" />
 
