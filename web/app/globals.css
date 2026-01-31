@@ -403,6 +403,8 @@ body {
 .dialogue-bubble-text {
   margin: 0;
   text-indent: 0;
+  text-align: left;
+  text-align-last: left;
 }
 
 .dialogue-bubbles-container {
