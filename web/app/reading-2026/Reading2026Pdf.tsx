@@ -282,6 +282,7 @@ export default function Reading2026Pdf({
               </View>
 
               <Text style={styles.subtitle}>{title}</Text>
+              <View style={{ height: 8 }} />
               {metaLines.map((line, i) => (
                 <Text key={i} style={styles.meta}>
                   {line}
