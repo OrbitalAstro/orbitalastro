@@ -15,7 +15,7 @@ export default function Starfield() {
   // Generate stars only on client to avoid hydration mismatch
   useEffect(() => {
     setStars(
-      Array.from({ length: 300 }).map((_, i) => ({
+      Array.from({ length: 500 }).map((_, i) => ({
         id: i,
         x: Math.random() * 100,
         y: Math.random() * 100,
