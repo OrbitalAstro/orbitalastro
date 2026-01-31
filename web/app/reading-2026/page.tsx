@@ -404,12 +404,12 @@ export default function Reading2026Page() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-cosmic-purple via-magenta-purple to-cosmic-purple relative">
       <Starfield />
-      <div className="w-full px-4 sm:px-6 lg:px-8 py-8 relative z-10">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
         <BackButton />
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative z-10"
+          className="bg-gradient-to-br from-cosmic-purple/60 to-magenta-purple/60 backdrop-blur-sm rounded-xl p-8 border border-cosmic-gold/20 relative z-10"
         >
           <div className="flex items-center justify-center gap-3 mb-8">
             <Calendar className="h-8 w-8 text-cosmic-gold" />

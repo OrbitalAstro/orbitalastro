@@ -421,12 +421,12 @@ export default function Dialogues() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-cosmic-purple via-magenta-purple to-cosmic-purple relative">
       <Starfield />
-      <div className="w-full px-4 sm:px-6 lg:px-8 py-8 relative z-10">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
         <BackButton />
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative z-10"
+          className="bg-gradient-to-br from-cosmic-purple to-magenta-purple rounded-xl p-8 border border-cosmic-gold/35 shadow-[0_28px_70px_rgba(0,0,0,0.55)] relative z-10"
         >
           <h1 className="text-3xl font-bold text-cosmic-gold mb-8 flex items-center">
             <MessageSquare className="h-8 w-8 mr-3 text-cosmic-gold" />
