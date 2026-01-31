@@ -552,7 +552,7 @@ export default function SaintValentinPage() {
 
                   <div className="pdf-scroll custom-scrollbar text-cosmic-gold/90">
                     <ReactMarkdown 
-                      className="dialogue-prose px-6 py-4 pdf-body pdf-panel"
+                      className="dialogue-prose pdf-body pdf-panel"
                       components={{
                         p: ({ node, ...props }) => {
                           const rawText = Array.isArray(props.children)
