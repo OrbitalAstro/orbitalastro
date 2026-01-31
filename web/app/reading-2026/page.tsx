@@ -310,7 +310,11 @@ export default function Reading2026Page() {
       }
 
       const readingText = response.data?.content || ''
+      console.log('[Reading 2026] Texte reçu (longueur):', readingText.length)
+      console.log('[Reading 2026] Premiers 500 caractères:', readingText.substring(0, 500))
+      
       let cleanedText = cleanText(readingText)
+      console.log('[Reading 2026] Texte nettoyé (longueur):', cleanedText.length)
       
       // Remove the title line if it matches "FirstName - Plan de jeu astrologique 2026" pattern
       const lines = cleanedText.split('\n')
@@ -319,9 +323,12 @@ export default function Reading2026Page() {
         const titlePattern = /^[^-]+ - Plan de jeu astrologique 2026$/i
         if (titlePattern.test(firstLine)) {
           cleanedText = lines.slice(1).join('\n').trim()
+          console.log('[Reading 2026] Titre retiré, longueur restante:', cleanedText.length)
         }
       }
 
+      console.log('[Reading 2026] Texte final (longueur):', cleanedText.length)
+      console.log('[Reading 2026] Derniers 500 caractères:', cleanedText.substring(Math.max(0, cleanedText.length - 500)))
       setReading(cleanedText)
       await sendReadingPdfByEmail(cleanedText)
       
