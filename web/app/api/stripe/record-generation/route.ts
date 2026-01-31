@@ -37,7 +37,7 @@ function checkRateLimit(key: string, limit: number, windowMs: number) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { email, productId, sessionId } = body
+    const { email, productId, sessionId: clientSessionId } = body
 
     if (!email || !productId) {
       return NextResponse.json(
@@ -46,56 +46,126 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Rate limiting
-    const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || 'unknown'
-    const hourly = checkRateLimit(`gen:${ip}:h`, 20, 60 * 60 * 1000)
-    if (!hourly.allowed) {
-      return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
-    }
+    const stripe = getStripe()
+    const supabase = getSupabaseAdmin()
+    const ninetyDaysAgo = Math.floor(Date.now() / 1000) - (90 * 24 * 60 * 60)
 
-    // Enregistrer la génération dans les métadonnées Stripe
-    // On utilise une approche simple : on stocke le nombre de générations dans les métadonnées de la session
-    if (sessionId) {
+    let targetSession: Stripe.Checkout.Session | null = null
+    let quantityPurchased = 0
+
+    // Prioriser session_id si fourni par le client
+    if (clientSessionId) {
       try {
-        const stripe = getStripe()
-        const session = await stripe.checkout.sessions.retrieve(sessionId)
-        
-        // Récupérer le nombre actuel de générations depuis les métadonnées
-        const currentGenerations = parseInt(session.metadata?.generations || '0', 10)
-        const newGenerations = currentGenerations + 1
-        
-        // Mettre à jour les métadonnées de la session
-        await stripe.checkout.sessions.update(sessionId, {
-          metadata: {
-            ...session.metadata,
-            generations: String(newGenerations),
-            lastGenerationAt: new Date().toISOString(),
-            lastGenerationEmail: email,
-          },
-        })
-        
-        return NextResponse.json({
-          success: true,
-          generations: newGenerations,
-        })
-      } catch (error) {
-        console.error('Error recording generation in Stripe:', error)
-        // Ne pas bloquer si l'enregistrement échoue, mais logger l'erreur
-        return NextResponse.json({
-          success: true,
-          generations: 1, // Valeur par défaut
-          warning: 'Could not record in Stripe, but generation allowed',
-        })
+        const session = await stripe.checkout.sessions.retrieve(clientSessionId, { expand: ['line_items'] })
+        if (session.payment_status === 'paid' && session.metadata?.productId === productId) {
+          let currentQuantity = 1
+          if (session.line_items && 'data' in session.line_items) {
+            currentQuantity = session.line_items.data.reduce((sum, item) => sum + (item.quantity || 1), 0)
+          } else if (session.line_items && Array.isArray(session.line_items)) {
+            currentQuantity = session.line_items.reduce((sum: number, item: any) => sum + (item.quantity || 1), 0)
+          }
+          const generationsUsed = parseInt(session.metadata?.generationsUsed || '0', 10)
+          if (generationsUsed < currentQuantity) {
+            targetSession = session
+            quantityPurchased = currentQuantity
+          }
+        }
+      } catch (err) {
+        console.warn(`[record-generation] Could not retrieve session ${clientSessionId}:`, err)
       }
     }
 
-    // Si pas de sessionId, on enregistre quand même (pour compatibilité)
+    // Si pas de targetSession trouvé via clientSessionId, chercher par email
+    if (!targetSession) {
+      const sessions = await stripe.checkout.sessions.list({
+        limit: 100,
+        customer_email: email,
+        created: { gte: ninetyDaysAgo },
+      })
+
+      for (const session of sessions.data) {
+        if (session.payment_status === 'paid' && session.metadata?.productId === productId) {
+          let currentQuantity = 1
+          try {
+            const sessionDetails = await stripe.checkout.sessions.retrieve(session.id, {
+              expand: ['line_items'],
+            })
+            if (sessionDetails.line_items && 'data' in sessionDetails.line_items) {
+              currentQuantity = sessionDetails.line_items.data.reduce((sum, item) => sum + (item.quantity || 1), 0)
+            } else if (sessionDetails.line_items && Array.isArray(sessionDetails.line_items)) {
+              currentQuantity = sessionDetails.line_items.reduce((sum: number, item: any) => sum + (item.quantity || 1), 0)
+            }
+          } catch (err) {
+            console.error(`[record-generation] Error retrieving line items for session ${session.id}:`, err)
+          }
+
+          const generationsUsed = parseInt(session.metadata?.generationsUsed || '0', 10)
+          if (generationsUsed < currentQuantity) {
+            targetSession = session
+            quantityPurchased = currentQuantity
+            break // Trouvé une session avec générations restantes
+          }
+        }
+      }
+    }
+
+    if (!targetSession) {
+      return NextResponse.json({ error: 'No available generations found for this product and email.' }, { status: 403 })
+    }
+
+    const currentGenerationsUsed = parseInt(targetSession.metadata?.generationsUsed || '0', 10)
+    const newGenerationsUsed = currentGenerationsUsed + 1
+
+    // Mettre à jour les métadonnées Stripe
+    await stripe.checkout.sessions.update(targetSession.id, {
+      metadata: {
+        ...targetSession.metadata,
+        generationsUsed: newGenerationsUsed.toString(),
+      },
+    })
+
+    const quantityRemaining = quantityPurchased - newGenerationsUsed
+
+    // Enregistrer la génération dans Supabase
+    try {
+      // Trouver le payment_id correspondant
+      let paymentId: string | null = null
+      const { data: payment } = await supabase
+        .from('payments')
+        .select('id')
+        .eq('stripe_session_id', targetSession.id)
+        .single()
+
+      paymentId = payment?.id || null
+
+      await supabase.from('generations').insert({
+        customer_email: email.toLowerCase().trim(),
+        product_id: productId,
+        stripe_session_id: targetSession.id,
+        payment_id: paymentId,
+        content_preview: null,
+        metadata: {
+          quantityPurchased,
+          generationsUsed: newGenerationsUsed,
+          quantityRemaining,
+        },
+      })
+
+      console.log('[record-generation] Generation recorded in database')
+    } catch (dbError) {
+      // Ne pas faire échouer la requête si l'enregistrement DB échoue
+      console.error('[record-generation] Failed to record generation in database:', dbError)
+    }
+
     return NextResponse.json({
-      success: true,
-      generations: 1,
+      ok: true,
+      productId,
+      quantityPurchased,
+      generationsUsed: newGenerationsUsed,
+      quantityRemaining,
     })
   } catch (error) {
-    console.error('Record generation error:', error)
+    console.error('[record-generation] Error:', error)
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
