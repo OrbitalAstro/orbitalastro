@@ -155,6 +155,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 12,
   },
+  inlineScript: {
+    fontFamily: greatVibesLoaded ? 'GreatVibes' : 'Times-Italic',
+    fontStyle: greatVibesLoaded ? 'normal' : 'italic',
+    fontSize: 12,
+  },
 })
 
 type Block =
@@ -173,6 +178,47 @@ function cleanText(text: string): string {
   cleaned = cleaned.replace(/[\u{2700}-\u{27BF}]/gu, '') // Symboles décoratifs
   cleaned = cleaned.replace(/[💎🔥🤖✨🌙🧠💻🤝💫🪶🌸]/gu, '') // Émoticônes spécifiques
   return cleaned.trim()
+}
+
+// Fonction pour éviter les retours à la ligne après certains signes de ponctuation
+function preventLineBreakAfterPunctuation(text: string): string {
+  // Remplacer les espaces après ;, :, » par des espaces insécables
+  return text
+    .replace(/;\s+/g, ';\u00A0') // Espace insécable après point-virgule
+    .replace(/:\s+/g, ':\u00A0') // Espace insécable après deux-points
+    .replace(/»\s+/g, '»\u00A0') // Espace insécable après guillemet fermant
+}
+
+// Fonction pour rendre les dialogues avec noms en italique
+function renderDialogueLine(text: string, firstName?: string): React.ReactNode {
+  // Détecter le format "Nom : « texte »" ou "Nom : texte"
+  const match = text.match(/^([^\n:]{2,24})\s*:\s*(.*)$/)
+  if (!match) {
+    // Pas un dialogue, retourner le texte normal avec protection des retours à la ligne
+    return preventLineBreakAfterPunctuation(text)
+  }
+
+  const label = match[1].trim()
+  const rest = match[2] ?? ''
+  const labelLower = label.toLowerCase()
+  
+  // Détecter si c'est "Astrologie" ou un prénom
+  const isAstrologie = labelLower === 'astrologie' || labelLower === 'astrology' || labelLower === 'astrología' || labelLower === 'astrologia'
+  const looksLikeFirstName = /^[\p{L}'’-]+$/u.test(label) && label.length <= 16 && labelLower !== 'naissance' && labelLower !== 'atterrissage'
+  
+  if (!isAstrologie && !looksLikeFirstName) {
+    // Pas un dialogue reconnu, retourner le texte normal
+    return preventLineBreakAfterPunctuation(text)
+  }
+
+  // C'est un dialogue : mettre le nom en italique
+  return (
+    <>
+      <Text style={styles.inlineScript}>{label}</Text>
+      {': '}
+      {preventLineBreakAfterPunctuation(rest)}
+    </>
+  )
 }
 
 function parseBlocks(markdown: string): Block[] {
@@ -306,9 +352,11 @@ export default function Reading2026Pdf({
                 </View>
               )
             }
+            // Vérifier si c'est un dialogue et appliquer le formatage
+            const dialogueContent = renderDialogueLine(block.text, firstName)
             return (
               <Text key={index} style={styles.paragraph}>
-                {block.text}
+                {dialogueContent}
               </Text>
             )
           })}
