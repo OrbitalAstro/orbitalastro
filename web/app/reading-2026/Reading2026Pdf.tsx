@@ -225,44 +225,53 @@ function parseBlocks(markdown: string): Block[] {
   const text = cleanText((markdown || '').replace(/\r\n/g, '\n')).trim()
   if (!text) return []
 
-  console.log('[parseBlocks] Texte d\'entrée (longueur):', text.length)
-  
   const blocks: Block[] = []
-  // Diviser par double saut de ligne (paragraphes), mais préserver les lignes simples
-  const parts = text.split(/\n\n+/)
-  
-  console.log('[parseBlocks] Nombre de parties après split:', parts.length)
+  // Diviser par lignes vides (une ou plusieurs)
+  const paragraphs = text.split(/\n\s*\n/)
 
-  for (const raw of parts) {
+  for (const raw of paragraphs) {
     const chunk = raw.trim()
     if (!chunk) continue
 
-    // Diviser en lignes individuelles
+    // Si le paragraphe contient plusieurs lignes, les traiter séparément
     const lines = chunk.split('\n').map((l) => l.trim()).filter(Boolean)
     if (!lines.length) continue
 
-    // Traiter chaque ligne
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i]
-      
-      // Vérifier si c'est un titre
+    // Si c'est une seule ligne, créer un bloc
+    if (lines.length === 1) {
+      const line = lines[0]
       if (/^#{1,6}\s+/.test(line)) {
         blocks.push({ type: 'heading', text: line.replace(/^#{1,6}\s+/, '').trim() })
-        continue
-      }
-      
-      // Vérifier si c'est une puce
-      if (/^(?:[-•*]|\d+\.)\s+/.test(line)) {
+      } else if (/^(?:[-•*]|\d+\.)\s+/.test(line)) {
         blocks.push({ type: 'bullet', text: line.replace(/^(?:[-•*]|\d+\.)\s+/, '').trim() })
-        continue
+      } else {
+        blocks.push({ type: 'paragraph', text: line })
       }
-      
-      // Sinon, c'est un paragraphe normal
-      blocks.push({ type: 'paragraph', text: line })
+    } else {
+      // Si plusieurs lignes, créer un bloc paragraphe avec tout le contenu
+      // (pour préserver les dialogues et les retours à la ligne)
+      const fullText = lines.join('\n')
+      if (/^#{1,6}\s+/.test(lines[0])) {
+        blocks.push({ type: 'heading', text: lines[0].replace(/^#{1,6}\s+/, '').trim() })
+        if (lines.length > 1) {
+          blocks.push({ type: 'paragraph', text: lines.slice(1).join('\n') })
+        }
+      } else if (/^(?:[-•*]|\d+\.)\s+/.test(lines[0])) {
+        // Pour les listes, créer un bloc par ligne
+        for (const line of lines) {
+          if (/^(?:[-•*]|\d+\.)\s+/.test(line)) {
+            blocks.push({ type: 'bullet', text: line.replace(/^(?:[-•*]|\d+\.)\s+/, '').trim() })
+          } else {
+            blocks.push({ type: 'paragraph', text: line })
+          }
+        }
+      } else {
+        // Paragraphe normal avec plusieurs lignes (dialogue ou texte)
+        blocks.push({ type: 'paragraph', text: fullText })
+      }
     }
   }
 
-  console.log('[parseBlocks] Nombre total de blocs créés:', blocks.length)
   return blocks
 }
 
