@@ -402,10 +402,11 @@ export default function Dialogues() {
       const sessionId = accessInfo?.sessionId || localStorage.getItem('session_dialogue')
       await recordGeneration('dialogue', email, sessionId || undefined)
       
-      // Mettre à jour l'accès
-      const newAccessResult = await checkAccessFromURL('dialogue')
-      setAccessInfo(newAccessResult)
-      setHasAccess(newAccessResult.hasAccess)
+      // Mettre à jour l'accès en utilisant le sessionId stocké ou l'email
+      // Ne pas utiliser checkAccessFromURL car l'URL a été nettoyée
+      const updatedAccessResult = await checkProductAccess('dialogue', email, sessionId || undefined)
+      setAccessInfo(updatedAccessResult)
+      setHasAccess(updatedAccessResult.hasAccess)
     } catch (error: any) {
       console.error('Error generating dialogue:', error)
       const errorMsg = error.message || 'Erreur inconnue'
