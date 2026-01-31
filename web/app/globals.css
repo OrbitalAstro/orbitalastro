@@ -228,6 +228,11 @@ body {
   text-indent: 0;
 }
 
+/* Texte entre les bulles - très pâle mais visible */
+.dialogue-paragraph {
+  color: rgba(255, 255, 255, 0.4); /* Très pâle, légèrement visible */
+}
+
 /* Bulles de conversation pour les dialogues */
 .dialogue-bubble {
   display: flex;
@@ -261,8 +266,8 @@ body {
 }
 
 .dialogue-bubble-astro .dialogue-bubble-content {
-  background: linear-gradient(135deg, rgba(250, 245, 255, 0.75) 0%, rgba(248, 242, 252, 0.7) 100%);
-  border: 1px solid rgba(138, 111, 159, 0.2);
+  background: linear-gradient(135deg, rgba(250, 245, 255, 0.65) 0%, rgba(248, 242, 252, 0.6) 100%);
+  border: 1px solid rgba(138, 111, 159, 0.25);
   color: #4A2C5A; /* Mauve très foncé */
   border-bottom-left-radius: 6px; /* Queue de bulle à gauche */
   position: relative;
@@ -270,9 +275,9 @@ body {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   background-image: 
-    radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.25) 0%, transparent 50%),
+    radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.2) 0%, transparent 50%),
     radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.15) 0%, transparent 50%),
-    linear-gradient(135deg, rgba(250, 245, 255, 0.75) 0%, rgba(248, 242, 252, 0.7) 100%);
+    linear-gradient(135deg, rgba(250, 245, 255, 0.65) 0%, rgba(248, 242, 252, 0.6) 100%);
 }
 
 /* Queue de bulle améliorée à gauche (Astrologie) */
@@ -280,30 +285,32 @@ body {
   content: '';
   position: absolute;
   bottom: 0;
-  left: -10px;
+  left: -16px;
   width: 0;
   height: 0;
   border-style: solid;
-  border-width: 0 10px 14px 0;
-  border-color: transparent rgba(250, 245, 255, 0.75) transparent transparent;
-  filter: drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.05));
+  border-width: 0 16px 20px 0;
+  border-color: transparent rgba(250, 245, 255, 0.65) transparent transparent;
+  filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.15));
+  z-index: 1;
 }
 
 .dialogue-bubble-astro .dialogue-bubble-content::before {
   content: '';
   position: absolute;
   bottom: 0;
-  left: -9px;
+  left: -15px;
   width: 0;
   height: 0;
   border-style: solid;
-  border-width: 0 9px 13px 0;
-  border-color: transparent rgba(248, 242, 252, 0.7) transparent transparent;
+  border-width: 0 15px 19px 0;
+  border-color: transparent rgba(248, 242, 252, 0.6) transparent transparent;
+  z-index: 0;
 }
 
 .dialogue-bubble-user .dialogue-bubble-content {
-  background: linear-gradient(135deg, rgba(252, 248, 255, 0.75) 0%, rgba(250, 245, 255, 0.7) 100%);
-  border: 1px solid rgba(184, 162, 194, 0.25);
+  background: linear-gradient(135deg, rgba(252, 248, 255, 0.65) 0%, rgba(250, 245, 255, 0.6) 100%);
+  border: 1px solid rgba(184, 162, 194, 0.3);
   color: #4A2C5A; /* Mauve très foncé */
   border-bottom-right-radius: 6px; /* Queue de bulle à droite */
   position: relative;
@@ -311,9 +318,9 @@ body {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   background-image: 
-    radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.25) 0%, transparent 50%),
+    radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.2) 0%, transparent 50%),
     radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.15) 0%, transparent 50%),
-    linear-gradient(135deg, rgba(252, 248, 255, 0.75) 0%, rgba(250, 245, 255, 0.7) 100%);
+    linear-gradient(135deg, rgba(252, 248, 255, 0.65) 0%, rgba(250, 245, 255, 0.6) 100%);
 }
 
 /* Queue de bulle améliorée à droite (Utilisateur) */
@@ -321,25 +328,27 @@ body {
   content: '';
   position: absolute;
   bottom: 0;
-  right: -10px;
+  right: -16px;
   width: 0;
   height: 0;
   border-style: solid;
-  border-width: 0 0 14px 10px;
-  border-color: transparent transparent transparent rgba(252, 248, 255, 0.75);
-  filter: drop-shadow(-1px 1px 2px rgba(0, 0, 0, 0.05));
+  border-width: 0 0 20px 16px;
+  border-color: transparent transparent transparent rgba(252, 248, 255, 0.65);
+  filter: drop-shadow(-2px 2px 4px rgba(0, 0, 0, 0.15));
+  z-index: 1;
 }
 
 .dialogue-bubble-user .dialogue-bubble-content::before {
   content: '';
   position: absolute;
   bottom: 0;
-  right: -9px;
+  right: -15px;
   width: 0;
   height: 0;
   border-style: solid;
-  border-width: 0 0 13px 9px;
-  border-color: transparent transparent transparent rgba(250, 245, 255, 0.7);
+  border-width: 0 0 19px 15px;
+  border-color: transparent transparent transparent rgba(250, 245, 255, 0.6);
+  z-index: 0;
 }
 
 .dialogue-bubble-speaker {
