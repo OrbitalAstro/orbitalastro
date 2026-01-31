@@ -204,14 +204,28 @@ body {
   border: 1px solid rgba(228, 181, 160, 0.18);
   border-radius: 1rem;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
-  max-width: 720px; /* 680-760px, valeur médiane */
-  margin: 0 auto; /* Centrer le contenu */
+  width: 100%; /* Utilise toute la largeur disponible */
+  margin: 0; /* Pas de marge auto pour centrer */
   font-size: 17.5px; /* 17-18px, valeur médiane */
-  padding-left: 21px; /* 18-24px, valeur médiane */
-  padding-right: 21px; /* 18-24px, valeur médiane */
+  padding-left: 12px; /* Padding réduit pour mobile */
+  padding-right: 12px; /* Padding réduit pour mobile */
   word-break: break-word; /* Pour les liens / mots longs */
   display: flex;
   flex-direction: column;
+}
+
+@media (min-width: 640px) {
+  .dialogue-prose {
+    padding-left: 18px; /* Padding un peu plus large sur tablette */
+    padding-right: 18px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .dialogue-prose {
+    padding-left: 24px; /* Padding plus large sur desktop */
+    padding-right: 24px;
+  }
 }
 
 .dialogue-prose p {
@@ -223,13 +237,19 @@ body {
   text-indent: 0;
 }
 
-/* Bulles de conversation pour les dialogues - Style simplifié sans encadrés */
+/* Bulles de conversation pour les dialogues */
 .dialogue-bubble {
   display: flex;
   flex-direction: column;
   margin-bottom: 16px;
-  width: 100%; /* Utilise toute la largeur disponible */
+  max-width: 85%; /* Limite la largeur des bulles pour un effet de conversation */
   word-break: break-word;
+}
+
+@media (max-width: 640px) {
+  .dialogue-bubble {
+    max-width: 90%; /* Plus large sur mobile */
+  }
 }
 
 .dialogue-bubble-astro {
@@ -241,39 +261,80 @@ body {
 }
 
 .dialogue-bubble-content {
-  padding: 0; /* Pas de padding pour les bulles */
-  border-radius: 0; /* Pas de bordure arrondie */
+  padding: 12px 16px;
+  border-radius: 18px;
   position: relative;
-  box-shadow: none; /* Pas d'ombre */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   font-size: 17.5px;
   line-height: 1.7;
-  width: 100%; /* Utilise toute la largeur */
 }
 
 .dialogue-bubble-astro .dialogue-bubble-content {
-  background: none; /* Pas de fond */
-  border: none; /* Pas de bordure */
+  background: linear-gradient(135deg, rgba(228, 181, 160, 0.25) 0%, rgba(228, 181, 160, 0.15) 100%);
+  border: 1px solid rgba(228, 181, 160, 0.4);
   color: #000000; /* Texte en noir */
+  border-bottom-left-radius: 6px; /* Queue de bulle à gauche */
   position: relative;
 }
 
-/* Plus de queues de bulle */
-.dialogue-bubble-astro .dialogue-bubble-content::after,
+/* Queue de bulle améliorée à gauche (Astrologie) */
+.dialogue-bubble-astro .dialogue-bubble-content::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: -10px;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 10px 14px 0;
+  border-color: transparent rgba(228, 181, 160, 0.4) transparent transparent;
+  filter: drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.1));
+}
+
 .dialogue-bubble-astro .dialogue-bubble-content::before {
-  display: none;
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: -9px;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 9px 13px 0;
+  border-color: transparent rgba(228, 181, 160, 0.25) transparent transparent;
 }
 
 .dialogue-bubble-user .dialogue-bubble-content {
-  background: none; /* Pas de fond */
-  border: none; /* Pas de bordure */
+  background: linear-gradient(135deg, rgba(245, 212, 193, 0.3) 0%, rgba(245, 212, 193, 0.2) 100%);
+  border: 1px solid rgba(245, 212, 193, 0.5);
   color: #000000; /* Texte en noir */
+  border-bottom-right-radius: 6px; /* Queue de bulle à droite */
   position: relative;
 }
 
-/* Plus de queues de bulle */
-.dialogue-bubble-user .dialogue-bubble-content::after,
+/* Queue de bulle améliorée à droite (Utilisateur) */
+.dialogue-bubble-user .dialogue-bubble-content::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: -10px;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 0 14px 10px;
+  border-color: transparent transparent transparent rgba(245, 212, 193, 0.5);
+  filter: drop-shadow(-1px 1px 2px rgba(0, 0, 0, 0.1));
+}
+
 .dialogue-bubble-user .dialogue-bubble-content::before {
-  display: none;
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: -9px;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 0 13px 9px;
+  border-color: transparent transparent transparent rgba(245, 212, 193, 0.3);
 }
 
 .dialogue-bubble-speaker {
