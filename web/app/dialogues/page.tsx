@@ -20,7 +20,7 @@ import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
 import { pdf } from '@react-pdf/renderer'
 import DialoguePdf from './DialoguePdf'
-import { checkAccessFromURL, markProductAsPaid, recordGeneration, type AccessResult } from '@/lib/checkPayment'
+import { checkAccessFromURL, markProductAsPaid, recordGeneration, checkProductAccess, type AccessResult } from '@/lib/checkPayment'
 import { useRouter } from 'next/navigation'
 
 const FEEDBACK_SURVEY_URL = 'https://forms.gle/eyPRR4Bicf32dCGg6'
