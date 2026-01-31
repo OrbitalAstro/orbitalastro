@@ -310,7 +310,17 @@ export default function Reading2026Page() {
       }
 
       const readingText = response.data?.content || ''
-      const cleanedText = cleanText(readingText)
+      let cleanedText = cleanText(readingText)
+      
+      // Remove the title line if it matches "FirstName - Plan de jeu astrologique 2026" pattern
+      const lines = cleanedText.split('\n')
+      if (lines.length > 0) {
+        const firstLine = lines[0].trim()
+        const titlePattern = /^[^-]+ - Plan de jeu astrologique 2026$/i
+        if (titlePattern.test(firstLine)) {
+          cleanedText = lines.slice(1).join('\n').trim()
+        }
+      }
 
       setReading(cleanedText)
       await sendReadingPdfByEmail(cleanedText)
@@ -612,7 +622,21 @@ export default function Reading2026Page() {
                   </div>
 
                   <div className="pdf-scroll custom-scrollbar text-cosmic-gold/90">
-                    <ReactMarkdown className="dialogue-prose px-6 py-4 pdf-body pdf-panel">{reading}</ReactMarkdown>
+                    <ReactMarkdown className="dialogue-prose px-6 py-4 pdf-body pdf-panel">
+                      {(() => {
+                        // Remove the title line if it matches "FirstName - Plan de jeu astrologique 2026" pattern
+                        if (!reading) return ''
+                        const lines = reading.split('\n')
+                        if (lines.length > 0) {
+                          const firstLine = lines[0].trim()
+                          const titlePattern = /^[^-]+ - Plan de jeu astrologique 2026$/i
+                          if (titlePattern.test(firstLine)) {
+                            return lines.slice(1).join('\n').trim()
+                          }
+                        }
+                        return reading
+                      })()}
+                    </ReactMarkdown>
                   </div>
 
                   <div className="pdf-footnote">{pdfSubtitle}</div>
