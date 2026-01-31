@@ -519,7 +519,7 @@ export default function SaintValentinPage() {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-gradient-to-br from-cosmic-purple/40 to-magenta-purple/40 rounded-xl p-6 border border-cosmic-gold/20"
+                className="relative z-10"
               >
                 <div className="flex flex-col sm:flex-row sm:justify-end sm:items-center gap-2 mb-4">
                   <button
@@ -532,7 +532,7 @@ export default function SaintValentinPage() {
                   </button>
                 </div>
 
-                <div className="pdf-card max-w-3xl mx-auto">
+                <div className="pdf-card">
                   <div className="pdf-header">
                     <img
                       src="/orbital-astro-logo.png"
