@@ -754,7 +754,14 @@ export default function Dialogues() {
                         if (isDialogue && speakerMatch && dialogueText) {
                           // Fonction pour obtenir le symbole astrologique
                           const getSymbol = (name: string): string => {
-                            const nameLower = name.toLowerCase()
+                            // Normaliser le nom : enlever accents, espaces, mettre en minuscule
+                            const normalize = (str: string) => str
+                              .toLowerCase()
+                              .normalize('NFD')
+                              .replace(/[\u0300-\u036f]/g, '') // Enlever les accents
+                              .trim()
+                            
+                            const nameNormalized = normalize(name)
                             const symbols: { [key: string]: string } = {
                               // Planètes
                               'saturne': '♄',
@@ -772,11 +779,13 @@ export default function Dialogues() {
                               'neptune': '♆',
                               'pluton': '♇',
                               'pluto': '♇',
-                              // Signes astrologiques
+                              // Signes astrologiques - toutes les variantes
+                              'belier': '♈',
                               'bélier': '♈',
                               'aries': '♈',
                               'taureau': '♉',
                               'taurus': '♉',
+                              'gemeaux': '♊',
                               'gémeaux': '♊',
                               'gemini': '♊',
                               'cancer': '♋',
@@ -795,10 +804,10 @@ export default function Dialogues() {
                               'verseau': '♒',
                               'aquarius': '♒',
                               'poissons': '♓',
-                              'pisces': '♓',
                               'poisson': '♓',
+                              'pisces': '♓',
                             }
-                            return symbols[nameLower] || ''
+                            return symbols[nameNormalized] || ''
                           }
                           
                           const isAstrologie = (() => {

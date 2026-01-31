@@ -261,8 +261,8 @@ body {
 }
 
 .dialogue-bubble-astro .dialogue-bubble-content {
-  background: linear-gradient(135deg, rgba(138, 111, 159, 0.15) 0%, rgba(138, 111, 159, 0.1) 100%);
-  border: 1px solid rgba(138, 111, 159, 0.3);
+  background: linear-gradient(135deg, rgba(250, 245, 255, 0.95) 0%, rgba(248, 242, 252, 0.92) 100%);
+  border: 1px solid rgba(138, 111, 159, 0.15);
   color: #4A2C5A; /* Mauve très foncé */
   border-bottom-left-radius: 6px; /* Queue de bulle à gauche */
   position: relative;
@@ -270,9 +270,9 @@ body {
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   background-image: 
-    radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.05) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.03) 0%, transparent 50%),
-    linear-gradient(135deg, rgba(138, 111, 159, 0.15) 0%, rgba(138, 111, 159, 0.1) 100%);
+    radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.2) 0%, transparent 50%),
+    linear-gradient(135deg, rgba(250, 245, 255, 0.95) 0%, rgba(248, 242, 252, 0.92) 100%);
 }
 
 /* Queue de bulle améliorée à gauche (Astrologie) */
@@ -285,8 +285,8 @@ body {
   height: 0;
   border-style: solid;
   border-width: 0 10px 14px 0;
-  border-color: transparent rgba(138, 111, 159, 0.3) transparent transparent;
-  filter: drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.1));
+  border-color: transparent rgba(250, 245, 255, 0.95) transparent transparent;
+  filter: drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.05));
 }
 
 .dialogue-bubble-astro .dialogue-bubble-content::before {
@@ -298,12 +298,12 @@ body {
   height: 0;
   border-style: solid;
   border-width: 0 9px 13px 0;
-  border-color: transparent rgba(138, 111, 159, 0.15) transparent transparent;
+  border-color: transparent rgba(248, 242, 252, 0.92) transparent transparent;
 }
 
 .dialogue-bubble-user .dialogue-bubble-content {
-  background: linear-gradient(135deg, rgba(184, 162, 194, 0.2) 0%, rgba(184, 162, 194, 0.15) 100%);
-  border: 1px solid rgba(184, 162, 194, 0.4);
+  background: linear-gradient(135deg, rgba(252, 248, 255, 0.95) 0%, rgba(250, 245, 255, 0.92) 100%);
+  border: 1px solid rgba(184, 162, 194, 0.2);
   color: #4A2C5A; /* Mauve très foncé */
   border-bottom-right-radius: 6px; /* Queue de bulle à droite */
   position: relative;
@@ -311,9 +311,9 @@ body {
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   background-image: 
-    radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.05) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.03) 0%, transparent 50%),
-    linear-gradient(135deg, rgba(184, 162, 194, 0.2) 0%, rgba(184, 162, 194, 0.15) 100%);
+    radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.2) 0%, transparent 50%),
+    linear-gradient(135deg, rgba(252, 248, 255, 0.95) 0%, rgba(250, 245, 255, 0.92) 100%);
 }
 
 /* Queue de bulle améliorée à droite (Utilisateur) */
@@ -326,8 +326,8 @@ body {
   height: 0;
   border-style: solid;
   border-width: 0 0 14px 10px;
-  border-color: transparent transparent transparent rgba(184, 162, 194, 0.4);
-  filter: drop-shadow(-1px 1px 2px rgba(0, 0, 0, 0.1));
+  border-color: transparent transparent transparent rgba(252, 248, 255, 0.95);
+  filter: drop-shadow(-1px 1px 2px rgba(0, 0, 0, 0.05));
 }
 
 .dialogue-bubble-user .dialogue-bubble-content::before {
@@ -339,7 +339,7 @@ body {
   height: 0;
   border-style: solid;
   border-width: 0 0 13px 9px;
-  border-color: transparent transparent transparent rgba(184, 162, 194, 0.2);
+  border-color: transparent transparent transparent rgba(250, 245, 255, 0.92);
 }
 
 .dialogue-bubble-speaker {
