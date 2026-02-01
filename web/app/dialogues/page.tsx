@@ -200,7 +200,17 @@ export default function Dialogues() {
   }
 
   const handleDownloadPdf = async () => {
-    if (!dialogue) return
+    if (!dialogue) {
+      console.error('[Dialogues] handleDownloadPdf: dialogue is null or empty')
+      alert('Aucun dialogue à télécharger. Veuillez générer un dialogue d\'abord.')
+      return
+    }
+    
+    console.log('[Dialogues] handleDownloadPdf: Starting PDF generation', {
+      dialogueLength: dialogue.length,
+      firstChars: dialogue.substring(0, 100),
+    })
+    
     setDownloading(true)
     try {
       // Précharger la police Great Vibes avant de générer le PDF
@@ -226,6 +236,7 @@ export default function Dialogues() {
       
       // Générer le PDF avec un timeout pour éviter les blocages
       const lang = (settings.language || 'fr') as 'en' | 'fr' | 'es'
+      console.log('[Dialogues] Creating PDF component with dialogue length:', dialogue.length)
       const pdfPromise = pdf(
         <DialoguePdf
           dialogue={dialogue}
@@ -428,7 +439,13 @@ export default function Dialogues() {
         throw new Error('Le dialogue généré est vide. Veuillez réessayer.')
       }
       
+      console.log('[Dialogues] Setting dialogue state, length:', dialogueText.length)
       setDialogue(dialogueText)
+      
+      // Vérifier que le dialogue est bien stocké
+      setTimeout(() => {
+        console.log('[Dialogues] Dialogue state after setState:', dialogue ? dialogue.length : 'null')
+      }, 100)
       
       // Envoyer l'email en arrière-plan (ne pas bloquer si ça échoue)
       try {
