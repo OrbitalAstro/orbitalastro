@@ -310,20 +310,50 @@ function parseBlocks(markdown: string): Block[] {
   if (!text) return []
 
   const blocks: Block[] = []
-  // Diviser par lignes vides (une ou plusieurs)
-  const paragraphs = text.split(/\n\s*\n/)
-
-  for (const raw of paragraphs) {
-    const chunk = raw.trim()
-    if (!chunk) continue
-
-    // Si le paragraphe contient plusieurs lignes, les traiter séparément
-    const lines = chunk.split('\n').map((l) => l.trim()).filter(Boolean)
-    if (!lines.length) continue
-
-    // Si c'est une seule ligne, créer un bloc
-    if (lines.length === 1) {
-      const line = lines[0]
+  // Diviser par lignes pour préserver tout le contenu
+  const lines = text.split(/\r?\n/)
+  const hasBlankLine = /\n\s*\n/.test(text)
+  
+  let currentParagraph = ''
+  
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim()
+    
+    // Si la ligne est vide, terminer le paragraphe courant
+    if (!line) {
+      if (currentParagraph) {
+        const trimmed = currentParagraph.trim()
+        if (trimmed) {
+          // Vérifier si c'est un titre
+          if (isSectionTitle(trimmed)) {
+            blocks.push({ type: 'heading', text: cleanTitleText(trimmed) })
+          } else if (/^(?:[-•*]|\d+\.)\s+/.test(trimmed)) {
+            blocks.push({ type: 'bullet', text: trimmed.replace(/^(?:[-•*]|\d+\.)\s+/, '').trim() })
+          } else {
+            blocks.push({ type: 'paragraph', text: trimmed })
+          }
+        }
+        currentParagraph = ''
+      }
+      continue
+    }
+    
+    // Si pas de lignes vides dans le texte, traiter chaque ligne séparément
+    if (!hasBlankLine) {
+      if (currentParagraph) {
+        const trimmed = currentParagraph.trim()
+        if (trimmed) {
+          if (isSectionTitle(trimmed)) {
+            blocks.push({ type: 'heading', text: cleanTitleText(trimmed) })
+          } else if (/^(?:[-•*]|\d+\.)\s+/.test(trimmed)) {
+            blocks.push({ type: 'bullet', text: trimmed.replace(/^(?:[-•*]|\d+\.)\s+/, '').trim() })
+          } else {
+            blocks.push({ type: 'paragraph', text: trimmed })
+          }
+        }
+        currentParagraph = ''
+      }
+      // Vérifier si la ligne actuelle est un titre
       if (isSectionTitle(line)) {
         blocks.push({ type: 'heading', text: cleanTitleText(line) })
       } else if (/^(?:[-•*]|\d+\.)\s+/.test(line)) {
@@ -331,26 +361,27 @@ function parseBlocks(markdown: string): Block[] {
       } else {
         blocks.push({ type: 'paragraph', text: line })
       }
+      continue
+    }
+    
+    // Sinon, accumuler les lignes dans le paragraphe courant
+    if (currentParagraph) {
+      currentParagraph += '\n' + line
     } else {
-      // Si plusieurs lignes, vérifier si la première est un titre
-      const fullText = lines.join('\n')
-      if (isSectionTitle(lines[0])) {
-        blocks.push({ type: 'heading', text: cleanTitleText(lines[0]) })
-        if (lines.length > 1) {
-          blocks.push({ type: 'paragraph', text: lines.slice(1).join('\n') })
-        }
-      } else if (/^(?:[-•*]|\d+\.)\s+/.test(lines[0])) {
-        // Pour les listes, créer un bloc par ligne
-        for (const line of lines) {
-          if (/^(?:[-•*]|\d+\.)\s+/.test(line)) {
-            blocks.push({ type: 'bullet', text: line.replace(/^(?:[-•*]|\d+\.)\s+/, '').trim() })
-          } else {
-            blocks.push({ type: 'paragraph', text: line })
-          }
-        }
+      currentParagraph = line
+    }
+  }
+  
+  // Ajouter le dernier paragraphe
+  if (currentParagraph) {
+    const trimmed = currentParagraph.trim()
+    if (trimmed) {
+      if (isSectionTitle(trimmed)) {
+        blocks.push({ type: 'heading', text: cleanTitleText(trimmed) })
+      } else if (/^(?:[-•*]|\d+\.)\s+/.test(trimmed)) {
+        blocks.push({ type: 'bullet', text: trimmed.replace(/^(?:[-•*]|\d+\.)\s+/, '').trim() })
       } else {
-        // Paragraphe normal avec plusieurs lignes (dialogue ou texte)
-        blocks.push({ type: 'paragraph', text: fullText })
+        blocks.push({ type: 'paragraph', text: trimmed })
       }
     }
   }
