@@ -146,7 +146,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 1.45,
     color: TEXT_BLACK,
-    flex: 1,
   },
   footer: {
     fontFamily: 'Helvetica',
