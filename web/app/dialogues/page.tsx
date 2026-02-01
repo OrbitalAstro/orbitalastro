@@ -429,23 +429,61 @@ export default function Dialogues() {
       }
       
       setDialogue(dialogueText)
-      await sendDialoguePdfByEmail(dialogueText)
       
-      // Enregistrer la génération
-      const sessionId = accessInfo?.sessionId || localStorage.getItem('session_dialogue')
-      await recordGeneration('dialogue', email, sessionId || undefined)
+      // Envoyer l'email en arrière-plan (ne pas bloquer si ça échoue)
+      try {
+        await sendDialoguePdfByEmail(dialogueText)
+      } catch (emailError) {
+        console.error('[Dialogues] Erreur lors de l\'envoi de l\'email (non bloquant):', emailError)
+        // Ne pas bloquer le processus si l'email échoue
+      }
+      
+      // Enregistrer la génération (ne pas bloquer si ça échoue)
+      try {
+        const sessionId = accessInfo?.sessionId || localStorage.getItem('session_dialogue')
+        await recordGeneration('dialogue', email, sessionId || undefined)
+      } catch (recordError) {
+        console.error('[Dialogues] Erreur lors de l\'enregistrement de la génération (non bloquant):', recordError)
+        // Ne pas bloquer le processus si l'enregistrement échoue
+      }
       
       // Mettre à jour l'accès en utilisant le sessionId stocké ou l'email
       // Ne pas utiliser checkAccessFromURL car l'URL a été nettoyée
-      const updatedAccessResult = await checkProductAccess('dialogue', email, sessionId || undefined)
-      setAccessInfo(updatedAccessResult)
-      setHasAccess(updatedAccessResult.hasAccess)
+      try {
+        const sessionId = accessInfo?.sessionId || localStorage.getItem('session_dialogue')
+        const updatedAccessResult = await checkProductAccess('dialogue', email, sessionId || undefined)
+        setAccessInfo(updatedAccessResult)
+        setHasAccess(updatedAccessResult.hasAccess)
+      } catch (accessError) {
+        console.error('[Dialogues] Erreur lors de la mise à jour de l\'accès (non bloquant):', accessError)
+        // Ne pas bloquer le processus si la mise à jour de l'accès échoue
+      }
     } catch (error: any) {
       console.error('Error generating dialogue:', error)
-      const errorMsg = error.message || 'Erreur inconnue'
-      const userFriendlyMsg = errorMsg.includes('Rate limit') || errorMsg.includes('429')
-        ? t.dialogues.rateLimitError
-        : t.dialogues.errorGenerating.replace('{error}', errorMsg)
+      console.error('Error stack:', error.stack)
+      console.error('Error details:', {
+        message: error.message,
+        name: error.name,
+        response: error.response,
+        data: error.data,
+      })
+      
+      const errorMsg = error.message || error.toString() || 'Erreur inconnue'
+      
+      // Messages d'erreur plus spécifiques
+      let userFriendlyMsg = ''
+      if (errorMsg.includes('Rate limit') || errorMsg.includes('429')) {
+        userFriendlyMsg = t.dialogues.rateLimitError
+      } else if (errorMsg.includes('timeout') || errorMsg.includes('Timeout')) {
+        userFriendlyMsg = 'La génération prend trop de temps. Veuillez réessayer.'
+      } else if (errorMsg.includes('network') || errorMsg.includes('fetch')) {
+        userFriendlyMsg = 'Erreur de connexion. Vérifiez votre connexion internet et réessayez.'
+      } else if (errorMsg.includes('vide') || errorMsg.includes('empty')) {
+        userFriendlyMsg = 'Le dialogue généré est vide. Veuillez réessayer.'
+      } else {
+        userFriendlyMsg = t.dialogues.errorGenerating.replace('{error}', errorMsg)
+      }
+      
       alert(userFriendlyMsg)
     } finally {
       setLoading(false)
