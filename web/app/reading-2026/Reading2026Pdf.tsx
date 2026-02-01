@@ -39,12 +39,12 @@ const styles = StyleSheet.create({
   pageContent: {
     position: 'relative',
     zIndex: 1,
-    flex: 1,
+    flexGrow: 1,
   },
   container: {
     backgroundColor: 'transparent',
     padding: 20,
-    flex: 1,
+    flexGrow: 1,
     color: GOLD,
   },
   pagination: {
