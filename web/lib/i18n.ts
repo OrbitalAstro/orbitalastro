@@ -790,7 +790,7 @@ export const translations = {
       section2Item2: "Traiter vos paiements de manière sécurisée",
       section2Item3: "Vous envoyer vos PDFs par courriel et, si vous avez accepté, des promotions et offres spéciales",
       section3Title: "3. Partage des informations",
-      section3Content: "Nous partageons vos informations uniquement avec : Stripe (pour le traitement des paiements), Supabase (pour le stockage des données), et Resend (pour l'envoi d'emails). Nous ne vendons jamais vos données à des tiers.",
+      section3Content: "Nous ne partageons pas vos informations personnelles avec des tiers. Nous ne vendons jamais vos données.",
       section4Title: "4. Protection des données",
       section4Content: "Nous mettons en place des mesures de sécurité appropriées pour protéger vos informations personnelles. Cependant, aucune méthode de transmission sur Internet n'est 100% sécurisée.",
       section4Content2: "Vos données sont stockées au Canada et sont protégées par la Loi sur la protection des renseignements personnels et les documents électroniques (LPRPDE) du Canada.",
