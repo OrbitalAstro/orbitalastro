@@ -727,7 +727,7 @@ def create_pdf(dialogue: str, birth_data: Dict, output_path: Path):
             page_width = A4[0]
             page_height = A4[1]
             
-            canvas.setStrokeColor(HexColor('#000000'))  # Noir pour meilleure impression
+            canvas.setStrokeColor(HexColor('#b8860b'))  # Doré
             canvas.setLineWidth(2)
             canvas.rect(
                 frame_margin,
@@ -741,7 +741,7 @@ def create_pdf(dialogue: str, birth_data: Dict, output_path: Path):
             # Pagination
             canvas.saveState()
             canvas.setFont('Helvetica', 10)
-            canvas.setFillColor(HexColor('#000000'))  # Noir pour meilleure impression
+            canvas.setFillColor(HexColor('#b8860b'))  # Doré
             page_num = canvas.getPageNumber()
             # Note: Le total de pages sera disponible seulement après le build
             # Pour l'instant, on affiche juste le numéro de page
@@ -751,11 +751,11 @@ def create_pdf(dialogue: str, birth_data: Dict, output_path: Path):
     
     doc = DialogueDocTemplate(
         str(output_path),
-        pagesize=A4,
-        rightMargin=30*mm,
-        leftMargin=30*mm,
-        topMargin=30*mm,
-        bottomMargin=30*mm
+        pagesize=A4,  # Format portrait (A4)
+        rightMargin=20*mm,  # Réduit pour mobile
+        leftMargin=20*mm,  # Réduit pour mobile
+        topMargin=20*mm,  # Réduit pour mobile
+        bottomMargin=20*mm  # Réduit pour mobile
     )
     
     # Styles
@@ -800,12 +800,44 @@ def create_pdf(dialogue: str, birth_data: Dict, output_path: Path):
     paragraph_style = ParagraphStyle(
         'CustomParagraph',
         parent=styles['Normal'],
-        fontSize=12,
+        fontSize=14,  # Augmenté pour mobile
         textColor=COLOR_GOLD,  # #b8860b
         fontName='Helvetica',
         alignment=TA_JUSTIFY,
-        leading=19.2,  # lineHeight 1.6
+        leading=22.4,  # lineHeight 1.6
         spaceAfter=10,
+    )
+    
+    # Styles pour les bulles de dialogue
+    dialogue_bubble_speaker_style = ParagraphStyle(
+        'DialogueBubbleSpeaker',
+        parent=styles['Normal'],
+        fontSize=13,
+        textColor=COLOR_GOLD,
+        fontName='Helvetica-Oblique',
+        alignment=TA_LEFT,
+        spaceAfter=4,
+        leading=13,
+    )
+    
+    dialogue_bubble_user_speaker_style = ParagraphStyle(
+        'DialogueBubbleUserSpeaker',
+        parent=dialogue_bubble_speaker_style,
+        alignment=TA_RIGHT,
+        textColor=COLOR_DARK_GOLD,
+    )
+    
+    dialogue_bubble_text_style = ParagraphStyle(
+        'DialogueBubbleText',
+        parent=styles['Normal'],
+        fontSize=14,  # Augmenté pour mobile
+        textColor=HexColor('#000000'),
+        fontName='Helvetica',
+        alignment=TA_LEFT,
+        leading=23.8,  # lineHeight 1.7
+        spaceAfter=0,
+        leftIndent=0,
+        rightIndent=0,
     )
     
     center_style = ParagraphStyle(
@@ -814,14 +846,26 @@ def create_pdf(dialogue: str, birth_data: Dict, output_path: Path):
         alignment=TA_CENTER,
     )
     
+    # Style pour "ICI et MAINTENANT"
+    ici_maintenant_style = ParagraphStyle(
+        'IciMaintenant',
+        parent=styles['Normal'],
+        fontSize=16,  # Augmenté pour mobile
+        textColor=HexColor('#000000'),
+        fontName='Helvetica-Bold',
+        alignment=TA_CENTER,
+        spaceAfter=10,
+        leading=16,
+    )
+    
     landing_style = ParagraphStyle(
         'CustomLanding',
         parent=styles['Normal'],
-        fontSize=12,
+        fontSize=14,  # Augmenté pour mobile
         textColor=COLOR_GOLD,
         fontName='Helvetica-Oblique',
         alignment=TA_CENTER,
-        leading=16.8,  # lineHeight 1.4
+        leading=19.6,  # lineHeight 1.4
         spaceAfter=8,
     )
     
@@ -939,19 +983,90 @@ def create_pdf(dialogue: str, birth_data: Dict, output_path: Path):
         
         isAsterisks = bool(re.match(r'^\*{2,}$', cleaned_trimmed))
         
-        # Exclure les phrases de dialogue
-        isDialogue = bool(re.match(r'^(Astrologie|Isa|Isabelle|[\w]+\s*):', trimmed))
+        # Détecter les dialogues (qui commencent par "Astrologie" ou un prénom suivi de ":")
+        speaker_match = re.match(r'^([^\n:]{2,24})\s*:\s*(.*)$', trimmed)
+        isDialogue = False
+        isAstro = False
         
-        isCenter = (
-            not isDialogue and
-            len(para) < 90 and
-            (re.search(r'\d\s*[–-]\s*\d', para) or
-             re.search(r'\d{1,2}\s+\w+\s+\d{2,4}', para, re.IGNORECASE) or
-             (',' in para and len(para) < 80 and 'astrologie' not in lower))
-        )
+        if speaker_match:
+            speaker = speaker_match.group(1).strip()
+            speaker_lower = speaker.lower()
+            isAstro = (
+                speaker_lower == 'astrologie' or
+                speaker_lower == 'astrology' or
+                speaker_lower == 'astrología' or
+                speaker_lower == 'astrologia'
+            )
+            looks_like_first_name = (
+                re.match(r'^[\p{L}\'’-]+$', speaker, re.UNICODE) and
+                len(speaker) <= 16 and
+                speaker_lower not in ['naissance', 'atterrissage']
+            )
+            isDialogue = isAstro or looks_like_first_name
         
-        # Appliquer les styles selon le type
-        if isLanding or isIciMaintenant:
+        # Si c'est un dialogue, créer une bulle
+        if isDialogue and speaker_match:
+            speaker = speaker_match.group(1).strip()
+            content = speaker_match.group(2).strip()
+            
+            # Créer une bulle de dialogue avec Table
+            bubble_width = content_width * 0.85  # 85% de la largeur
+            bubble_data = [
+                [Paragraph(speaker, dialogue_bubble_user_speaker_style if not isAstro else dialogue_bubble_speaker_style)],
+                [Paragraph(content, dialogue_bubble_text_style)]
+            ]
+            
+            bubble_table = Table(bubble_data, colWidths=[bubble_width])
+            
+            # Style de la bulle selon le locuteur
+            if isAstro:
+                # Bulle Astrologie (à gauche)
+                bubble_table.setStyle(TableStyle([
+                    ('BACKGROUND', (0, 1), (-1, -1), HexColor('#FAF5FF')),  # Fond mauve clair
+                    ('TEXTCOLOR', (0, 0), (-1, -1), COLOR_GOLD),
+                    ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                    ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                    ('LEFTPADDING', (0, 0), (-1, -1), 12),
+                    ('RIGHTPADDING', (0, 0), (-1, -1), 12),
+                    ('TOPPADDING', (0, 0), (-1, -1), 12),
+                    ('BOTTOMPADDING', (0, 0), (-1, -1), 12),
+                    ('GRID', (0, 0), (-1, -1), 1, COLOR_GOLD),  # Bordure dorée
+                    ('ROWBACKGROUNDS', (0, 0), (-1, -1), [None, HexColor('#FAF5FF')]),
+                ]))
+            else:
+                # Bulle utilisateur (à droite)
+                bubble_table.setStyle(TableStyle([
+                    ('BACKGROUND', (0, 1), (-1, -1), HexColor('#FCF8FF')),  # Fond mauve très clair
+                    ('TEXTCOLOR', (0, 0), (-1, -1), COLOR_DARK_GOLD),
+                    ('ALIGN', (0, 0), (-1, -1), 'RIGHT'),
+                    ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                    ('LEFTPADDING', (0, 0), (-1, -1), 12),
+                    ('RIGHTPADDING', (0, 0), (-1, -1), 12),
+                    ('TOPPADDING', (0, 0), (-1, -1), 12),
+                    ('BOTTOMPADDING', (0, 0), (-1, -1), 12),
+                    ('GRID', (0, 0), (-1, -1), 1, COLOR_GOLD),  # Bordure dorée
+                    ('ROWBACKGROUNDS', (0, 0), (-1, -1), [None, HexColor('#FCF8FF')]),
+                ]))
+            
+            # Wrapper pour aligner la bulle à gauche ou à droite
+            wrapper_data = [[bubble_table]] if isAstro else [[Spacer(1, 0), bubble_table]]
+            wrapper_table = Table(wrapper_data, colWidths=[content_width * 0.15, bubble_width] if not isAstro else [bubble_width])
+            wrapper_table.setStyle(TableStyle([
+                ('ALIGN', (0, 0), (-1, -1), 'LEFT' if isAstro else 'RIGHT'),
+                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                ('LEFTPADDING', (0, 0), (-1, -1), 0),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+                ('TOPPADDING', (0, 0), (-1, -1), 0),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
+            ]))
+            
+            # Envelopper la bulle dans KeepTogether pour éviter qu'elle soit coupée entre deux pages
+            story.append(KeepTogether(wrapper_table))
+            story.append(Spacer(1, 16))
+        elif isIciMaintenant:
+            story.append(Paragraph(para, ici_maintenant_style))
+            story.append(Spacer(1, 10))
+        elif isLanding:
             story.append(Paragraph(para, landing_style))
             story.append(Spacer(1, 6))
         elif isAsterisks:
@@ -960,12 +1075,19 @@ def create_pdf(dialogue: str, birth_data: Dict, output_path: Path):
             story.append(Spacer(1, 6))
         elif isFootnote:
             story.append(Paragraph(para, footnote_style))
-        elif isCenter:
-            story.append(Paragraph(para, center_style))
-            story.append(Spacer(1, 6))
         else:
-            story.append(Paragraph(para, paragraph_style))
-            story.append(Spacer(1, 6))
+            isCenter = (
+                len(para) < 90 and
+                (re.search(r'\d\s*[–-]\s*\d', para) or
+                 re.search(r'\d{1,2}\s+\w+\s+\d{2,4}', para, re.IGNORECASE) or
+                 (',' in para and len(para) < 80 and 'astrologie' not in lower))
+            )
+            if isCenter:
+                story.append(Paragraph(para, center_style))
+                story.append(Spacer(1, 6))
+            else:
+                story.append(Paragraph(para, paragraph_style))
+                story.append(Spacer(1, 6))
     
     # Note de bas de page si absente
     if not any('ce dialogue est symbolique' in p.lower() for p in paragraphs):

@@ -24,7 +24,7 @@ try {
 const styles = StyleSheet.create({
   page: {
     backgroundColor: '#ffffff',
-    padding: 30,
+    padding: 20, // Réduit pour mobile
     position: 'relative',
   },
   pageFrame: {
@@ -43,7 +43,7 @@ const styles = StyleSheet.create({
   },
   container: {
     backgroundColor: 'transparent',
-    padding: 20,
+    padding: 15, // Réduit pour mobile
     flexGrow: 1,
     color: GOLD,
   },
@@ -117,7 +117,7 @@ const styles = StyleSheet.create({
   },
   paragraph: {
     fontFamily: 'Helvetica',
-    fontSize: 12,
+    fontSize: 14, // Augmenté pour mobile
     lineHeight: 1.55,
     marginBottom: 10,
     textAlign: 'justify',
@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
   },
   heading: {
     fontFamily: 'Helvetica-Bold',
-    fontSize: 14, /* 2 points de plus que le texte (12 + 2 = 14) */
+    fontSize: 16, // Augmenté pour mobile (14 + 2 = 16)
     marginTop: 8,
     marginBottom: 8,
     color: TEXT_BLACK,
@@ -138,13 +138,13 @@ const styles = StyleSheet.create({
   },
   bullet: {
     fontFamily: 'Helvetica-Bold',
-    fontSize: 12,
+    fontSize: 14, // Augmenté pour mobile
     color: TEXT_BLACK,
     width: 10,
   },
   bulletText: {
     fontFamily: 'Helvetica',
-    fontSize: 12,
+    fontSize: 14, // Augmenté pour mobile
     lineHeight: 1.45,
     color: TEXT_BLACK,
   },
@@ -159,6 +159,50 @@ const styles = StyleSheet.create({
     fontFamily: greatVibesLoaded ? 'GreatVibes' : 'Times-Italic',
     fontStyle: greatVibesLoaded ? 'normal' : 'italic',
     fontSize: 18,
+  },
+  // Styles pour les bulles de dialogue
+  dialogueBubbleContainer: {
+    marginBottom: 16,
+    maxWidth: '85%',
+  },
+  dialogueBubbleAstro: {
+    alignSelf: 'flex-start',
+  },
+  dialogueBubbleUser: {
+    alignSelf: 'flex-end',
+  },
+  dialogueBubbleContent: {
+    padding: 12,
+    borderRadius: 18,
+    marginBottom: 6,
+  },
+  dialogueBubbleAstroContent: {
+    backgroundColor: '#FAF5FF', // Fond mauve clair
+    border: `1 solid ${GOLD}`,
+    borderBottomLeftRadius: 6, // Queue de bulle
+  },
+  dialogueBubbleUserContent: {
+    backgroundColor: '#FCF8FF', // Fond mauve très clair
+    border: `1 solid ${GOLD}`,
+    borderBottomRightRadius: 6, // Queue de bulle
+  },
+  dialogueBubbleSpeaker: {
+    fontSize: 13,
+    fontWeight: 'bold',
+    marginBottom: 4,
+    fontStyle: 'italic',
+    color: GOLD,
+  },
+  dialogueBubbleUserSpeaker: {
+    textAlign: 'right',
+    color: GOLD_DARK,
+  },
+  dialogueBubbleText: {
+    fontFamily: 'Helvetica',
+    fontSize: 14, // Augmenté pour mobile
+    lineHeight: 1.7,
+    color: TEXT_BLACK,
+    textAlign: 'left',
   },
 })
 
@@ -626,7 +670,66 @@ export default function Reading2026Pdf({
                 </View>
               )
             }
-            // Vérifier si c'est un dialogue et appliquer le formatage
+            // Vérifier si c'est un dialogue et appliquer le formatage avec bulles
+            const dialogueMatch = block.text.match(/^([^\n:]{2,50})\s*:\s*(.*)$/s)
+            const isDialogue = (() => {
+              if (!dialogueMatch) return false
+              const label = dialogueMatch[1].trim()
+              const labelLower = label.toLowerCase()
+              const isAstro =
+                labelLower === 'astrologie' ||
+                labelLower === 'astrology' ||
+                labelLower === 'astrología' ||
+                labelLower === 'astrologia'
+              const looksLikeFirstName = /^[\p{L}'’-]+$/u.test(label) && label.length <= 16 && labelLower !== 'naissance' && labelLower !== 'atterrissage'
+              const isObservationPhrase = /^(tu\s+(pourrais|remarqueras|noteras|observeras|constateras)|vous\s+(pourriez|remarquerez|noterez|observerez|constaterez)|on\s+(pourrait|remarque|note|observe|constate))\s+/i.test(label)
+              return isAstro || looksLikeFirstName || isObservationPhrase
+            })()
+            
+            // Si c'est un dialogue, rendre comme une bulle
+            if (isDialogue && dialogueMatch) {
+              const speaker = dialogueMatch[1].trim()
+              const content = dialogueMatch[2].trim()
+              const labelLower = speaker.toLowerCase()
+              const isAstro =
+                labelLower === 'astrologie' ||
+                labelLower === 'astrology' ||
+                labelLower === 'astrología' ||
+                labelLower === 'astrologia'
+              
+              return (
+                <View
+                  key={index}
+                  wrap={false}
+                  style={[
+                    styles.dialogueBubbleContainer,
+                    isAstro ? styles.dialogueBubbleAstro : styles.dialogueBubbleUser,
+                  ]}
+                  minPresenceAhead={50}
+                >
+                  <Text
+                    style={[
+                      styles.dialogueBubbleSpeaker,
+                      !isAstro ? styles.dialogueBubbleUserSpeaker : null,
+                    ]}
+                  >
+                    {speaker}
+                  </Text>
+                  <View
+                    style={[
+                      styles.dialogueBubbleContent,
+                      isAstro ? styles.dialogueBubbleAstroContent : styles.dialogueBubbleUserContent,
+                    ]}
+                  >
+                    <Text style={styles.dialogueBubbleText}>
+                      {preventLineBreakAfterPunctuation(content)}
+                    </Text>
+                  </View>
+                </View>
+              )
+            }
+            
+            // Sinon, texte normal
             const dialogueContent = renderDialogueLine(block.text, firstName)
             return (
               <Text key={index} style={styles.paragraph}>

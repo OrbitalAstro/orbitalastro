@@ -26,7 +26,7 @@ try {
 const styles = StyleSheet.create({
   page: {
     backgroundColor: '#ffffff', // Fond blanc
-    padding: 30,
+    padding: 20, // Réduit pour mobile
     position: 'relative',
   },
   pageFrame: {
@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
   },
   container: {
     backgroundColor: 'transparent',
-    padding: 20,
+    padding: 15, // Réduit pour mobile
     color: GOLD, // Accents en doré par défaut (le corps du texte est forcé en noir)
     flexGrow: 1,
   },
@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
   },
   paragraph: {
     fontFamily: 'Helvetica',
-    fontSize: 12,
+    fontSize: 14, // Augmenté pour mobile
     lineHeight: 1.6,
     marginBottom: 10,
     textAlign: 'justify',
@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
   },
   landing: {
     fontFamily: 'Helvetica-Oblique',
-    fontSize: 12,
+    fontSize: 14, // Augmenté pour mobile
     lineHeight: 1.4,
     letterSpacing: 1,
     textAlign: 'center',
@@ -127,14 +127,14 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 6,
     fontFamily: 'Helvetica',
-    fontSize: 12,
+    fontSize: 14, // Augmenté pour mobile
     color: TEXT_BLACK,
   },
   iciMaintenant: {
     textAlign: 'center',
     marginBottom: 10,
     fontFamily: 'Helvetica',
-    fontSize: 14,
+    fontSize: 16, // Augmenté pour mobile
     fontWeight: 'bold',
     color: TEXT_BLACK,
   },
@@ -154,6 +154,50 @@ const styles = StyleSheet.create({
     fontStyle: greatVibesLoaded ? 'normal' : 'italic',
     fontSize: 24,
     textAlign: 'center',
+  },
+  // Styles pour les bulles de dialogue
+  dialogueBubbleContainer: {
+    marginBottom: 16,
+    maxWidth: '85%',
+  },
+  dialogueBubbleAstro: {
+    alignSelf: 'flex-start',
+  },
+  dialogueBubbleUser: {
+    alignSelf: 'flex-end',
+  },
+  dialogueBubbleContent: {
+    padding: 12,
+    borderRadius: 18,
+    marginBottom: 6,
+  },
+  dialogueBubbleAstroContent: {
+    backgroundColor: '#FAF5FF', // Fond mauve clair
+    border: `1 solid ${GOLD}`,
+    borderBottomLeftRadius: 6, // Queue de bulle
+  },
+  dialogueBubbleUserContent: {
+    backgroundColor: '#FCF8FF', // Fond mauve très clair
+    border: `1 solid ${GOLD}`,
+    borderBottomRightRadius: 6, // Queue de bulle
+  },
+  dialogueBubbleSpeaker: {
+    fontSize: 13,
+    fontWeight: 'bold',
+    marginBottom: 4,
+    fontStyle: 'italic',
+    color: GOLD,
+  },
+  dialogueBubbleUserSpeaker: {
+    textAlign: 'right',
+    color: GOLD_DARK,
+  },
+  dialogueBubbleText: {
+    fontFamily: 'Helvetica',
+    fontSize: 14, // Augmenté pour mobile
+    lineHeight: 1.7,
+    color: TEXT_BLACK,
+    textAlign: 'left',
   },
 })
 
@@ -732,7 +776,7 @@ export default function DialoguePdf({
               )
             }
 
-            // Exclure les phrases de dialogue (qui commencent par "Astrologie" ou un prénom suivi de ":")
+            // Détecter les dialogues (qui commencent par "Astrologie" ou un prénom suivi de ":")
             const speakerMatch = trimmed.match(/^([^\n:]{2,24})\s*:\s*(.*)$/)
             const isDialogue = (() => {
               if (!speakerMatch) return false
@@ -747,6 +791,49 @@ export default function DialoguePdf({
                 /^[\p{L}'’-]+$/u.test(label) && label.length <= 16 && !speakerLabelBlacklist.has(labelLower)
               return isAstro || looksLikeFirstName
             })()
+            
+            // Si c'est un dialogue, rendre comme une bulle
+            if (isDialogue && speakerMatch) {
+              const speaker = speakerMatch[1].trim()
+              const content = speakerMatch[2].trim()
+              const labelLower = speaker.toLowerCase()
+              const isAstro =
+                labelLower === 'astrologie' ||
+                labelLower === 'astrology' ||
+                labelLower === 'astrología' ||
+                labelLower === 'astrologia'
+              
+              return (
+                <View
+                  key={idx}
+                  wrap={false}
+                  style={[
+                    styles.dialogueBubbleContainer,
+                    isAstro ? styles.dialogueBubbleAstro : styles.dialogueBubbleUser,
+                  ]}
+                  minPresenceAhead={50}
+                >
+                  <Text
+                    style={[
+                      styles.dialogueBubbleSpeaker,
+                      !isAstro ? styles.dialogueBubbleUserSpeaker : null,
+                    ]}
+                  >
+                    {speaker}
+                  </Text>
+                  <View
+                    style={[
+                      styles.dialogueBubbleContent,
+                      isAstro ? styles.dialogueBubbleAstroContent : styles.dialogueBubbleUserContent,
+                    ]}
+                  >
+                    <Text style={styles.dialogueBubbleText}>
+                      {renderText(content, { script: false })}
+                    </Text>
+                  </View>
+                </View>
+              )
+            }
             
             const isCenter =
               !isDialogue &&
