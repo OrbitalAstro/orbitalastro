@@ -65,10 +65,10 @@ export async function POST(request: NextRequest) {
         marketing_consent: 'required', // Case à cocher obligatoire pour recevoir les promotions
         terms_of_service: 'required', // Case à cocher obligatoire pour accepter les termes et conditions
       },
-      // Message d'avertissement pour paiement réel
+      // Message d'avertissement pour paiement réel et informations requises
       custom_text: {
         submit: {
-          message: '⚠️ Ce paiement est final et définitif. Vous serez débité immédiatement.',
+          message: '⚠️ Ce paiement est final et définitif. Vous serez débité immédiatement.\n\n📅 Important : Vous devez avoir votre heure de naissance pour utiliser ce produit.',
         },
       },
       // Forcer l'envoi automatique du reçu par email pour les paiements uniques
