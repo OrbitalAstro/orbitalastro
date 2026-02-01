@@ -205,7 +205,7 @@ body {
   line-height: 1.7; /* 1.6-1.8, valeur médiane */
   letter-spacing: 0.01em;
   text-align: justify;
-  color: #4A2C5A; /* Mauve très foncé */
+  color: #4A2C5A; /* Mauve très foncé - sera surchargé pour .dialogue-paragraph */
   background: none; /* Pas de fond */
   border: none; /* Pas de bordure */
   border-radius: 0; /* Pas de bordure arrondie */
@@ -224,13 +224,18 @@ body {
   text-indent: 1.25em;
 }
 
+/* S'assurer que les paragraphes qui ne sont pas des bulles sont pâles */
+.dialogue-prose p:not(.dialogue-bubble-text) {
+  color: rgba(255, 255, 255, 0.95) !important; /* Presque blanc, très pâle */
+}
+
 .dialogue-prose p:first-child {
   text-indent: 0;
 }
 
 /* Texte entre les bulles - presque blanc */
 .dialogue-paragraph {
-  color: rgba(255, 255, 255, 0.9); /* Presque blanc */
+  color: rgba(255, 255, 255, 0.95) !important; /* Presque blanc, très pâle */
 }
 
 /* Bulles de conversation pour les dialogues */
