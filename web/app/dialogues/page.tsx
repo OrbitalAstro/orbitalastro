@@ -132,13 +132,25 @@ export default function Dialogues() {
       setHasAccess(accessResult.hasAccess)
       setCheckingAccess(false)
       
+      // S'assurer que le sessionId est stocké dans localStorage pour utilisation ultérieure
+      if (accessResult.sessionId) {
+        localStorage.setItem('session_dialogue', accessResult.sessionId)
+      }
+      
       if (accessResult.hasAccess) {
         markProductAsPaid('dialogue')
-        // Nettoyer l'URL
-        const url = new URL(window.location.href)
-        url.searchParams.delete('purchased')
-        url.searchParams.delete('session_id')
-        window.history.replaceState({}, '', url.toString())
+        // Nettoyer l'URL après un court délai pour permettre le traitement
+        setTimeout(() => {
+          const url = new URL(window.location.href)
+          url.searchParams.delete('purchased')
+          const sessionIdParam = url.searchParams.get('session_id')
+          if (sessionIdParam) {
+            // Stocker le sessionId avant de le retirer de l'URL
+            localStorage.setItem('session_dialogue', sessionIdParam)
+          }
+          url.searchParams.delete('session_id')
+          window.history.replaceState({}, '', url.toString())
+        }, 500)
       }
     }
     checkAccess()
@@ -278,15 +290,26 @@ export default function Dialogues() {
     // Sauvegarder l'email pour la vérification
     localStorage.setItem(`last_email_dialogue`, email)
 
-    const accessResult = await checkAccessFromURL('dialogue')
+    // Récupérer le sessionId depuis accessInfo ou localStorage
+    const sessionId = accessInfo?.sessionId || localStorage.getItem('session_dialogue') || undefined
+    
+    // Vérifier l'accès directement avec l'email et le sessionId
+    const accessResult = await checkProductAccess('dialogue', email, sessionId)
+    
     if (!accessResult.hasAccess) {
       // Rediriger vers la page de tarification
       if (accessResult.quantityRemaining === 0 && accessResult.quantityPurchased > 0) {
         alert('Vous avez déjà utilisé toutes vos générations. Veuillez commander à nouveau pour générer un autre dialogue.')
+      } else {
+        alert('Accès non autorisé. Veuillez commander votre accès.')
       }
       router.push('/pricing?redirect=dialogue')
       return
     }
+    
+    // Mettre à jour accessInfo avec le résultat
+    setAccessInfo(accessResult)
+    setHasAccess(accessResult.hasAccess)
 
     // API key check moved to backend
 
