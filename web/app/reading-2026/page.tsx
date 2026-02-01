@@ -900,9 +900,20 @@ export default function Reading2026Page() {
                           }
                         }
                         
-                        // Joindre avec des doubles retours à la ligne pour que ReactMarkdown traite chaque bloc comme un paragraphe séparé
-                        // Mais garder les \n simples dans les blocs combinés pour que le texte reste dans la même bulle
-                        return processedLines.join('\n\n')
+                        // Joindre les lignes : utiliser \n\n pour séparer les blocs
+                        // Pour les blocs combinés (comme "Tu pourrais remarquer :"), remplacer les \n par des espaces
+                        // pour que ReactMarkdown les traite comme un seul paragraphe (une seule bulle)
+                        return processedLines.map((line) => {
+                          // Si cette ligne contient "Tu pourrais remarquer :" ou similaire, c'est un bloc combiné
+                          const trimmed = line.trim()
+                          const isCombinedBlock = /^(tu\s+(pourrais|remarqueras|noteras|observeras|constateras)|vous\s+(pourriez|remarquerez|noterez|observerez|constaterez)|on\s+(pourrait|remarque|note|observe|constate))\s*:\s*/i.test(trimmed)
+                          if (isCombinedBlock) {
+                            // Remplacer les \n par des espaces pour que tout soit dans le même paragraphe
+                            // Garder les retours à la ligne seulement après les points-virgules pour la lisibilité
+                            return line.replace(/\n/g, ' ').replace(/;\s+/g, '; ')
+                          }
+                          return line
+                        }).join('\n\n')
                       })()}
                     </ReactMarkdown>
                   </div>

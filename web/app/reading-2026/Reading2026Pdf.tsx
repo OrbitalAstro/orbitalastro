@@ -229,38 +229,65 @@ function renderDialogueLine(text: string, firstName?: string): React.ReactNode {
 const KNOWN_SECTION_TITLES = [
   'Missions de l\'année 2026',
   'Missions de l\'année',
+  'Missions',
   'Grandes dynamiques de croissance',
   'Grandes dynamiques',
+  'Dynamiques de croissance',
   'Cycles intérieurs',
   'Cycles intérieurs (Lune)',
+  'Cycles intérieurs Lune',
   'Destinée',
   'Destinée (Nœud Nord + MC / axe vocation)',
+  'Destinée Nœud Nord MC axe vocation',
   'Image symbolique de 2026',
   'Image symbolique',
+  'Séquence temporelle 2026',
+  'Séquence temporelle',
+  'Filtre de décision',
   'En résumé',
   'Résumé',
+  'Conclusion',
+  'Clôture vivante 2026',
   // Versions anglaises
   'Missions for 2026',
+  'Missions',
   'Major Growth Dynamics',
+  'Growth Dynamics',
   'Inner Cycles',
   'Inner Cycles (Moon)',
+  'Inner Cycles Moon',
   'Destiny',
   'Destiny (North Node + MC / Vocation Axis)',
+  'Destiny North Node MC Vocation Axis',
   'Symbolic Image of 2026',
   'Symbolic Image',
+  'Temporal Sequence 2026',
+  'Temporal Sequence',
+  'Decision Filter',
   'Summary',
   'In Summary',
+  'Conclusion',
+  'Living Closure 2026',
   // Versions espagnoles
   'Misiones del año 2026',
+  'Misiones',
   'Grandes dinámicas de crecimiento',
+  'Dinámicas de crecimiento',
   'Ciclos interiores',
   'Ciclos interiores (Luna)',
+  'Ciclos interiores Luna',
   'Destino',
   'Destino (Nodo Norte + MC / Eje de vocación)',
+  'Destino Nodo Norte MC Eje vocación',
   'Imagen simbólica de 2026',
   'Imagen simbólica',
+  'Secuencia temporal 2026',
+  'Secuencia temporal',
+  'Filtro de decisión',
   'Resumen',
   'En resumen',
+  'Conclusión',
+  'Cierre viviente 2026',
 ]
 
 function isSectionTitle(line: string): boolean {
@@ -283,18 +310,29 @@ function isSectionTitle(line: string): boolean {
   const withoutNumbers = trimmed.replace(/^\d+\.\d+\)\s+/, '').replace(/^\d+\)\s+/, '').trim()
   const normalized = withoutNumbers.toLowerCase()
   for (const title of KNOWN_SECTION_TITLES) {
-    if (normalized === title.toLowerCase() || normalized.startsWith(title.toLowerCase())) {
+    const titleLower = title.toLowerCase()
+    // Vérifier correspondance exacte ou si le titre commence par le titre connu
+    if (normalized === titleLower || normalized.startsWith(titleLower) || titleLower.startsWith(normalized)) {
+      return true
+    }
+    // Vérifier si le titre contient des mots-clés importants
+    const titleWords = titleLower.split(/\s+/).filter(w => w.length > 3)
+    const normalizedWords = normalized.split(/\s+/).filter(w => w.length > 3)
+    const matchingWords = titleWords.filter(w => normalizedWords.includes(w))
+    if (matchingWords.length >= 2) {
       return true
     }
   }
   
   // Vérifier les patterns de titres : ligne courte, commence par majuscule, pas de point à la fin
-  if (trimmed.length < 80 && 
-      /^\p{Lu}/u.test(trimmed) && 
+  // Mais aussi accepter les titres qui commencent par un numéro suivi d'un texte
+  if (trimmed.length < 100 && 
+      (/^\p{Lu}/u.test(trimmed) || /^\d+[\.\)]\s+\p{Lu}/u.test(trimmed)) && 
       !trimmed.endsWith('.') && 
       !trimmed.endsWith(',') &&
+      !trimmed.endsWith(';') &&
       !trimmed.includes(' : ') && // Pas un dialogue
-      trimmed.split(' ').length <= 10) {
+      trimmed.split(' ').length <= 15) {
     return true
   }
   
