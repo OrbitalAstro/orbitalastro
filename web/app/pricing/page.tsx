@@ -237,23 +237,32 @@ export default function PricingPage() {
                   </label>
                 </div>
 
-                <button
-                  onClick={() => handlePurchase(product)}
-                  disabled={loading === product.id}
-                  className="w-full py-3 px-6 bg-cosmic-gold hover:bg-cosmic-gold/90 text-black font-semibold rounded-lg transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed mt-6"
-                >
-                  {loading === product.id ? (
-                    <>
-                      <Loader2 className="h-5 w-5 animate-spin" />
-                      Chargement...
-                    </>
-                  ) : (
-                    <>
-                      <CreditCard className="h-5 w-5" />
-                      Acheter maintenant
-                    </>
-                  )}
-                </button>
+                {product.id === 'valentine-2026' ? (
+                  <button
+                    disabled
+                    className="w-full py-3 px-6 bg-gray-500/50 text-gray-300 font-semibold rounded-lg cursor-not-allowed flex items-center justify-center gap-2 mt-6"
+                  >
+                    <span>Bientôt disponible</span>
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => handlePurchase(product)}
+                    disabled={loading === product.id}
+                    className="w-full py-3 px-6 bg-cosmic-gold hover:bg-cosmic-gold/90 text-black font-semibold rounded-lg transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed mt-6"
+                  >
+                    {loading === product.id ? (
+                      <>
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                        Chargement...
+                      </>
+                    ) : (
+                      <>
+                        <CreditCard className="h-5 w-5" />
+                        Acheter maintenant
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
             ))}
           </div>
