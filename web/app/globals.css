@@ -228,9 +228,9 @@ body {
   text-indent: 0;
 }
 
-/* Texte entre les bulles - très pâle mais visible */
+/* Texte entre les bulles - presque blanc */
 .dialogue-paragraph {
-  color: rgba(255, 255, 255, 0.4); /* Très pâle, légèrement visible */
+  color: rgba(255, 255, 255, 0.9); /* Presque blanc */
 }
 
 /* Bulles de conversation pour les dialogues */
