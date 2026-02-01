@@ -12,6 +12,7 @@ import { Fragment } from 'react'
 import LocationInput from '@/components/LocationInput'
 import BackButton from '@/components/BackButton'
 import Starfield from '@/components/Starfield'
+import Logo from '@/components/Logo'
 // Removed generateDialogue import
 import { useTranslation } from '@/lib/useTranslation'
 import { generateDialoguePrompt } from './generatePrompt'
