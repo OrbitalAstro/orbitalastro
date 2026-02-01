@@ -690,9 +690,6 @@ export default function Reading2026Page() {
                               return <h2 className="dialogue-prose h2">{afterNumber}</h2>
                             }
                           }
-                          const rawText = Array.isArray(props.children)
-                            ? props.children.map((c: any) => (typeof c === 'string' ? c : '')).join('').trim()
-                            : (props.children as any)?.toString().trim()
                           
                           // Détecter le format "Nom : texte" avec support pour phrases comme "Tu pourrais remarquer : "
                           // Le texte peut contenir plusieurs lignes séparées par \n
