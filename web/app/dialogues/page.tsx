@@ -120,6 +120,52 @@ export default function Dialogues() {
     .replace(/&/g, '-')
     .replace(/[\u2010\u2011\u2012\u2013\u2014\u2212]/g, '-')
 
+  // Clés pour localStorage
+  const STORAGE_KEY = 'orbitalastro_dialogue'
+  const STORAGE_EXPIRY_HOURS = 24 // Conserver pendant 24 heures
+
+  // Restaurer le dialogue depuis localStorage au chargement
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY)
+      if (saved) {
+        const { text, timestamp } = JSON.parse(saved)
+        const now = Date.now()
+        const expiry = STORAGE_EXPIRY_HOURS * 60 * 60 * 1000 // Convertir en millisecondes
+        
+        // Vérifier si le texte n'est pas expiré
+        if (now - timestamp < expiry && text) {
+          console.log('[Dialogues] Restoring dialogue from localStorage')
+          setDialogue(text)
+        } else {
+          // Supprimer si expiré
+          localStorage.removeItem(STORAGE_KEY)
+        }
+      }
+    } catch (error) {
+      console.error('[Dialogues] Error restoring dialogue from localStorage:', error)
+    }
+  }, [])
+
+  // Sauvegarder le dialogue dans localStorage quand il change
+  useEffect(() => {
+    if (dialogue) {
+      try {
+        const data = {
+          text: dialogue,
+          timestamp: Date.now(),
+        }
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+        console.log('[Dialogues] Dialogue saved to localStorage')
+      } catch (error) {
+        console.error('[Dialogues] Error saving dialogue to localStorage:', error)
+      }
+    } else {
+      // Supprimer si le dialogue est effacé
+      localStorage.removeItem(STORAGE_KEY)
+    }
+  }, [dialogue])
+
   // Vérifier l'accès au chargement de la page
   useEffect(() => {
     const checkAccess = async () => {
@@ -170,6 +216,8 @@ export default function Dialogues() {
     })
     setDialogue(null)
     setEmailStatus('idle')
+    // Supprimer aussi de localStorage lors du reset
+    localStorage.removeItem(STORAGE_KEY)
   }
 
   const sendDialoguePdfByEmail = async (dialogueText: string) => {

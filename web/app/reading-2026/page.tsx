@@ -45,6 +45,52 @@ export default function Reading2026Page() {
   const [emailStatus, setEmailStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
   const [downloading, setDownloading] = useState(false)
 
+  // Clés pour localStorage
+  const STORAGE_KEY = 'orbitalastro_reading_2026'
+  const STORAGE_EXPIRY_HOURS = 24 // Conserver pendant 24 heures
+
+  // Restaurer la lecture depuis localStorage au chargement
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY)
+      if (saved) {
+        const { text, timestamp } = JSON.parse(saved)
+        const now = Date.now()
+        const expiry = STORAGE_EXPIRY_HOURS * 60 * 60 * 1000 // Convertir en millisecondes
+        
+        // Vérifier si le texte n'est pas expiré
+        if (now - timestamp < expiry && text) {
+          console.log('[Reading 2026] Restoring reading from localStorage')
+          setReading(text)
+        } else {
+          // Supprimer si expiré
+          localStorage.removeItem(STORAGE_KEY)
+        }
+      }
+    } catch (error) {
+      console.error('[Reading 2026] Error restoring reading from localStorage:', error)
+    }
+  }, [])
+
+  // Sauvegarder la lecture dans localStorage quand elle change
+  useEffect(() => {
+    if (reading) {
+      try {
+        const data = {
+          text: reading,
+          timestamp: Date.now(),
+        }
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+        console.log('[Reading 2026] Reading saved to localStorage')
+      } catch (error) {
+        console.error('[Reading 2026] Error saving reading to localStorage:', error)
+      }
+    } else {
+      // Supprimer si la lecture est effacée
+      localStorage.removeItem(STORAGE_KEY)
+    }
+  }, [reading])
+
   // Vérifier l'accès au chargement de la page
   useEffect(() => {
     const checkAccess = async () => {
@@ -105,6 +151,8 @@ export default function Reading2026Page() {
     })
     setReading(null)
     setEmailStatus('idle')
+    // Supprimer aussi de localStorage lors du reset
+    localStorage.removeItem(STORAGE_KEY)
   }
 
   const sendReadingPdfByEmail = async (readingText: string) => {
