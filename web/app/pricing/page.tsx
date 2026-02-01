@@ -13,6 +13,7 @@ export default function PricingPage() {
   const [promoCode, setPromoCode] = useState('')
   const [appliedPromo, setAppliedPromo] = useState<string | null>(null)
   const [email, setEmail] = useState('')
+  const [acceptPromotions, setAcceptPromotions] = useState(false)
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -68,6 +69,7 @@ export default function PricingPage() {
           productId: product.id,
           email: email || undefined,
           promoCode: appliedPromo || promoCode || undefined,
+          acceptPromotions: acceptPromotions,
         }),
       })
 
@@ -205,6 +207,33 @@ export default function PricingPage() {
                   )}
                 </div>
 
+                {/* Message d'avertissement pour paiement réel */}
+                <div className="mt-4 p-4 bg-yellow-500/20 border-2 border-yellow-500/50 rounded-lg">
+                  <p className="text-yellow-200 text-sm font-semibold text-center">
+                    ⚠️ Paiement final et définitif
+                  </p>
+                  <p className="text-yellow-300/80 text-xs text-center mt-1">
+                    Ce paiement sera débité immédiatement de votre carte bancaire.
+                  </p>
+                </div>
+
+                {/* Case à cocher pour accepter les promotions */}
+                <div className="mt-4 flex items-start gap-3 p-3 bg-white/5 rounded-lg border border-white/10">
+                  <input
+                    type="checkbox"
+                    id={`promotions-${product.id}`}
+                    checked={acceptPromotions}
+                    onChange={(e) => setAcceptPromotions(e.target.checked)}
+                    className="mt-1 h-4 w-4 rounded border-white/30 bg-white/10 text-cosmic-gold focus:ring-2 focus:ring-cosmic-gold focus:ring-offset-0 cursor-pointer"
+                  />
+                  <label
+                    htmlFor={`promotions-${product.id}`}
+                    className="text-sm text-cosmic-silver cursor-pointer flex-1"
+                  >
+                    J'accepte de recevoir des promotions et offres spéciales par email
+                  </label>
+                </div>
+
                 <button
                   onClick={() => handlePurchase(product)}
                   disabled={loading === product.id}
@@ -261,6 +290,33 @@ export default function PricingPage() {
                       ))}
                     </ul>
                   )}
+
+                  {/* Message d'avertissement pour paiement réel */}
+                  <div className="mb-6 p-4 bg-yellow-500/20 border-2 border-yellow-500/50 rounded-lg">
+                    <p className="text-yellow-200 text-sm font-semibold text-center">
+                      ⚠️ Paiement final et définitif
+                    </p>
+                    <p className="text-yellow-300/80 text-xs text-center mt-1">
+                      Ce paiement sera débité immédiatement de votre carte bancaire.
+                    </p>
+                  </div>
+
+                  {/* Case à cocher pour accepter les promotions */}
+                  <div className="mb-6 flex items-start gap-3 p-3 bg-white/5 rounded-lg border border-white/10">
+                    <input
+                      type="checkbox"
+                      id={`promotions-${subscription.id}`}
+                      checked={acceptPromotions}
+                      onChange={(e) => setAcceptPromotions(e.target.checked)}
+                      className="mt-1 h-4 w-4 rounded border-white/30 bg-white/10 text-cosmic-purple focus:ring-2 focus:ring-cosmic-purple focus:ring-offset-0 cursor-pointer"
+                    />
+                    <label
+                      htmlFor={`promotions-${subscription.id}`}
+                      className="text-sm text-cosmic-silver cursor-pointer flex-1"
+                    >
+                      J'accepte de recevoir des promotions et offres spéciales par email
+                    </label>
+                  </div>
 
                   <button
                     onClick={() => handlePurchase(subscription)}

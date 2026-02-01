@@ -14,7 +14,7 @@ function getStripe() {
 
 export async function POST(request: NextRequest) {
   try {
-    const { priceId, productId, email, promoCode } = await request.json()
+    const { priceId, productId, email, promoCode, acceptPromotions } = await request.json()
 
     if (!priceId) {
       return NextResponse.json(
@@ -59,6 +59,13 @@ export async function POST(request: NextRequest) {
       metadata: {
         productId: productId || 'unknown',
         promoCode: promoCode || '',
+        acceptPromotions: acceptPromotions === true ? 'true' : 'false',
+      },
+      // Message d'avertissement pour paiement réel
+      custom_text: {
+        submit: {
+          message: '⚠️ Ce paiement est final et définitif. Vous serez débité immédiatement.',
+        },
       },
       // Forcer l'envoi automatique du reçu par email pour les paiements uniques
       ...(email && !isSubscription ? {

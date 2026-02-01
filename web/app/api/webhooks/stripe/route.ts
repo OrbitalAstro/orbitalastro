@@ -77,6 +77,9 @@ async function recordPayment(session: Stripe.Checkout.Session) {
 
     // Le trigger automatique créera le subscriber, mais on peut aussi le faire manuellement pour être sûr
     if (session.payment_status === 'paid' && customerEmail) {
+      // Récupérer la préférence pour les promotions depuis les metadata
+      const acceptPromotions = session.metadata?.acceptPromotions === 'true'
+      
       // Le trigger upsert_subscriber_on_payment devrait déjà le faire, mais on le fait aussi ici pour être sûr
       await supabase
         .from('subscribers')
@@ -87,7 +90,7 @@ async function recordPayment(session: Stripe.Checkout.Session) {
             source: 'checkout',
             subscribed_to_newsletter: true,
             subscribed_to_product_updates: true,
-            subscribed_to_promotions: true,
+            subscribed_to_promotions: acceptPromotions, // Utiliser la préférence du client
             unsubscribed_at: null,
           },
           {

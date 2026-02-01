@@ -32,7 +32,29 @@ export interface Product {
   features?: string[] // Caractéristiques (pour les abonnements)
 }
 
+// Détecter si on utilise les clés LIVE (production) ou TEST (développement)
+// On détecte automatiquement selon la clé publishable configurée
+const getStripeMode = () => {
+  const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || ''
+  return publishableKey.startsWith('pk_live_') ? 'live' : 'test'
+}
+
+// Helper pour obtenir le bon Price ID selon l'environnement
+const getPriceId = (testId: string, liveId?: string) => {
+  const mode = getStripeMode()
+  // Si on est en production (LIVE) et qu'on a un Price ID de production, l'utiliser
+  // Sinon, utiliser celui de test (pour le développement local)
+  if (mode === 'live' && liveId) {
+    return liveId
+  }
+  return testId
+}
+
 // Produits à la pièce
+// NOTE: Pour passer en production, vous devrez :
+// 1. Créer les produits en Live mode dans Stripe
+// 2. Récupérer les Price IDs de production
+// 3. Les ajouter comme deuxième paramètre dans getPriceId() ci-dessous
 export const oneTimeProducts: Product[] = [
   {
     id: 'dialogue',
@@ -40,7 +62,10 @@ export const oneTimeProducts: Product[] = [
     description: 'Génération d\'un dialogue pré-incarnation.',
     price: 9.99,
     currency: 'cad',
-    stripePriceId: 'price_1Sr8qkJOod2H9eSE8QV72G4p',
+    stripePriceId: getPriceId(
+      'price_1Sr8qkJOod2H9eSE8QV72G4p', // TEST (utilisé en local)
+      // 'price_1VOTRE_PRICE_ID_LIVE_DIALOGUE' // LIVE (à ajouter après création en production)
+    ),
     type: 'one-time',
     launchOffer: true,
   },
@@ -50,7 +75,10 @@ export const oneTimeProducts: Product[] = [
     description: 'Générer la lecture astrologie de l\'année 2026',
     price: 9.99,
     currency: 'cad',
-    stripePriceId: 'price_1Sr8sKJOod2H9eSERiPO6965',
+    stripePriceId: getPriceId(
+      'price_1Sr8sKJOod2H9eSERiPO6965', // TEST (utilisé en local)
+      // 'price_1VOTRE_PRICE_ID_LIVE_READING' // LIVE (à ajouter après création en production)
+    ),
     type: 'one-time',
     launchOffer: true,
   },
@@ -60,7 +88,10 @@ export const oneTimeProducts: Product[] = [
     description: 'Synastrie Saint-Valentin 2026',
     price: 14.00,
     currency: 'cad',
-    stripePriceId: 'price_1SrTNsJOod2H9eSEa2Nz1heK',
+    stripePriceId: getPriceId(
+      'price_1SrTNsJOod2H9eSEa2Nz1heK', // TEST (utilisé en local)
+      // 'price_1VOTRE_PRICE_ID_LIVE_VALENTINE' // LIVE (à ajouter après création en production)
+    ),
     type: 'one-time',
     launchOffer: false,
   },
