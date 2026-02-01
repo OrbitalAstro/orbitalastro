@@ -60,9 +60,10 @@ export async function POST(request: NextRequest) {
         productId: productId || 'unknown',
         promoCode: promoCode || '',
       },
-      // Collecte du consentement marketing dans Stripe Checkout
+      // Collecte du consentement marketing et des termes et conditions dans Stripe Checkout
       consent_collection: {
         marketing_consent: 'required', // Case à cocher obligatoire pour recevoir les promotions
+        terms_of_service: 'required', // Case à cocher obligatoire pour accepter les termes et conditions
       },
       // Message d'avertissement pour paiement réel
       custom_text: {
