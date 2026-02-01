@@ -24,10 +24,15 @@ export default function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const t = useTranslation()
 
-  const menuItems = [
+  const menuItems: Array<{
+    href: string
+    label: string
+    icon: any
+    disabled?: boolean
+  }> = [
     { href: '/dialogues', label: t.nav.dialogues, icon: MessageSquare },
     { href: '/reading-2026', label: t.nav.reading2026, icon: Calendar },
-    { href: '/saint-valentin', label: t.nav.valentine, icon: Heart },
+    { href: '/saint-valentin', label: t.nav.valentine, icon: Heart, disabled: true },
     { href: '/pricing', label: t.nav.pricing, icon: CreditCard },
   ]
 
@@ -50,22 +55,36 @@ export default function Navigation() {
 
             {/* Desktop Menu */}
             <div className="hidden lg:flex items-center space-x-1">
-              {menuItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`
-                    flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all
-                    ${isActive(item.href)
-                      ? 'bg-gradient-to-r from-purple-600/20 to-pink-600/20 text-white border border-purple-500/30'
-                      : 'text-white/70 hover:text-white hover:bg-white/10'
-                    }
-                  `}
-                >
-                  <item.icon className="h-4 w-4" />
-                  <span>{item.label}</span>
-                </Link>
-              ))}
+              {menuItems.map((item) => {
+                if (item.disabled) {
+                  return (
+                    <div
+                      key={item.href}
+                      className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white/40 cursor-not-allowed opacity-50"
+                      title={t.locale === 'fr' ? 'Disponible très bientôt' : t.locale === 'es' ? 'Disponible muy pronto' : 'Coming very soon'}
+                    >
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.label}</span>
+                    </div>
+                  )
+                }
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`
+                      flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all
+                      ${isActive(item.href)
+                        ? 'bg-gradient-to-r from-purple-600/20 to-pink-600/20 text-white border border-purple-500/30'
+                        : 'text-white/70 hover:text-white hover:bg-white/10'
+                      }
+                    `}
+                  >
+                    <item.icon className="h-4 w-4" />
+                    <span>{item.label}</span>
+                  </Link>
+                )
+              })}
               
               {/* Settings, About, FAQ and Contact */}
               <div className="flex items-center gap-2 ml-2 pl-2 border-l border-white/10">
@@ -164,23 +183,37 @@ export default function Navigation() {
                 </div>
 
                 <nav className="space-y-2">
-                  {menuItems.map((item) => (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      onClick={() => setMobileMenuOpen(false)}
-                      className={`
-                        flex items-center gap-3 p-3 rounded-lg transition text-white
-                        ${isActive(item.href)
-                          ? 'bg-gradient-to-r from-purple-600/20 to-pink-600/20 border border-purple-500/30'
-                          : 'hover:bg-white/10'
-                        }
-                      `}
-                    >
-                      <item.icon className="h-5 w-5 text-cosmic-gold" />
-                      <span className="font-medium">{item.label}</span>
-                    </Link>
-                  ))}
+                  {menuItems.map((item) => {
+                    if (item.disabled) {
+                      return (
+                        <div
+                          key={item.href}
+                          className="flex items-center gap-3 p-3 rounded-lg text-white/40 cursor-not-allowed opacity-50"
+                          title={t.locale === 'fr' ? 'Disponible très bientôt' : t.locale === 'es' ? 'Disponible muy pronto' : 'Coming very soon'}
+                        >
+                          <item.icon className="h-5 w-5 text-cosmic-gold/40" />
+                          <span className="font-medium">{item.label}</span>
+                        </div>
+                      )
+                    }
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className={`
+                          flex items-center gap-3 p-3 rounded-lg transition text-white
+                          ${isActive(item.href)
+                            ? 'bg-gradient-to-r from-purple-600/20 to-pink-600/20 border border-purple-500/30'
+                            : 'hover:bg-white/10'
+                          }
+                        `}
+                      >
+                        <item.icon className="h-5 w-5 text-cosmic-gold" />
+                        <span className="font-medium">{item.label}</span>
+                      </Link>
+                    )
+                  })}
                   
                   <div className="pt-4 mt-4 border-t border-white/10 space-y-2">
                     <Link
