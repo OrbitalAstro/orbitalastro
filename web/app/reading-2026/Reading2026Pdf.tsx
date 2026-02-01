@@ -306,8 +306,69 @@ function cleanTitleText(text: string): string {
 }
 
 function parseBlocks(markdown: string): Block[] {
-  const text = cleanText((markdown || '').replace(/\r\n/g, '\n')).trim()
+  let text = cleanText((markdown || '').replace(/\r\n/g, '\n')).trim()
   if (!text) return []
+
+  // Pré-traiter le texte pour regrouper les lignes qui suivent "Tu pourrais remarquer :" dans le même bloc
+  const processedLines: string[] = []
+  const allLines = text.split(/\r?\n/)
+  let i = 0
+  
+  while (i < allLines.length) {
+    const line = allLines[i].trim()
+    
+    // Détecter si cette ligne commence par "Tu pourrais remarquer :" ou similaire
+    const observationMatch = line.match(/^(tu\s+(pourrais|remarqueras|noteras|observeras|constateras)|vous\s+(pourriez|remarquerez|noterez|observerez|constaterez)|on\s+(pourrait|remarque|note|observe|constate))\s*:\s*(.*)$/i)
+    
+    if (observationMatch) {
+      // Commencer un nouveau bloc avec cette ligne
+      let combinedText = line
+      i++
+      
+      // Continuer à ajouter les lignes suivantes jusqu'à ce qu'on trouve :
+      // - Une ligne vide (fin de paragraphe)
+      // - Un nouveau dialogue (ligne avec "Nom :")
+      // - Un titre (ligne qui commence par # ou qui est un titre connu)
+      while (i < allLines.length) {
+        const nextLine = allLines[i].trim()
+        
+        // Arrêter si ligne vide
+        if (!nextLine) {
+          break
+        }
+        
+        // Arrêter si c'est un nouveau dialogue
+        const dialogueMatch = nextLine.match(/^([^\n:]{2,24})\s*:\s*(.*)$/)
+        if (dialogueMatch) {
+          const label = dialogueMatch[1].trim().toLowerCase()
+          const isNewDialogue = 
+            label === 'astrologie' || label === 'astrology' || label === 'astrología' || label === 'astrologia' ||
+            /^[\p{L}'’-]+$/u.test(dialogueMatch[1].trim()) && dialogueMatch[1].trim().length <= 16
+          if (isNewDialogue) {
+            break
+          }
+        }
+        
+        // Arrêter si c'est un titre (commence par # ou est un titre connu)
+        if (isSectionTitle(nextLine)) {
+          break
+        }
+        
+        // Ajouter cette ligne au bloc combiné
+        combinedText += '\n' + nextLine
+        i++
+      }
+      
+      processedLines.push(combinedText)
+    } else {
+      // Ligne normale, l'ajouter telle quelle
+      processedLines.push(line)
+      i++
+    }
+  }
+  
+  // Rejoindre les lignes traitées
+  text = processedLines.join('\n\n')
 
   const blocks: Block[] = []
   // Diviser par lignes pour préserver tout le contenu

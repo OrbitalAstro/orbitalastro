@@ -641,6 +641,7 @@ export default function Reading2026Page() {
                             : (props.children as any)?.toString().trim()
                           
                           // Détecter le format "Nom : texte" avec support pour phrases comme "Tu pourrais remarquer : "
+                          // Le texte peut contenir plusieurs lignes séparées par \n
                           const speakerMatch = (rawText || '').match(/^([^\n:]{2,50})\s*:\s*(.*)$/s)
                           const isDialogue = (() => {
                             if (!speakerMatch) return false
@@ -658,6 +659,7 @@ export default function Reading2026Page() {
                           })()
                           
                           const speakerName = speakerMatch ? speakerMatch[1].trim() : ''
+                          // Le dialogueText peut contenir plusieurs lignes
                           const dialogueText = speakerMatch ? speakerMatch[2].trim() : ''
                           const isAstroSpeaker = (() => {
                             if (!speakerName) return false
@@ -770,17 +772,79 @@ export default function Reading2026Page() {
                       }}
                     >
                       {(() => {
-                        // Remove the title line if it matches "FirstName - Plan de jeu astrologique 2026" pattern
                         if (!reading) return ''
-                        const lines = reading.split('\n')
+                        
+                        // Remove the title line if it matches "FirstName - Plan de jeu astrologique 2026" pattern
+                        let text = reading
+                        const lines = text.split('\n')
                         if (lines.length > 0) {
                           const firstLine = lines[0].trim()
                           const titlePattern = /^[^-]+ - Plan de jeu astrologique 2026$/i
                           if (titlePattern.test(firstLine)) {
-                            return lines.slice(1).join('\n').trim()
+                            text = lines.slice(1).join('\n').trim()
                           }
                         }
-                        return reading
+                        
+                        // Pré-traiter le texte pour regrouper les lignes qui suivent "Tu pourrais remarquer :" dans le même bloc
+                        const processedLines: string[] = []
+                        const allLines = text.split('\n')
+                        let i = 0
+                        
+                        while (i < allLines.length) {
+                          const line = allLines[i].trim()
+                          
+                          // Détecter si cette ligne commence par "Tu pourrais remarquer :" ou similaire
+                          const observationMatch = line.match(/^(tu\s+(pourrais|remarqueras|noteras|observeras|constateras)|vous\s+(pourriez|remarquerez|noterez|observerez|constaterez)|on\s+(pourrait|remarque|note|observe|constate))\s*:\s*(.*)$/i)
+                          
+                          if (observationMatch) {
+                            // Commencer un nouveau bloc avec cette ligne
+                            let combinedText = line
+                            i++
+                            
+                            // Continuer à ajouter les lignes suivantes jusqu'à ce qu'on trouve :
+                            // - Une ligne vide (fin de paragraphe)
+                            // - Un nouveau dialogue (ligne avec "Nom :")
+                            // - Un titre (ligne qui commence par # ou qui est un titre connu)
+                            while (i < allLines.length) {
+                              const nextLine = allLines[i].trim()
+                              
+                              // Arrêter si ligne vide
+                              if (!nextLine) {
+                                break
+                              }
+                              
+                              // Arrêter si c'est un nouveau dialogue
+                              const dialogueMatch = nextLine.match(/^([^\n:]{2,24})\s*:\s*(.*)$/)
+                              if (dialogueMatch) {
+                                const label = dialogueMatch[1].trim().toLowerCase()
+                                const isNewDialogue = 
+                                  label === 'astrologie' || label === 'astrology' || label === 'astrología' || label === 'astrologia' ||
+                                  /^[\p{L}'’-]+$/u.test(dialogueMatch[1].trim()) && dialogueMatch[1].trim().length <= 16
+                                if (isNewDialogue) {
+                                  break
+                                }
+                              }
+                              
+                              // Arrêter si c'est un titre (commence par # ou est un titre connu)
+                              if (/^#{1,6}\s+/.test(nextLine) || 
+                                  nextLine.length < 80 && /^\p{Lu}/u.test(nextLine) && !nextLine.endsWith('.') && !nextLine.endsWith(',') && !nextLine.includes(' : ')) {
+                                break
+                              }
+                              
+                              // Ajouter cette ligne au bloc combiné
+                              combinedText += '\n' + nextLine
+                              i++
+                            }
+                            
+                            processedLines.push(combinedText)
+                          } else {
+                            // Ligne normale, l'ajouter telle quelle
+                            processedLines.push(line)
+                            i++
+                          }
+                        }
+                        
+                        return processedLines.join('\n\n')
                       })()}
                     </ReactMarkdown>
                   </div>
