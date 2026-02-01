@@ -79,9 +79,10 @@ async def generate_interpretation(req: Request, request: InterpretationRequest):
 
     # Sensible defaults: long-form interpretations easily exceed 2k tokens.
     # Keep a ceiling to avoid excessively large responses.
-    # Increased to 16384 for long readings like "Plan de jeu astrologique 2026"
-    max_output_tokens = request.max_output_tokens or 16384
-    max_output_tokens = max(256, min(int(max_output_tokens), 16384))
+    # Increased to 32768 for very long readings like "Plan de jeu astrologique 2026"
+    # Gemini 2.0 Flash supports up to 8192 tokens, but we can request more and it will generate what it can
+    max_output_tokens = request.max_output_tokens or 32768
+    max_output_tokens = max(256, min(int(max_output_tokens), 32768))
 
     temperature = request.temperature if request.temperature is not None else 0.7
 
@@ -115,7 +116,7 @@ def _call_gemini_api(
     system_instruction: Optional[str] = None,
     referer: Optional[str] = None,
     temperature: float = 0.7,
-    max_output_tokens: int = 16384,
+    max_output_tokens: int = 32768,
 ) -> InterpretationResponse:
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
     

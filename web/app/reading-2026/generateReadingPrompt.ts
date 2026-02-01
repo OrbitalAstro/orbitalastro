@@ -277,10 +277,10 @@ export function generateReadingPrompt(
 
   const lengthInstruction =
     language === 'en'
-      ? 'Length: 1600–1800 words.'
+      ? 'Length: 1600–1800 words. IMPORTANT: Generate the COMPLETE text for ALL sections. Do not stop mid-sentence or mid-section. Continue until you have written everything requested, including the final closing phrase.'
       : language === 'es'
-        ? 'Longitud: 1600–1800 palabras.'
-        : 'Longueur : 1600 à 1800 mots.'
+        ? 'Longitud: 1600–1800 palabras. IMPORTANTE: Genera el texto COMPLETO para TODAS las secciones. No te detengas a mitad de frase o a mitad de sección. Continúa hasta haber escrito todo lo solicitado, incluyendo la frase final de cierre.'
+        : 'Longueur : 1600 à 1800 mots. IMPORTANT : Génère le texte COMPLET pour TOUTES les sections. Ne t\'arrête pas au milieu d\'une phrase ou d\'une section. Continue jusqu\'à avoir écrit tout ce qui est demandé, y compris la phrase finale de clôture.'
 
   const systemPrompt = `IMPORTANT : Les éléments entre crochets [TITRE], [RÔLE], [PRÉNOM], etc. et entre parenthèses (0 INTRODUCTION 2026), (nomme un levier simple), etc. sont des INSTRUCTIONS pour toi, PAS du texte à écrire. Ne les inclut JAMAIS dans ta réponse.
 
@@ -567,7 +567,22 @@ RÈGLES DE FORMATAGE OBLIGATOIRES :
 Respecte exactement la structure demandée avec tous les dialogues.
 La phrase finale doit être celle correspondant à l'ascendant ${ascendantSign ? getSignInFrench(ascendantSign) : 'du client'}.
 Après le plan complet, ajoute cette note de bas de page :
-Ce plan de jeu est symbolique, une interprétation offerte pour le plaisir et la réflexion : il est proposé à des fins de divertissement et d'inspiration, sans prétention de vérité absolue ni de certitude. - OrbitalAstro.ca`
+Ce plan de jeu est symbolique, une interprétation offerte pour le plaisir et la réflexion : il est proposé à des fins de divertissement et d'inspiration, sans prétention de vérité absolue ni de certitude. - OrbitalAstro.ca
+
+⚠️ RÈGLE ABSOLUE : Tu DOIS générer TOUT le contenu demandé. Ne t'arrête PAS avant d'avoir écrit :
+- L'introduction complète
+- Toutes les missions de l'année 2026
+- Toutes les grandes dynamiques de croissance (tous les transits majeurs)
+- Le filtre de décision
+- Les cycles intérieurs (Lune)
+- La destinée (Nœud Nord + MC)
+- La séquence temporelle 2026 (tableau complet)
+- L'image symbolique de 2026
+- Le résumé
+- La conclusion complète avec la phrase finale de l'ascendant
+- La note de bas de page
+
+Continue jusqu'à la fin, même si cela dépasse légèrement 1800 mots.`
 
   return { systemPrompt, userPrompt }
 }
