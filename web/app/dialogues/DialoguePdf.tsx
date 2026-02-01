@@ -41,13 +41,13 @@ const styles = StyleSheet.create({
   pageContent: {
     position: 'relative',
     zIndex: 1,
-    flex: 1,
+    flexGrow: 1,
   },
   container: {
     backgroundColor: 'transparent',
     padding: 20,
     color: GOLD, // Accents en doré par défaut (le corps du texte est forcé en noir)
-    flex: 1,
+    flexGrow: 1,
   },
   pagination: {
     position: 'absolute',

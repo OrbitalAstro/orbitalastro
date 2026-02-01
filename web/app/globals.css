@@ -541,7 +541,7 @@ body {
 }
 
 .pdf-scroll {
-  max-height: 80vh;
+  max-height: calc(100vh - 200px); /* Plus de hauteur pour permettre plus de contenu */
   min-height: 400px;
   overflow-y: auto;
   overflow-x: hidden;
