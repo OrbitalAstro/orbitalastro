@@ -312,11 +312,28 @@ export default function Reading2026Page() {
       }
 
       const readingText = response.data?.content || ''
-      console.log('[Reading 2026] Texte reçu (longueur):', readingText.length)
+      console.log('[Reading 2026] Texte reçu du backend (longueur):', readingText.length)
       console.log('[Reading 2026] Premiers 500 caractères:', readingText.substring(0, 500))
+      console.log('[Reading 2026] Derniers 500 caractères:', readingText.substring(Math.max(0, readingText.length - 500)))
+      
+      // Vérifier si le texte semble coupé
+      if (readingText.length > 100) {
+        const lastChars = readingText.slice(-100).trim()
+        const endsProperly = /[.!?:;\)\]\}]$/.test(lastChars) || readingText.endsWith('\n')
+        if (!endsProperly && readingText.length > 15000) {
+          console.warn('[Reading 2026] ⚠️ Texte pourrait être coupé - se termine avec:', lastChars)
+        }
+      }
       
       let cleanedText = cleanText(readingText)
       console.log('[Reading 2026] Texte nettoyé (longueur):', cleanedText.length)
+      console.log('[Reading 2026] Différence après nettoyage:', readingText.length - cleanedText.length, 'caractères')
+      
+      // Vérifier que le nettoyage n'a pas supprimé trop de contenu
+      const cleaningLoss = readingText.length - cleanedText.length
+      if (cleaningLoss > readingText.length * 0.1) { // Plus de 10% de perte
+        console.warn('[Reading 2026] ⚠️ Le nettoyage a supprimé beaucoup de contenu:', cleaningLoss, 'caractères')
+      }
       
       // Remove the title line if it matches "FirstName - Plan de jeu astrologique 2026" pattern
       const lines = cleanedText.split('\n')

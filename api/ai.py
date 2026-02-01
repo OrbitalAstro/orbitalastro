@@ -177,6 +177,18 @@ def _call_gemini_api(
             candidate = data["candidates"][0]
             if "content" in candidate and "parts" in candidate["content"]:
                 text = candidate["content"]["parts"][0]["text"]
+                # Log text length to detect truncation
+                logger.info(f"[AI] Generated text length: {len(text)} characters")
+                logger.info(f"[AI] First 200 chars: {text[:200]}")
+                logger.info(f"[AI] Last 200 chars: {text[-200:]}")
+                
+                # Check if text might be truncated (ends abruptly without punctuation)
+                if text and len(text) > 100:
+                    last_chars = text[-50:].strip()
+                    # If text ends without proper punctuation and is close to max tokens, might be truncated
+                    if not any(last_chars.endswith(p) for p in ['.', '!', '?', ':', ';', ')', ']', '}']) and len(text) > 15000:
+                        logger.warning(f"[AI] Text might be truncated - ends with: {last_chars}")
+                
                 return InterpretationResponse(content=text)
                 
         # Handle safety blocks or empty responses

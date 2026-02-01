@@ -475,7 +475,20 @@ export default function Reading2026Pdf({
 
   let blocks = parseBlocks(reading)
   
+  // Vérifier que tout le contenu est préservé
+  const totalBlockLength = blocks.reduce((sum, b) => sum + b.text.length, 0)
+  const originalLength = (reading || '').replace(/\r\n/g, '\n').trim().length
+  const preservedRatio = originalLength > 0 ? (totalBlockLength / originalLength) : 1
+  
   console.log('[Reading2026Pdf] Nombre de blocs créés:', blocks.length)
+  console.log('[Reading2026Pdf] Longueur totale des blocs:', totalBlockLength)
+  console.log('[Reading2026Pdf] Longueur originale:', originalLength)
+  console.log('[Reading2026Pdf] Ratio de préservation:', (preservedRatio * 100).toFixed(1) + '%')
+  
+  if (preservedRatio < 0.9) {
+    console.warn('[Reading2026Pdf] ⚠️ Plus de 10% du contenu pourrait être perdu lors du parsing!')
+  }
+  
   console.log('[Reading2026Pdf] Premiers 3 blocs:', blocks.slice(0, 3).map(b => ({ type: b.type, textLength: b.text.length, preview: b.text.substring(0, 100) })))
   console.log('[Reading2026Pdf] Derniers 3 blocs:', blocks.slice(-3).map(b => ({ type: b.type, textLength: b.text.length, preview: b.text.substring(0, 100) })))
   

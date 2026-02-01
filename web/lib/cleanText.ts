@@ -1,9 +1,11 @@
 /**
  * Nettoie le texte en retirant les astérisques, les émoticônes, les symboles markdown et les instructions
+ * IMPORTANT: Cette fonction ne doit PAS supprimer de contenu significatif, seulement les symboles de formatage
  */
 export function cleanText(text: string): string {
   if (!text) return ''
   
+  const originalLength = text.length
   let cleaned = text
   
   // Retirer les astérisques (***, **, *, * * *)
@@ -38,7 +40,15 @@ export function cleanText(text: string): string {
   // Nettoyer les espaces multiples qui peuvent résulter de la suppression
   cleaned = cleaned.replace(/[ \t]+/g, ' ') // Multiple spaces/tabs to single space
   cleaned = cleaned.replace(/\n{3,}/g, '\n\n') // More than 2 newlines to 2 newlines
+
+  const finalLength = cleaned.trim().length
+  const lossRatio = originalLength > 0 ? ((originalLength - finalLength) / originalLength) : 0
   
+  // Log si plus de 5% du contenu est supprimé (pour détecter les problèmes)
+  if (lossRatio > 0.05 && originalLength > 100) {
+    console.warn(`[cleanText] ⚠️ Suppression de ${((lossRatio * 100).toFixed(1))}% du contenu (${originalLength - finalLength} caractères)`)
+  }
+
   return cleaned.trim()
 }
 
