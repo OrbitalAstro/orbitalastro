@@ -275,6 +275,22 @@ export async function POST(req: Request) {
 
     console.log(`[email-pdf] ${requestId} sent kind=${kind} to=${maskEmail(to)} resendId=${resendId || 'n/a'}`)
 
+    // Mettre à jour last_email_sent_at dans la base de données
+    try {
+      const { getSupabaseAdmin } = await import('@/lib/supabase')
+      const supabase = getSupabaseAdmin()
+      
+      await supabase
+        .from('subscribers')
+        .update({ last_email_sent_at: new Date().toISOString() })
+        .eq('email', to.toLowerCase().trim())
+      
+      console.log(`[email-pdf] ${requestId} Updated last_email_sent_at for ${maskEmail(to)}`)
+    } catch (dbError) {
+      // Ne pas faire échouer la requête si la mise à jour DB échoue
+      console.error(`[email-pdf] ${requestId} Failed to update last_email_sent_at:`, dbError)
+    }
+
     return NextResponse.json({ ok: true })
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error'

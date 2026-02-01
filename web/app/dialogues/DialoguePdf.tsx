@@ -41,13 +41,13 @@ const styles = StyleSheet.create({
   pageContent: {
     position: 'relative',
     zIndex: 1,
-    flex: 1,
+    flexGrow: 1,
   },
   container: {
     backgroundColor: 'transparent',
     padding: 20,
     color: GOLD, // Accents en doré par défaut (le corps du texte est forcé en noir)
-    flex: 1,
+    flexGrow: 1,
   },
   pagination: {
     position: 'absolute',
@@ -499,8 +499,23 @@ export default function DialoguePdf({
     .replace(/[\u2010\u2011\u2012\u2013\u2014\u2212]/g, '-')
   const paragraphs = (() => {
     const rawDialogue = dialogue || ''
+    
+    // Log pour déboguer
+    console.log('[DialoguePdf] Parsing dialogue:', {
+      dialogueType: typeof dialogue,
+      dialogueLength: dialogue?.length || 0,
+      rawDialogueLength: rawDialogue.length,
+      firstChars: rawDialogue.substring(0, 100),
+    })
+    
+    if (!rawDialogue || rawDialogue.trim().length === 0) {
+      console.warn('[DialoguePdf] Dialogue vide ou manquant:', { dialogue, rawDialogue })
+      return []
+    }
+    
     const hasBlankLine = /\n\s*\n/.test(rawDialogue)
     const lines = rawDialogue.split(/\r?\n/)
+    console.log('[DialoguePdf] Lines count:', lines.length, 'hasBlankLine:', hasBlankLine)
     const result: string[] = []
     let currentParagraph = ''
     
@@ -583,15 +598,25 @@ export default function DialoguePdf({
       result.push(currentParagraph)
     }
     
-    return result.map((p) => {
+    const cleaned = result.map((p) => {
       // Retirer les marqueurs Markdown (####, ###, ##, #) au début des paragraphes
       let cleaned = p.trim()
       cleaned = cleaned.replace(/^#{1,6}\s+/, '') // Retire #, ##, ###, ####, #####, ###### suivi d'un espace
       return cleaned
     }).filter(Boolean)
+    
+    console.log('[DialoguePdf] Paragraphs parsed:', {
+      originalCount: result.length,
+      cleanedCount: cleaned.length,
+      firstParagraph: cleaned[0]?.substring(0, 50),
+    })
+    
+    return cleaned
   })()
   const firstFootnoteIndex = paragraphs.findIndex((p) => p.toLowerCase().startsWith('ce dialogue est symbolique'))
   const finalPhraseIndex = firstFootnoteIndex > 0 ? firstFootnoteIndex - 1 : -1
+  
+  console.log('[DialoguePdf] Final paragraphs count:', paragraphs.length, 'firstFootnoteIndex:', firstFootnoteIndex)
 
   return (
     <Document>

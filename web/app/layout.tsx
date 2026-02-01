@@ -22,14 +22,14 @@ export const metadata: Metadata = {
   keywords: 'astrology, natal chart, transits, progressions, solar return, birth chart, astrological calculations, cosmic blueprint',
   openGraph: {
     title: 'OrbitalAstro - Your Cosmic Blueprint',
-    description: 'Where ancient wisdom meets modern precision',
+    description: 'Your astrological journey at your fingertips',
     type: 'website',
     siteName: 'OrbitalAstro',
   },
   twitter: {
     card: 'summary_large_image',
     title: 'OrbitalAstro - Your Cosmic Blueprint',
-    description: 'Where ancient wisdom meets modern precision',
+    description: 'Your astrological journey at your fingertips',
   },
 }
 

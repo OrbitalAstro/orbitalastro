@@ -16,10 +16,18 @@ import { pdf } from '@react-pdf/renderer'
 
 import { generateValentinePrompt } from './generateValentinePrompt'
 import ValentinePdf from './ValentinePdf'
+import { checkAccessFromURL, markProductAsPaid } from '@/lib/checkPayment'
+import { useRouter } from 'next/navigation'
+import { useEffect } from 'react'
+import { cleanText } from '@/lib/cleanText'
+import Starfield from '@/components/Starfield'
 
 export default function SaintValentinPage() {
   const settings = useSettingsStore()
   const t = useTranslation()
+  const router = useRouter()
+  const [hasAccess, setHasAccess] = useState<boolean | null>(null)
+  const [checkingAccess, setCheckingAccess] = useState(true)
 
   const [you, setYou] = useState({
     firstName: settings.defaultFirstName || '',
@@ -47,6 +55,30 @@ export default function SaintValentinPage() {
   const [loading, setLoading] = useState(false)
   const [emailStatus, setEmailStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
   const [downloading, setDownloading] = useState(false)
+
+  // Vérifier l'accès au chargement de la page
+  useEffect(() => {
+    const checkAccess = async () => {
+      // Récupérer l'email depuis localStorage ou le formulaire
+      const savedEmail = localStorage.getItem('last_email_valentine-2026')
+      const emailInput = document.querySelector('input[type="email"]') as HTMLInputElement
+      const email = emailInput?.value || savedEmail || null
+
+      const access = await checkAccessFromURL('valentine-2026')
+      setHasAccess(access)
+      setCheckingAccess(false)
+      
+      if (access) {
+        markProductAsPaid('valentine-2026')
+        // Nettoyer l'URL
+        const url = new URL(window.location.href)
+        url.searchParams.delete('purchased')
+        url.searchParams.delete('session_id')
+        window.history.replaceState({}, '', url.toString())
+      }
+    }
+    checkAccess()
+  }, [])
 
   const resetForm = () => {
     setYou({
@@ -104,6 +136,23 @@ export default function SaintValentinPage() {
   }
 
   const handleGenerate = async () => {
+    // Vérifier l'accès avant de générer
+    const email = you.email?.trim() || null
+    if (!email) {
+      alert(t.valentine.validationEmailRequired)
+      return
+    }
+
+    // Sauvegarder l'email pour la vérification
+    localStorage.setItem(`last_email_valentine-2026`, email)
+
+    const access = await checkAccessFromURL('valentine-2026')
+    if (!access) {
+      // Rediriger vers la page de tarification
+      router.push('/pricing?redirect=valentine-2026')
+      return
+    }
+
     setEmailStatus('idle')
     setLoading(true)
     try {
@@ -171,8 +220,9 @@ export default function SaintValentinPage() {
       const result = (response.data?.content || '').trim()
       if (!result) throw new Error('Empty response')
 
-      setContent(result)
-      await sendPdfByEmail(result)
+      const cleanedResult = cleanText(result)
+      setContent(cleanedResult)
+      await sendPdfByEmail(cleanedResult)
     } catch (err: any) {
       console.error('[SaintValentin] Error generating:', err)
       const errorMsg = err?.message || String(err)
@@ -233,6 +283,7 @@ export default function SaintValentinPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-cosmic-purple via-magenta-purple to-cosmic-purple relative">
+      <Starfield />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
         <BackButton />
 
@@ -248,9 +299,35 @@ export default function SaintValentinPage() {
 
           <p className="text-cosmic-gold/90 mb-6 text-center">{t.valentine.description}</p>
 
+          {/* Message de paiement requis */}
+          {checkingAccess ? (
+            <div className="mb-6 p-4 bg-cosmic-gold/20 border border-cosmic-gold/50 rounded-lg">
+              <p className="text-cosmic-gold text-center">Vérification de l'accès...</p>
+            </div>
+          ) : !hasAccess ? (
+            <div className="mb-6 p-6 bg-gradient-to-br from-cosmic-purple/40 to-magenta-purple/40 border border-cosmic-gold/30 rounded-xl backdrop-blur-sm">
+              <div className="text-center mb-4">
+                <Heart className="h-8 w-8 text-cosmic-gold mx-auto mb-3" />
+                <h3 className="text-xl font-bold text-cosmic-gold mb-2">Offrez-vous une synastrie Saint-Valentin</h3>
+                <p className="text-cosmic-gold/90 mb-4">
+                  Pour découvrir la synastrie de votre couple, commandez votre accès ci-dessous.
+                </p>
+                <p className="text-sm text-cosmic-gold/70 mb-6">
+                  Prix spécial à 14,00$ CAD
+                </p>
+              </div>
+              <button
+                onClick={() => router.push('/pricing?redirect=valentine-2026')}
+                className="w-full px-6 py-3 bg-gradient-to-r from-cosmic-gold via-rose-gold to-cosmic-gold text-cosmic-purple rounded-lg font-semibold hover:shadow-lg hover:shadow-cosmic-gold/50 transition transform hover:scale-105"
+              >
+                Commander maintenant - 14,00$ CAD
+              </button>
+            </div>
+          ) : null}
+
           {!content ? (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8 relative z-40">
+              <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 mb-8 relative z-40 ${!hasAccess ? 'opacity-50 pointer-events-none' : ''}`}>
                 <div className="md:col-span-2">
                   <h2 className="text-cosmic-gold font-semibold mb-2">{t.valentine.sectionYou}</h2>
                 </div>
@@ -400,7 +477,7 @@ export default function SaintValentinPage() {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={handleGenerate}
-                disabled={loading}
+                disabled={loading || !hasAccess || checkingAccess}
                 className="w-full bg-gradient-to-r from-cosmic-gold to-yellow-500 text-black font-semibold py-4 px-6 rounded-lg flex items-center justify-center gap-2 hover:from-cosmic-gold/90 hover:to-yellow-500/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed mb-4"
               >
                 {loading ? (
@@ -442,7 +519,7 @@ export default function SaintValentinPage() {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-gradient-to-br from-cosmic-purple/40 to-magenta-purple/40 rounded-xl p-6 border border-cosmic-gold/20"
+                className="relative z-10"
               >
                 <div className="flex flex-col sm:flex-row sm:justify-end sm:items-center gap-2 mb-4">
                   <button
@@ -455,7 +532,7 @@ export default function SaintValentinPage() {
                   </button>
                 </div>
 
-                <div className="pdf-card max-w-3xl mx-auto">
+                <div className="pdf-card">
                   <div className="pdf-header">
                     <img
                       src="/orbital-astro-logo.png"
@@ -474,7 +551,68 @@ export default function SaintValentinPage() {
                   </div>
 
                   <div className="pdf-scroll custom-scrollbar text-cosmic-gold/90">
-                    <ReactMarkdown className="dialogue-prose px-6 py-4 pdf-body pdf-panel">{content}</ReactMarkdown>
+                    <ReactMarkdown 
+                      className="dialogue-prose pdf-body pdf-panel"
+                      components={{
+                        p: ({ node, ...props }) => {
+                          const rawText = Array.isArray(props.children)
+                            ? props.children.map((c: any) => (typeof c === 'string' ? c : '')).join('').trim()
+                            : (props.children as any)?.toString().trim()
+                          
+                          const speakerMatch = (rawText || '').match(/^([^\n:]{2,24})\s*:\s*(.*)$/s)
+                          const isDialogue = (() => {
+                            if (!speakerMatch) return false
+                            const label = speakerMatch[1].trim()
+                            const labelLower = label.toLowerCase()
+                            // Pour Saint-Valentin, on peut avoir "Toi", "L'autre", ou des noms
+                            const isYou = labelLower === 'toi' || labelLower === 'you' || labelLower === 'tú' || labelLower === 'tu'
+                            const isPartner = labelLower === "l'autre" || labelLower === "l' autre" || labelLower === 'the other' || labelLower === 'el otro' || labelLower === 'la otra'
+                            const isYouName = you.firstName && labelLower === you.firstName.toLowerCase()
+                            const isPartnerName = partner.firstName && labelLower === partner.firstName.toLowerCase()
+                            const looksLikeFirstName = /^[\p{L}'’-]+$/u.test(label) && label.length <= 16
+                            return isYou || isPartner || isYouName || isPartnerName || looksLikeFirstName
+                          })()
+                          
+                          const speakerName = speakerMatch ? speakerMatch[1].trim() : ''
+                          const dialogueText = speakerMatch ? speakerMatch[2].trim() : ''
+                          const labelLower = speakerName.toLowerCase()
+                          const isYou = labelLower === 'toi' || labelLower === 'you' || labelLower === 'tú' || labelLower === 'tu' || (you?.firstName && labelLower === you.firstName.toLowerCase())
+                          const isPartner = labelLower === "l'autre" || labelLower === "l' autre" || labelLower === 'the other' || labelLower === 'el otro' || labelLower === 'la otra' || (partner?.firstName && labelLower === partner.firstName.toLowerCase())
+                          
+                          // Si c'est un dialogue, rendre comme une bulle
+                          if (isDialogue && speakerMatch && dialogueText) {
+                            // "Toi" ou le nom de l'utilisateur = à droite (user)
+                            // "L'autre" ou le nom du partenaire = à gauche (astro style)
+                            const isUserBubble = isYou
+                            
+                            return (
+                              <div 
+                                key={props.key}
+                                className={`dialogue-bubble ${isUserBubble ? 'dialogue-bubble-user' : 'dialogue-bubble-astro'}`}
+                              >
+                                <div className="dialogue-bubble-speaker">
+                                  {isUserBubble ? (
+                                    <span className="dialogue-bubble-speaker-name">
+                                      {speakerName === 'Toi' || speakerName === 'You' || speakerName === 'Tú' || speakerName === 'Tu' 
+                                        ? (you?.firstName?.charAt(0).toUpperCase() || 'T')
+                                        : speakerName.charAt(0).toUpperCase()}
+                                    </span>
+                                  ) : null}
+                                  <span>{speakerName}</span>
+                                </div>
+                                <div className="dialogue-bubble-content">
+                                  <p className="dialogue-bubble-text">{dialogueText}</p>
+                                </div>
+                              </div>
+                            )
+                          }
+                          
+                          return <p {...props} className="dialogue-paragraph" />
+                        },
+                      }}
+                    >
+                      {content}
+                    </ReactMarkdown>
                   </div>
 
                   <div className="pdf-footnote">{pdfSubtitle}</div>

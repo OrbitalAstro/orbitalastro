@@ -53,8 +53,8 @@ async def generate_interpretation(req: Request, request: InterpretationRequest):
             detail="Server configuration error: AI service not configured"
         )
     
-    # Models to try in order of preference
-    models = ["gemini-2.5-flash", "gemini-flash-latest", "gemini-pro"]
+    # Models to try in order of preference (gemini-pro is deprecated, using newer models)
+    models = ["gemini-2.0-flash-exp", "gemini-1.5-flash", "gemini-1.5-pro", "gemini-2.5-flash"]
     
     last_error = None
     
@@ -79,8 +79,10 @@ async def generate_interpretation(req: Request, request: InterpretationRequest):
 
     # Sensible defaults: long-form interpretations easily exceed 2k tokens.
     # Keep a ceiling to avoid excessively large responses.
-    max_output_tokens = request.max_output_tokens or 8192
-    max_output_tokens = max(256, min(int(max_output_tokens), 8192))
+    # Increased to 32768 for very long readings like "Plan de jeu astrologique 2026"
+    # Gemini 2.0 Flash supports up to 8192 tokens, but we can request more and it will generate what it can
+    max_output_tokens = request.max_output_tokens or 32768
+    max_output_tokens = max(256, min(int(max_output_tokens), 32768))
 
     temperature = request.temperature if request.temperature is not None else 0.7
 
@@ -114,7 +116,7 @@ def _call_gemini_api(
     system_instruction: Optional[str] = None,
     referer: Optional[str] = None,
     temperature: float = 0.7,
-    max_output_tokens: int = 8192,
+    max_output_tokens: int = 32768,
 ) -> InterpretationResponse:
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
     
@@ -147,7 +149,8 @@ def _call_gemini_api(
         }
         
     try:
-        response = requests.post(url, headers=headers, json=payload, timeout=30)
+        # Increased timeout to 120 seconds for long-form content generation
+        response = requests.post(url, headers=headers, json=payload, timeout=120)
         
         # Handle specific HTTP errors
         if response.status_code == 429:
@@ -175,6 +178,18 @@ def _call_gemini_api(
             candidate = data["candidates"][0]
             if "content" in candidate and "parts" in candidate["content"]:
                 text = candidate["content"]["parts"][0]["text"]
+                # Log text length to detect truncation
+                logger.info(f"[AI] Generated text length: {len(text)} characters")
+                logger.info(f"[AI] First 200 chars: {text[:200]}")
+                logger.info(f"[AI] Last 200 chars: {text[-200:]}")
+                
+                # Check if text might be truncated (ends abruptly without punctuation)
+                if text and len(text) > 100:
+                    last_chars = text[-50:].strip()
+                    # If text ends without proper punctuation and is close to max tokens, might be truncated
+                    if not any(last_chars.endswith(p) for p in ['.', '!', '?', ':', ';', ')', ']', '}']) and len(text) > 15000:
+                        logger.warning(f"[AI] Text might be truncated - ends with: {last_chars}")
+                
                 return InterpretationResponse(content=text)
                 
         # Handle safety blocks or empty responses

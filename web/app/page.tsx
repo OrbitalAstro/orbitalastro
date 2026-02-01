@@ -14,6 +14,7 @@ import Logo from '@/components/Logo'
 import { useTranslation } from '@/lib/useTranslation'
 import LogoBackground from '@/components/LogoBackground'
 import BrandText from '@/components/BrandText'
+import Starfield from '@/components/Starfield'
 
 // -------------------------------------------------------------
 // MAIN LANDING PAGE
@@ -49,7 +50,7 @@ export default function LandingPage() {
       {/* HERO SECTION */}
       <section className="relative min-h-screen flex items-center justify-center px-4 pt-16">
         {/* Brand Text - Logo style */}
-        <div className="absolute top-24 md:top-32 left-1/2 transform -translate-x-1/2 z-20">
+        <div className="absolute top-24 md:top-32 left-1/2 transform -translate-x-1/2 z-20 overflow-visible w-full max-w-full">
           <BrandText size="lg" />
         </div>
         
@@ -91,7 +92,32 @@ export default function LandingPage() {
                   {t.reading2026.title}
                 </motion.button>
               </Link>
+
+              <Link href="/pricing">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="px-10 py-4 bg-gradient-to-r from-purple-600/20 to-pink-600/20 backdrop-blur-sm text-white rounded-xl font-semibold text-lg border border-purple-500/40 hover:bg-purple-600/30 hover:border-purple-500/60 transition"
+                >
+                  {t.nav.pricing}
+                </motion.button>
+              </Link>
             </div>
+
+            {/* Note de nouveautés */}
+            <motion.p
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.5 }}
+              className="mt-8 text-center text-cosmic-gold/80"
+              style={{
+                fontFamily: "'Great Vibes', cursive",
+                fontSize: '1.5rem',
+                letterSpacing: '0.02em',
+              }}
+            >
+              Viens nous voir souvent pour découvrir nos nouveautés.
+            </motion.p>
           </motion.div>
         </motion.div>
 
@@ -113,6 +139,7 @@ export default function LandingPage() {
                 <li><Link href="/dialogues" className="hover:text-cosmic-gold transition text-base">{t.dialogues.title}</Link></li>
                 <li><Link href="/reading-2026" className="hover:text-cosmic-gold transition text-base">{t.reading2026.title}</Link></li>
                 <li><Link href="/saint-valentin" className="hover:text-cosmic-gold transition text-base">{t.valentine.title}</Link></li>
+                <li><Link href="/pricing" className="hover:text-cosmic-gold transition text-base">{t.nav.pricing}</Link></li>
               </ul>
             </div>
 
@@ -143,58 +170,6 @@ export default function LandingPage() {
         </div>
       </footer>
 
-    </div>
-  )
-}
-
-// -------------------------------------------------------------
-// STARFIELD BACKGROUND
-// -------------------------------------------------------------
-function Starfield() {
-  const [stars, setStars] = useState<Array<{
-    id: number
-    x: number
-    y: number
-    size: number
-    duration: number
-  }>>([])
-
-  // Generate stars only on client to avoid hydration mismatch
-  useEffect(() => {
-    setStars(
-      Array.from({ length: 100 }).map((_, i) => ({
-        id: i,
-        x: Math.random() * 100,
-        y: Math.random() * 100,
-        size: Math.random() * 2 + 1,
-        duration: Math.random() * 3 + 2,
-      }))
-    )
-  }, [])
-
-  return (
-    <div className="fixed inset-0 pointer-events-none z-0">
-      {stars.map((star) => (
-        <motion.div
-          key={star.id}
-          className="absolute rounded-full bg-white"
-          style={{
-            left: `${star.x}%`,
-            top: `${star.y}%`,
-            width: star.size,
-            height: star.size,
-          }}
-          animate={{
-            opacity: [0.3, 1, 0.3],
-            scale: [1, 1.2, 1],
-          }}
-          transition={{
-            duration: star.duration,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
-      ))}
     </div>
   )
 }

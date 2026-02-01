@@ -11,6 +11,8 @@ import ReactMarkdown from 'react-markdown'
 import { Fragment } from 'react'
 import LocationInput from '@/components/LocationInput'
 import BackButton from '@/components/BackButton'
+import Starfield from '@/components/Starfield'
+import Logo from '@/components/Logo'
 // Removed generateDialogue import
 import { useTranslation } from '@/lib/useTranslation'
 import { generateDialoguePrompt } from './generatePrompt'
@@ -19,6 +21,8 @@ import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
 import { pdf } from '@react-pdf/renderer'
 import DialoguePdf from './DialoguePdf'
+import { checkAccessFromURL, markProductAsPaid, recordGeneration, checkProductAccess, type AccessResult } from '@/lib/checkPayment'
+import { useRouter } from 'next/navigation'
 
 const FEEDBACK_SURVEY_URL = 'https://forms.gle/eyPRR4Bicf32dCGg6'
 const DIALOGUE_WORD_COUNT_TARGET = 1700
@@ -92,7 +96,11 @@ function normalizeGeneratedDialogue(
 export default function Dialogues() {
   const settings = useSettingsStore()
   const t = useTranslation()
+  const router = useRouter()
   const exportRef = useRef<HTMLDivElement>(null)
+  const [hasAccess, setHasAccess] = useState<boolean | null>(null)
+  const [checkingAccess, setCheckingAccess] = useState(true)
+  const [accessInfo, setAccessInfo] = useState<AccessResult | null>(null)
   const [birthData, setBirthData] = useState({
     birth_date: settings.defaultBirthDate || '',
     birth_time: settings.defaultBirthTime || '12:00',
@@ -111,6 +119,43 @@ export default function Dialogues() {
   const pdfSubtitle = t.dialogues.pdfSubtitle
     .replace(/&/g, '-')
     .replace(/[\u2010\u2011\u2012\u2013\u2014\u2212]/g, '-')
+
+  // Vérifier l'accès au chargement de la page
+  useEffect(() => {
+    const checkAccess = async () => {
+      // Récupérer l'email depuis localStorage ou le formulaire
+      const savedEmail = localStorage.getItem('last_email_dialogue')
+      const emailInput = document.querySelector('input[type="email"]') as HTMLInputElement
+      const email = emailInput?.value || savedEmail || null
+
+      const accessResult = await checkAccessFromURL('dialogue')
+      setAccessInfo(accessResult)
+      setHasAccess(accessResult.hasAccess)
+      setCheckingAccess(false)
+      
+      // S'assurer que le sessionId est stocké dans localStorage pour utilisation ultérieure
+      if (accessResult.sessionId) {
+        localStorage.setItem('session_dialogue', accessResult.sessionId)
+      }
+      
+      if (accessResult.hasAccess) {
+        markProductAsPaid('dialogue')
+        // Nettoyer l'URL après un court délai pour permettre le traitement
+        setTimeout(() => {
+          const url = new URL(window.location.href)
+          url.searchParams.delete('purchased')
+          const sessionIdParam = url.searchParams.get('session_id')
+          if (sessionIdParam) {
+            // Stocker le sessionId avant de le retirer de l'URL
+            localStorage.setItem('session_dialogue', sessionIdParam)
+          }
+          url.searchParams.delete('session_id')
+          window.history.replaceState({}, '', url.toString())
+        }, 500)
+      }
+    }
+    checkAccess()
+  }, [])
 
   const resetForm = () => {
     setBirthData({
@@ -156,7 +201,17 @@ export default function Dialogues() {
   }
 
   const handleDownloadPdf = async () => {
-    if (!dialogue) return
+    if (!dialogue) {
+      console.error('[Dialogues] handleDownloadPdf: dialogue is null or empty')
+      alert('Aucun dialogue à télécharger. Veuillez générer un dialogue d\'abord.')
+      return
+    }
+    
+    console.log('[Dialogues] handleDownloadPdf: Starting PDF generation', {
+      dialogueLength: dialogue.length,
+      firstChars: dialogue.substring(0, 100),
+    })
+    
     setDownloading(true)
     try {
       // Précharger la police Great Vibes avant de générer le PDF
@@ -182,6 +237,7 @@ export default function Dialogues() {
       
       // Générer le PDF avec un timeout pour éviter les blocages
       const lang = (settings.language || 'fr') as 'en' | 'fr' | 'es'
+      console.log('[Dialogues] Creating PDF component with dialogue length:', dialogue.length)
       const pdfPromise = pdf(
         <DialoguePdf
           dialogue={dialogue}
@@ -236,6 +292,37 @@ export default function Dialogues() {
   }
 
   const handleGenerateDialogue = async () => {
+    // Vérifier l'accès avant de générer
+    const email = birthData.email?.trim() || null
+    if (!email) {
+      alert(t.dialogues.validationEmailRequired)
+      return
+    }
+
+    // Sauvegarder l'email pour la vérification
+    localStorage.setItem(`last_email_dialogue`, email)
+
+    // Récupérer le sessionId depuis accessInfo ou localStorage
+    const sessionId = accessInfo?.sessionId || localStorage.getItem('session_dialogue') || undefined
+    
+    // Vérifier l'accès directement avec l'email et le sessionId
+    const accessResult = await checkProductAccess('dialogue', email, sessionId)
+    
+    if (!accessResult.hasAccess) {
+      // Rediriger vers la page de tarification
+      if (accessResult.quantityRemaining === 0 && accessResult.quantityPurchased > 0) {
+        alert('Vous avez déjà utilisé toutes vos générations. Veuillez commander à nouveau pour générer un autre dialogue.')
+      } else {
+        alert('Accès non autorisé. Veuillez commander votre accès.')
+      }
+      router.push('/pricing?redirect=dialogue')
+      return
+    }
+    
+    // Mettre à jour accessInfo avec le résultat
+    setAccessInfo(accessResult)
+    setHasAccess(accessResult.hasAccess)
+
     // API key check moved to backend
 
     setLoading(true)
@@ -342,15 +429,79 @@ export default function Dialogues() {
         ascendantSign: extractedAscendantSign || undefined,
       })
       
-      console.log('Dialogue generated successfully')
+      console.log('Dialogue generated successfully', {
+        originalLength: response.data?.content?.length || 0,
+        normalizedLength: dialogueText.length,
+        firstChars: dialogueText.substring(0, 200),
+        lastChars: dialogueText.substring(Math.max(0, dialogueText.length - 200)),
+      })
+      
+      if (!dialogueText || dialogueText.trim().length === 0) {
+        throw new Error('Le dialogue généré est vide. Veuillez réessayer.')
+      }
+      
+      console.log('[Dialogues] Setting dialogue state, length:', dialogueText.length)
       setDialogue(dialogueText)
-      await sendDialoguePdfByEmail(dialogueText)
+      
+      // Vérifier que le dialogue est bien stocké
+      setTimeout(() => {
+        console.log('[Dialogues] Dialogue state after setState:', dialogue ? dialogue.length : 'null')
+      }, 100)
+      
+      // Envoyer l'email en arrière-plan (ne pas bloquer si ça échoue)
+      try {
+        await sendDialoguePdfByEmail(dialogueText)
+      } catch (emailError) {
+        console.error('[Dialogues] Erreur lors de l\'envoi de l\'email (non bloquant):', emailError)
+        // Ne pas bloquer le processus si l'email échoue
+      }
+      
+      // Enregistrer la génération (ne pas bloquer si ça échoue)
+      try {
+        const sessionId = accessInfo?.sessionId || localStorage.getItem('session_dialogue')
+        await recordGeneration('dialogue', email, sessionId || undefined)
+      } catch (recordError) {
+        console.error('[Dialogues] Erreur lors de l\'enregistrement de la génération (non bloquant):', recordError)
+        // Ne pas bloquer le processus si l'enregistrement échoue
+      }
+      
+      // Mettre à jour l'accès en utilisant le sessionId stocké ou l'email
+      // Ne pas utiliser checkAccessFromURL car l'URL a été nettoyée
+      try {
+        const sessionId = accessInfo?.sessionId || localStorage.getItem('session_dialogue')
+        const updatedAccessResult = await checkProductAccess('dialogue', email, sessionId || undefined)
+        setAccessInfo(updatedAccessResult)
+        setHasAccess(updatedAccessResult.hasAccess)
+      } catch (accessError) {
+        console.error('[Dialogues] Erreur lors de la mise à jour de l\'accès (non bloquant):', accessError)
+        // Ne pas bloquer le processus si la mise à jour de l'accès échoue
+      }
     } catch (error: any) {
       console.error('Error generating dialogue:', error)
-      const errorMsg = error.message || 'Erreur inconnue'
-      const userFriendlyMsg = errorMsg.includes('Rate limit') || errorMsg.includes('429')
-        ? t.dialogues.rateLimitError
-        : t.dialogues.errorGenerating.replace('{error}', errorMsg)
+      console.error('Error stack:', error.stack)
+      console.error('Error details:', {
+        message: error.message,
+        name: error.name,
+        response: error.response,
+        data: error.data,
+      })
+      
+      const errorMsg = error.message || error.toString() || 'Erreur inconnue'
+      
+      // Messages d'erreur plus spécifiques
+      let userFriendlyMsg = ''
+      if (errorMsg.includes('Rate limit') || errorMsg.includes('429')) {
+        userFriendlyMsg = t.dialogues.rateLimitError
+      } else if (errorMsg.includes('timeout') || errorMsg.includes('Timeout')) {
+        userFriendlyMsg = 'La génération prend trop de temps. Veuillez réessayer.'
+      } else if (errorMsg.includes('network') || errorMsg.includes('fetch')) {
+        userFriendlyMsg = 'Erreur de connexion. Vérifiez votre connexion internet et réessayez.'
+      } else if (errorMsg.includes('vide') || errorMsg.includes('empty')) {
+        userFriendlyMsg = 'Le dialogue généré est vide. Veuillez réessayer.'
+      } else {
+        userFriendlyMsg = t.dialogues.errorGenerating.replace('{error}', errorMsg)
+      }
+      
       alert(userFriendlyMsg)
     } finally {
       setLoading(false)
@@ -374,8 +525,53 @@ export default function Dialogues() {
 
           <p className="text-cosmic-gold/90 mb-6">{t.dialogues.description}</p>
 
+          {/* Message de paiement requis */}
+          {checkingAccess ? (
+            <div className="mb-6 p-4 bg-cosmic-gold/20 border border-cosmic-gold/50 rounded-lg">
+              <p className="text-cosmic-gold text-center">Vérification de l'accès...</p>
+            </div>
+          ) : !hasAccess ? (
+            <div className="mb-6 p-6 bg-gradient-to-br from-cosmic-purple/40 to-magenta-purple/40 border border-cosmic-gold/30 rounded-xl backdrop-blur-sm">
+              <div className="text-center mb-4">
+                <Sparkles className="h-8 w-8 text-cosmic-gold mx-auto mb-3" />
+                <h3 className="text-xl font-bold text-cosmic-gold mb-2">Découvrez votre dialogue pré-incarnation</h3>
+                {accessInfo && accessInfo.quantityPurchased > 0 && accessInfo.quantityRemaining === 0 ? (
+                  <>
+                    <p className="text-cosmic-gold/90 mb-4">
+                      Vous avez déjà utilisé toutes vos générations ({accessInfo.quantityUsed}/{accessInfo.quantityPurchased}).
+                    </p>
+                    <p className="text-cosmic-gold/90 mb-4">
+                      Commandez à nouveau pour générer un autre dialogue.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-cosmic-gold/90 mb-4">
+                      Pour générer un dialogue symbolique unique, commandez ci-dessous.
+                    </p>
+                    <p className="text-sm text-cosmic-gold/70 mb-6">
+                      Offre de lancement à 9,99$ CAD
+                    </p>
+                  </>
+                )}
+              </div>
+              <button
+                onClick={() => router.push('/pricing?redirect=dialogue')}
+                className="w-full px-6 py-3 bg-gradient-to-r from-cosmic-gold via-rose-gold to-cosmic-gold text-cosmic-purple rounded-lg font-semibold hover:shadow-lg hover:shadow-cosmic-gold/50 transition transform hover:scale-105"
+              >
+                {accessInfo && accessInfo.quantityPurchased > 0 ? 'Commander à nouveau - 9,99$ CAD' : 'Commander maintenant - 9,99$ CAD'}
+              </button>
+            </div>
+          ) : accessInfo && accessInfo.quantityRemaining > 0 ? (
+            <div className="mb-6 p-4 bg-green-500/20 border border-green-400/50 rounded-lg">
+              <p className="text-green-300 text-center">
+                Vous pouvez générer {accessInfo.quantityRemaining} dialogue{accessInfo.quantityRemaining > 1 ? 's' : ''} ({accessInfo.quantityUsed}/{accessInfo.quantityPurchased} utilisé{accessInfo.quantityUsed > 1 ? 's' : ''})
+              </p>
+            </div>
+          ) : null}
+
           {/* Input Form */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 relative z-20">
+          <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 relative z-20 ${!hasAccess ? 'opacity-50 pointer-events-none' : ''}`}>
             <div>
               <label className="block text-sm font-medium text-cosmic-gold mb-2">
                 {t.dialogues.firstName}
@@ -474,7 +670,7 @@ export default function Dialogues() {
 
           <button
             onClick={handleGenerateDialogue}
-            disabled={loading || !birthData.birth_date}
+            disabled={loading || !birthData.birth_date || !hasAccess || checkingAccess}
             className="w-full px-6 py-3 bg-gradient-to-r from-cosmic-gold via-rose-gold to-cosmic-gold text-cosmic-purple rounded-lg font-semibold hover:shadow-lg transition disabled:opacity-50 mb-8 flex items-center justify-center"
           >
             {loading ? (
@@ -515,7 +711,7 @@ export default function Dialogues() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-gradient-to-br from-cosmic-purple/40 to-magenta-purple/40 rounded-xl p-6 border border-cosmic-gold/20"
+              className=""
             >
               <div className="flex flex-col sm:flex-row sm:justify-end sm:items-center gap-2 mb-4">
                 <button
@@ -527,7 +723,7 @@ export default function Dialogues() {
                   {downloading ? t.dialogues.downloadingPdf : t.dialogues.downloadPdf}
                 </button>
               </div>
-              <div className="pdf-card max-w-3xl mx-auto" ref={exportRef}>
+              <div className="pdf-card" ref={exportRef}>
                 <div className="pdf-header">
                   <img
                     src="/orbital-astro-logo.png"
@@ -545,7 +741,7 @@ export default function Dialogues() {
                   <div className="pdf-subtitle">{pdfSubtitle}</div>
                 </div>
                 <div className="pdf-scroll custom-scrollbar text-cosmic-gold/90">
-                  <div className="dialogue-prose px-6 py-4 pdf-body pdf-panel">
+                  <div className="dialogue-prose pdf-body pdf-panel">
                     <ReactMarkdown
                     components={{
                       p: ({ node, ...props }) => {
@@ -574,7 +770,7 @@ export default function Dialogues() {
                           (lower.includes('here and now') && rawText && rawText.length < 200 && /here\s+and\s+now/i.test(rawText || '')) ||
                           ((lower.includes('aquí y ahora') || lower.includes('aqui y ahora')) && rawText && rawText.length < 200 && /aqu[ií]\s+y\s+ahora/i.test(rawText || ''))
 
-                        const speakerMatch = (rawText || '').match(/^([^\n:]{2,24})\s*:\s*/)
+                        const speakerMatch = (rawText || '').match(/^([^\n:]{2,24})\s*:\s*(.*)$/s)
                         const isDialogue = (() => {
                           if (!speakerMatch) return false
                           const label = speakerMatch[1].trim()
@@ -586,6 +782,17 @@ export default function Dialogues() {
                             labelLower === 'astrologia'
                           const looksLikeFirstName = /^[\p{L}'’-]+$/u.test(label) && label.length <= 16
                           return isAstro || looksLikeFirstName
+                        })()
+                        
+                        const speakerName = speakerMatch ? speakerMatch[1].trim() : ''
+                        const dialogueText = speakerMatch ? speakerMatch[2].trim() : ''
+                        const isAstroSpeaker = (() => {
+                          if (!speakerName) return false
+                          const labelLower = speakerName.toLowerCase()
+                          return labelLower === 'astrologie' ||
+                            labelLower === 'astrology' ||
+                            labelLower === 'astrología' ||
+                            labelLower === 'astrologia'
                         })()
                         
                         const isCountdown =
@@ -633,6 +840,103 @@ export default function Dialogues() {
                           }
                         }
                         
+                        // Si c'est un dialogue, rendre comme une bulle
+                        if (isDialogue && speakerMatch && dialogueText) {
+                          // Fonction pour obtenir le symbole astrologique
+                          const getSymbol = (name: string): string => {
+                            // Normaliser le nom : enlever accents, espaces, mettre en minuscule
+                            const normalize = (str: string) => str
+                              .toLowerCase()
+                              .normalize('NFD')
+                              .replace(/[\u0300-\u036f]/g, '') // Enlever les accents
+                              .trim()
+                            
+                            const nameNormalized = normalize(name)
+                            const symbols: { [key: string]: string } = {
+                              // Planètes
+                              'saturne': '♄',
+                              'saturn': '♄',
+                              'jupiter': '♃',
+                              'mars': '♂',
+                              'venus': '♀',
+                              'mercure': '☿',
+                              'mercury': '☿',
+                              'soleil': '☉',
+                              'sun': '☉',
+                              'lune': '☽',
+                              'moon': '☽',
+                              'uranus': '♅',
+                              'neptune': '♆',
+                              'pluton': '♇',
+                              'pluto': '♇',
+                              // Signes astrologiques - toutes les variantes
+                              'belier': '♈',
+                              'bélier': '♈',
+                              'aries': '♈',
+                              'taureau': '♉',
+                              'taurus': '♉',
+                              'gemeaux': '♊',
+                              'gémeaux': '♊',
+                              'gemini': '♊',
+                              'cancer': '♋',
+                              'lion': '♌',
+                              'leo': '♌',
+                              'vierge': '♍',
+                              'virgo': '♍',
+                              'balance': '♎',
+                              'libra': '♎',
+                              'scorpion': '♏',
+                              'scorpio': '♏',
+                              'sagittaire': '♐',
+                              'sagittarius': '♐',
+                              'capricorne': '♑',
+                              'capricorn': '♑',
+                              'verseau': '♒',
+                              'aquarius': '♒',
+                              'poissons': '♓',
+                              'poisson': '♓',
+                              'pisces': '♓',
+                            }
+                            return symbols[nameNormalized] || ''
+                          }
+                          
+                          const isAstrologie = (() => {
+                            const labelLower = speakerName.toLowerCase()
+                            return labelLower === 'astrologie' ||
+                              labelLower === 'astrology' ||
+                              labelLower === 'astrología' ||
+                              labelLower === 'astrologia'
+                          })()
+                          
+                          const symbol = isAstroSpeaker && !isAstrologie ? getSymbol(speakerName) : ''
+                          const isClient = !isAstroSpeaker
+                          
+                          return (
+                            <div 
+                              key={props.key}
+                              className={`dialogue-bubble ${isAstroSpeaker ? 'dialogue-bubble-astro' : 'dialogue-bubble-user'}`}
+                            >
+                              <div className="dialogue-bubble-speaker">
+                                {isAstroSpeaker && isAstrologie && (
+                                  <Logo variant="symbol" size="sm" className="dialogue-bubble-speaker-symbol" animated={false} asLink={false} />
+                                )}
+                                {isAstroSpeaker && !isAstrologie && symbol && (
+                                  <span className="dialogue-bubble-speaker-symbol">{symbol}</span>
+                                )}
+                                {isClient ? (
+                                  <span className="dialogue-bubble-speaker-name">
+                                    {speakerName.charAt(0).toUpperCase()}
+                                  </span>
+                                ) : null}
+                                <span>{speakerName}</span>
+                              </div>
+                              <div className="dialogue-bubble-content">
+                                <p className="dialogue-bubble-text">{dialogueText}</p>
+                              </div>
+                            </div>
+                          )
+                        }
+                        
                         const cls = [
                           'dialogue-paragraph',
                           (center || isAsterisks || isIciMaintenant) ? 'dialogue-center' : '',
@@ -662,54 +966,6 @@ export default function Dialogues() {
           )}
         </motion.div>
       </div>
-    </div>
-  )
-}
-
-function Starfield() {
-  const [stars, setStars] = useState<Array<{
-    id: number
-    x: number
-    y: number
-    size: number
-    duration: number
-  }>>([])
-
-  useEffect(() => {
-    setStars(
-      Array.from({ length: 100 }).map((_, i) => ({
-        id: i,
-        x: Math.random() * 100,
-        y: Math.random() * 100,
-        size: Math.random() * 2 + 1,
-        duration: Math.random() * 3 + 2,
-      }))
-    )
-  }, [])
-
-  return (
-    <div className="fixed inset-0 pointer-events-none z-0">
-      {stars.map((star) => (
-        <motion.div
-          key={star.id}
-          className="absolute rounded-full bg-white"
-          style={{
-            left: `${star.x}%`,
-            top: `${star.y}%`,
-            width: star.size,
-            height: star.size,
-          }}
-          animate={{
-            opacity: [0.3, 1, 0.3],
-            scale: [1, 1.2, 1],
-          }}
-          transition={{
-            duration: star.duration,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
-      ))}
     </div>
   )
 }

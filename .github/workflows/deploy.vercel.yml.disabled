@@ -1,9 +1,10 @@
-name: Deploy to Vercel
+name: Deploy to Vercel (disabled)
+
+# This workflow is intentionally disabled because OrbitalAstro is now deployed on Fly.io.
+# GitHub Actions only runs workflows in `.github/workflows` with `.yml`/`.yaml` extensions.
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -30,4 +31,3 @@ jobs:
             echo "⚠️  Deployment trigger returned status $http_code"
             exit 1
           fi
-

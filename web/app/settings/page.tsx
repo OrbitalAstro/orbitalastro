@@ -7,6 +7,7 @@ import { Globe, Settings as SettingsIcon } from 'lucide-react'
 import BackButton from '@/components/BackButton'
 import { useSettingsStore } from '@/lib/store'
 import { useTranslation } from '@/lib/useTranslation'
+import Starfield from '@/components/Starfield'
 
 export default function Settings() {
   const settings = useSettingsStore()
@@ -14,6 +15,7 @@ export default function Settings() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-cosmic-purple via-magenta-purple to-cosmic-purple relative">
+      <Starfield />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
         <BackButton href="/" />
         <motion.div

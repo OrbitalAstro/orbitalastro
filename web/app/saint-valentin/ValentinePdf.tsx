@@ -140,6 +140,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 12,
   },
+  inlineScript: {
+    fontFamily: greatVibesLoaded ? 'GreatVibes' : 'Times-Italic',
+    fontStyle: greatVibesLoaded ? 'normal' : 'italic',
+    fontSize: 18,
+  },
 })
 
 type Block =
@@ -147,32 +152,110 @@ type Block =
   | { type: 'bullet'; text: string }
   | { type: 'paragraph'; text: string }
 
+// Fonction pour nettoyer le texte : retirer astérisques et émoticônes
+function cleanText(text: string): string {
+  if (!text) return ''
+  // Retirer les astérisques (***, **, *, * * *)
+  let cleaned = text.replace(/\*{1,3}/g, '').replace(/\*\s*\*\s*\*/g, '')
+  // Retirer tous les émoticônes courants
+  cleaned = cleaned.replace(/[\u{1F300}-\u{1F9FF}]/gu, '') // Émoticônes Unicode
+  cleaned = cleaned.replace(/[\u{2600}-\u{26FF}]/gu, '') // Symboles divers
+  cleaned = cleaned.replace(/[\u{2700}-\u{27BF}]/gu, '') // Symboles décoratifs
+  cleaned = cleaned.replace(/[💎🔥🤖✨🌙🧠💻🤝💫🪶🌸]/gu, '') // Émoticônes spécifiques
+  return cleaned.trim()
+}
+
+// Fonction pour éviter les retours à la ligne après certains signes de ponctuation
+function preventLineBreakAfterPunctuation(text: string): string {
+  // Remplacer les espaces après ;, :, » par des espaces insécables
+  return text
+    .replace(/;\s+/g, ';\u00A0') // Espace insécable après point-virgule
+    .replace(/:\s+/g, ':\u00A0') // Espace insécable après deux-points
+    .replace(/»\s+/g, '»\u00A0') // Espace insécable après guillemet fermant
+}
+
+// Fonction pour rendre les dialogues avec noms en italique
+function renderDialogueLine(text: string, youName?: string, partnerName?: string): React.ReactNode {
+  // Détecter le format "Nom : « texte »" ou "Nom : texte"
+  const match = text.match(/^([^\n:]{2,24})\s*:\s*(.*)$/)
+  if (!match) {
+    // Pas un dialogue, retourner le texte normal avec protection des retours à la ligne
+    return preventLineBreakAfterPunctuation(text)
+  }
+
+  const label = match[1].trim()
+  const rest = match[2] ?? ''
+  const labelLower = label.toLowerCase()
+  
+  // Détecter si c'est un nom (Toi, L'autre, ou les noms fournis)
+  const isYou = labelLower === 'toi' || labelLower === 'you' || labelLower === 'tú' || labelLower === 'tu'
+  const isPartner = labelLower === "l'autre" || labelLower === "l’autre" || labelLower === 'the other' || labelLower === 'el otro' || labelLower === 'la otra'
+  const isYouName = youName && labelLower === youName.toLowerCase()
+  const isPartnerName = partnerName && labelLower === partnerName.toLowerCase()
+  
+  if (!isYou && !isPartner && !isYouName && !isPartnerName) {
+    // Pas un dialogue reconnu, retourner le texte normal
+    return preventLineBreakAfterPunctuation(text)
+  }
+
+  // C'est un dialogue : mettre le nom en italique
+  return (
+    <>
+      <Text style={styles.inlineScript}>{label}</Text>
+      {': '}
+      {preventLineBreakAfterPunctuation(rest)}
+    </>
+  )
+}
+
 function parseBlocks(markdown: string): Block[] {
-  const text = (markdown || '').replace(/\r\n/g, '\n').trim()
+  const text = cleanText((markdown || '').replace(/\r\n/g, '\n')).trim()
   if (!text) return []
 
   const blocks: Block[] = []
-  const paragraphs = text.split(/\n{2,}/)
+  // Diviser par lignes vides (une ou plusieurs)
+  const paragraphs = text.split(/\n\s*\n/)
 
   for (const raw of paragraphs) {
     const chunk = raw.trim()
     if (!chunk) continue
 
-    const lines = chunk
-      .split('\n')
-      .map((l) => l.trim())
-      .filter(Boolean)
+    // Si le paragraphe contient plusieurs lignes, les traiter séparément
+    const lines = chunk.split('\n').map((l) => l.trim()).filter(Boolean)
+    if (!lines.length) continue
 
-    for (const line of lines) {
+    // Si c'est une seule ligne, créer un bloc
+    if (lines.length === 1) {
+      const line = lines[0]
       if (/^#{1,6}\s+/.test(line)) {
         blocks.push({ type: 'heading', text: line.replace(/^#{1,6}\s+/, '').trim() })
-        continue
-      }
-      if (/^(?:[-•*]|\d+\.)\s+/.test(line)) {
+      } else if (/^(?:[-•*]|\d+\.)\s+/.test(line)) {
         blocks.push({ type: 'bullet', text: line.replace(/^(?:[-•*]|\d+\.)\s+/, '').trim() })
-        continue
+      } else {
+        blocks.push({ type: 'paragraph', text: line })
       }
-      blocks.push({ type: 'paragraph', text: line })
+    } else {
+      // Si plusieurs lignes, créer un bloc paragraphe avec tout le contenu
+      // (pour préserver les dialogues et les retours à la ligne)
+      const fullText = lines.join('\n')
+      if (/^#{1,6}\s+/.test(lines[0])) {
+        blocks.push({ type: 'heading', text: lines[0].replace(/^#{1,6}\s+/, '').trim() })
+        if (lines.length > 1) {
+          blocks.push({ type: 'paragraph', text: lines.slice(1).join('\n') })
+        }
+      } else if (/^(?:[-•*]|\d+\.)\s+/.test(lines[0])) {
+        // Pour les listes, créer un bloc par ligne
+        for (const line of lines) {
+          if (/^(?:[-•*]|\d+\.)\s+/.test(line)) {
+            blocks.push({ type: 'bullet', text: line.replace(/^(?:[-•*]|\d+\.)\s+/, '').trim() })
+          } else {
+            blocks.push({ type: 'paragraph', text: line })
+          }
+        }
+      } else {
+        // Paragraphe normal avec plusieurs lignes (dialogue ou texte)
+        blocks.push({ type: 'paragraph', text: fullText })
+      }
     }
   }
 
@@ -240,9 +323,11 @@ export default function ValentinePdf({ content, language = 'fr', youName, partne
                   </View>
                 )
               }
+              // Vérifier si c'est un dialogue et appliquer le formatage
+              const dialogueContent = renderDialogueLine(block.text, youName, partnerName)
               return (
                 <Text key={index} style={styles.paragraph}>
-                  {block.text}
+                  {dialogueContent}
                 </Text>
               )
             })}

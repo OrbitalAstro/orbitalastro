@@ -34,6 +34,12 @@ body {
   color: rgb(var(--foreground-rgb));
   background: linear-gradient(135deg, var(--deep-space-purple) 0%, var(--magenta-purple) 100%);
   font-family: 'Inter', sans-serif;
+  /* Effet poli au jet de sable pour le fond */
+  background-image: 
+    radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(255, 255, 255, 0.02) 0%, transparent 50%),
+    linear-gradient(135deg, var(--deep-space-purple) 0%, var(--magenta-purple) 100%);
+  background-attachment: fixed;
 }
 
 /* Focus indicators for accessibility */
@@ -193,35 +199,232 @@ body {
   animation: nebula-pulse 3s ease-in-out infinite;
 }
 
-/* Dialogue rich text styling */
+/* Dialogue rich text styling - Sans encadrés */
 .dialogue-prose {
   font-family: 'Inter', sans-serif;
-  line-height: 1.85;
+  line-height: 1.7; /* 1.6-1.8, valeur médiane */
   letter-spacing: 0.01em;
   text-align: justify;
-  color: var(--cosmic-gold);
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(228, 181, 160, 0.18);
-  border-radius: 1rem;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+  color: #4A2C5A; /* Mauve très foncé - sera surchargé pour .dialogue-paragraph */
+  background: none; /* Pas de fond */
+  border: none; /* Pas de bordure */
+  border-radius: 0; /* Pas de bordure arrondie */
+  box-shadow: none; /* Pas d'ombre */
+  width: 100%; /* Utilise toute la largeur disponible */
+  margin: 0; /* Pas de marge */
+  font-size: 17.5px; /* 17-18px, valeur médiane */
+  padding: 0; /* Pas de padding */
+  word-break: break-word; /* Pour les liens / mots longs */
+  display: flex;
+  flex-direction: column;
 }
 
 .dialogue-prose p {
-  margin: 0 0 1.1em;
+  margin: 0 0 14px; /* 12-16px, valeur médiane */
   text-indent: 1.25em;
+}
+
+/* S'assurer que les paragraphes qui ne sont pas des bulles sont pâles */
+.dialogue-prose p:not(.dialogue-bubble-text) {
+  color: rgba(255, 255, 255, 0.95) !important; /* Presque blanc, très pâle */
 }
 
 .dialogue-prose p:first-child {
   text-indent: 0;
 }
 
-.dialogue-prose strong {
+/* Texte entre les bulles - presque blanc */
+.dialogue-paragraph {
+  color: rgba(255, 255, 255, 0.95) !important; /* Presque blanc, très pâle */
+}
+
+/* Bulles de conversation pour les dialogues */
+.dialogue-bubble {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 16px;
+  max-width: 85%; /* Limite la largeur des bulles pour un effet de conversation */
+  word-break: break-word;
+}
+
+@media (max-width: 640px) {
+  .dialogue-bubble {
+    max-width: 90%; /* Plus large sur mobile */
+  }
+}
+
+.dialogue-bubble-astro {
+  align-self: flex-start; /* Astrologie à gauche */
+}
+
+.dialogue-bubble-user {
+  align-self: flex-end; /* Utilisateur à droite */
+}
+
+.dialogue-bubble-content {
+  padding: 12px 16px;
+  border-radius: 18px;
+  position: relative;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  font-size: 17.5px;
+  line-height: 1.7;
+}
+
+.dialogue-bubble-astro .dialogue-bubble-content {
+  background: linear-gradient(135deg, rgba(250, 245, 255, 0.65) 0%, rgba(248, 242, 252, 0.6) 100%);
+  border: 1px solid rgba(138, 111, 159, 0.25);
+  color: #4A2C5A; /* Mauve très foncé */
+  border-bottom-left-radius: 6px; /* Queue de bulle à gauche */
+  position: relative;
+  /* Effet translucide */
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background-image: 
+    radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.2) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.15) 0%, transparent 50%),
+    linear-gradient(135deg, rgba(250, 245, 255, 0.65) 0%, rgba(248, 242, 252, 0.6) 100%);
+}
+
+/* Queue de bulle améliorée à gauche (Astrologie) */
+.dialogue-bubble-astro .dialogue-bubble-content::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: -16px;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 16px 20px 0;
+  border-color: transparent rgba(250, 245, 255, 0.65) transparent transparent;
+  filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.15));
+  z-index: 1;
+}
+
+.dialogue-bubble-astro .dialogue-bubble-content::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: -15px;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 15px 19px 0;
+  border-color: transparent rgba(248, 242, 252, 0.6) transparent transparent;
+  z-index: 0;
+}
+
+.dialogue-bubble-user .dialogue-bubble-content {
+  background: linear-gradient(135deg, rgba(252, 248, 255, 0.65) 0%, rgba(250, 245, 255, 0.6) 100%);
+  border: 1px solid rgba(184, 162, 194, 0.3);
+  color: #4A2C5A; /* Mauve très foncé */
+  border-bottom-right-radius: 6px; /* Queue de bulle à droite */
+  position: relative;
+  /* Effet translucide */
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background-image: 
+    radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.2) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.15) 0%, transparent 50%),
+    linear-gradient(135deg, rgba(252, 248, 255, 0.65) 0%, rgba(250, 245, 255, 0.6) 100%);
+}
+
+/* Queue de bulle améliorée à droite (Utilisateur) */
+.dialogue-bubble-user .dialogue-bubble-content::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: -16px;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 0 20px 16px;
+  border-color: transparent transparent transparent rgba(252, 248, 255, 0.65);
+  filter: drop-shadow(-2px 2px 4px rgba(0, 0, 0, 0.15));
+  z-index: 1;
+}
+
+.dialogue-bubble-user .dialogue-bubble-content::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: -15px;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 0 19px 15px;
+  border-color: transparent transparent transparent rgba(250, 245, 255, 0.6);
+  z-index: 0;
+}
+
+.dialogue-bubble-speaker {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  opacity: 0.85;
+  font-style: italic;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dialogue-bubble-astro .dialogue-bubble-speaker {
   color: var(--cosmic-gold);
+  text-align: left;
+}
+
+.dialogue-bubble-user .dialogue-bubble-speaker {
+  color: var(--rose-gold);
+  text-align: right;
+  justify-content: flex-end;
+}
+
+/* Rond doux pour le nom du client */
+.dialogue-bubble-user .dialogue-bubble-speaker-name {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(245, 212, 193, 0.4) 0%, rgba(245, 212, 193, 0.3) 100%);
+  border: 1px solid rgba(245, 212, 193, 0.6);
+  font-size: 12px;
+  font-weight: 600;
+  color: #000000;
+  margin-right: 4px;
+}
+
+/* Symbole pour les planètes/astrologie */
+.dialogue-bubble-speaker-symbol {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  line-height: 1;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+
+.dialogue-bubble-text {
+  margin: 0;
+  text-indent: 0;
+  text-align: left;
+  text-align-last: left;
+}
+
+.dialogue-bubbles-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.dialogue-prose strong {
+  color: #4A2C5A; /* Mauve très foncé */
   letter-spacing: 0.05em;
 }
 
 .dialogue-prose em {
-  color: var(--rose-gold);
+  color: #5A3C6A; /* Mauve foncé légèrement plus clair */
 }
 
 .dialogue-center {
@@ -267,9 +470,12 @@ body {
 .dialogue-prose h2,
 .dialogue-prose h3 {
   font-family: 'Cinzel', serif;
+  font-size: 19.5px; /* 2 points de plus que le texte (17.5 + 2 = 19.5) */
+  font-weight: bold;
   letter-spacing: 0.08em;
-  text-align: center;
-  margin: 0 0 0.9em;
+  text-align: left; /* Aligné à gauche comme demandé */
+  margin: 12px 0 8px; /* Marge avant et après */
+  color: rgba(255, 255, 255, 0.95); /* Presque blanc pour les titres */
 }
 
 .dialogue-prose blockquote {
@@ -279,14 +485,15 @@ body {
   color: rgba(228, 181, 160, 0.9);
 }
 
-/* PDF export card */
+/* PDF export card - Sans encadré */
 .pdf-card {
-  background: radial-gradient(140% 130% at 20% 15%, #a17ab1 0%, #7c4f90 45%, #4c2c62 100%);
-  border-radius: 18px;
-  border: 1px solid rgba(228, 181, 160, 0.25);
-  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+  background: none; /* Pas de fond */
+  border: none; /* Pas de bordure */
+  border-radius: 0; /* Pas de bordure arrondie */
+  box-shadow: none; /* Pas d'ombre */
   position: relative;
-  padding: 24px 28px 36px;
+  padding: 0; /* Pas de padding */
+  width: 100%; /* Utilise toute la largeur */
 }
 
 .pdf-card::after {
@@ -342,20 +549,52 @@ body {
 }
 
 .pdf-scroll {
-  max-height: 70vh;
+  max-height: calc(100vh - 150px); /* Plus de hauteur pour permettre plus de contenu */
+  min-height: 400px;
   overflow-y: auto;
-  padding-right: 12px;
+  overflow-x: hidden;
+  padding-right: 0; /* Pas de padding pour que la barre soit complètement sur le côté */
+  -webkit-overflow-scrolling: touch;
+  /* Barre de défilement personnalisée */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(138, 111, 159, 0.5) transparent;
+}
+
+.pdf-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.pdf-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.pdf-scroll::-webkit-scrollbar-thumb {
+  background: rgba(138, 111, 159, 0.5);
+  border-radius: 4px;
+}
+
+.pdf-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(138, 111, 159, 0.7);
 }
 
 .pdf-body {
-  font-size: 12pt;
+  font-size: 17.5px; /* 17-18px, valeur médiane */
+  line-height: 1.7; /* 1.6-1.8, valeur médiane */
+  width: 100%; /* Utilise toute la largeur */
+  margin: 0; /* Pas de marge */
+  word-break: break-word; /* Pour les liens / mots longs */
 }
 
 .pdf-panel {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(228, 181, 160, 0.35);
-  border-radius: 14px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  background: none; /* Pas de fond */
+  border: none; /* Pas de bordure */
+  border-radius: 0; /* Pas de bordure arrondie */
+  box-shadow: none; /* Pas d'ombre */
+  padding: 0; /* Pas de padding */
+}
+
+.pdf-panel p {
+  margin-bottom: 14px; /* 12-16px, valeur médiane */
 }
 
 .pdf-footnote {

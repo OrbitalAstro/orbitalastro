@@ -4,10 +4,12 @@ import { motion } from 'framer-motion'
 import { HeartHandshake, Star } from 'lucide-react'
 import BackButton from '@/components/BackButton'
 import Logo from '@/components/Logo'
+import Starfield from '@/components/Starfield'
 
 export default function AboutPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-cosmic-purple via-magenta-purple to-cosmic-purple relative">
+      <Starfield />
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-20 relative z-10">
         <BackButton href="/" />
 
@@ -110,7 +112,7 @@ export default function AboutPage() {
           >
             <h2 className="text-2xl sm:text-3xl font-semibold mb-4 flex items-center gap-3 text-cosmic-gold">
               <HeartHandshake className="h-7 w-7 text-cosmic-gold" />
-              À propos ✨🤖🌙
+              À propos
             </h2>
             <p className="text-white/85 leading-relaxed text-base sm:text-lg mb-6">
               Deux esprits structurés, animés par la cohérence — on traduit le complexe en clair, fluide et accessible.
@@ -123,7 +125,7 @@ export default function AboutPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="bg-black/20 border border-white/10 rounded-2xl p-6">
-                <h3 className="text-xl font-semibold text-cosmic-gold mb-3">Jo — la voix qui traduit, simplifie et connecte 🌙</h3>
+                <h3 className="text-xl font-semibold text-cosmic-gold mb-3">Jo — la voix qui traduit, simplifie et connecte</h3>
                 <p className="text-white/85 leading-relaxed">
                   Jo, c’est la relation, la nuance, la beauté des mots — et surtout l’art de rendre le complexe facile à comprendre. J’aime quand une lecture te
                   fait dire : « aaah ok… je me reconnais », sans te noyer dans des termes compliqués.
@@ -133,7 +135,7 @@ export default function AboutPage() {
               </div>
 
               <div className="bg-black/20 border border-white/10 rounded-2xl p-6">
-                <h3 className="text-xl font-semibold text-cosmic-gold mb-3">Isa — la stratège qui bâtit, structure et va au fond des choses 🧠💻</h3>
+                <h3 className="text-xl font-semibold text-cosmic-gold mb-3">Isa — la stratège qui bâtit, structure et va au fond des choses</h3>
                 <p className="text-white/85 leading-relaxed">
                   Isa a une énergie intense et focus : quand elle s’implique, elle veut que ce soit solide, cohérent et bien pensé. Elle aime les systèmes, les
                   choix clairs, les architectures qui tiennent la route — et elle a un instinct naturel pour voir ce qui est essentiel… versus ce qui est juste du
@@ -146,7 +148,7 @@ export default function AboutPage() {
             </div>
 
             <div className="mt-6 bg-white/5 border border-white/10 rounded-2xl p-6">
-              <h3 className="text-xl font-semibold text-cosmic-gold mb-3">Ensemble — clarté + profondeur, humain + IA 🤝🤖</h3>
+              <h3 className="text-xl font-semibold text-cosmic-gold mb-3">Ensemble — clarté + profondeur, humain + IA</h3>
               <p className="text-white/85 leading-relaxed">
                 Notre duo, c’est un mix rare : Jo amène le sens, le ton, la douceur et l’accessibilité. Isa amène la structure, la stratégie et la solidité.
                 <br />

@@ -27,12 +27,13 @@ export const translations = {
       pricing: "Pricing",
       settings: "Settings",
       about: "About",
+      contact: "Contact",
       beginJourney: "Begin Journey",
     },
     home: {
       heroTitle1: "Your Cosmic Blueprint",
       heroTitle2: "Awaits",
-      heroSubtitle: "Where ancient wisdom meets modern precision",
+      heroSubtitle: "Your astrological journey at your fingertips",
       heroLead: "Discover your pre-incarnation dialogue and your astrological reading for 2026.",
       heroDescription: "Discover your ",
       heroDescriptionLinkNatal: "natal chart",
@@ -76,7 +77,7 @@ export const translations = {
       ctaTitle: "Ready to Discover Your Cosmic Blueprint?",
       ctaDescription: "Join thousands exploring their astrological destiny.",
       ctaButton: "Get Started",
-      footerTagline: "Where ancient wisdom meets modern precision",
+      footerTagline: "Your astrological journey at your fingertips",
       footerServices: "Services",
       footerFeatures: "Features",
       footerResources: "Resources",
@@ -91,7 +92,7 @@ export const translations = {
     dialogues: {
       title: "Pre‑Incarnation Dialogue",
       description:
-        "Generate a mythopoetic dialogue between your soul and the cosmic council before your birth.",
+        "Generate a symbolic dialogue between your soul and the cosmic council before your birth.",
       firstName: "First name or nickname (optional)",
       firstNamePlaceholder: "How should the dialogue address you?",
       email: "Email",
@@ -106,8 +107,6 @@ export const translations = {
       resetForm: "Reset form",
       downloadingPdf: "Creating the PDF...",
       downloadPdf: "Download as PDF",
-      downloadingPdf: "Creating PDF...",
-      downloadPdf: "Download PDF",
       pdfSubtitle: "Pre‑incarnation dialogue",
       disclaimer:
         "Astrology here is offered as entertainment—a light way to reflect—without any claim of absolute truth.",
@@ -365,12 +364,13 @@ export const translations = {
       pricing: "Tarifs",
       settings: "Paramètres",
       about: "À propos",
+      contact: "Contact",
       beginJourney: "Commencer",
     },
     home: {
       heroTitle1: "Votre Plan Cosmique",
       heroTitle2: "Vous Attend",
-      heroSubtitle: "Où la sagesse ancienne rencontre la précision moderne",
+      heroSubtitle: "Votre voyage astrologique à votre portée",
       heroLead: "Découvrez votre dialogue pré-incarnation et votre lecture astrologique pour 2026.",
       heroDescription: "Découvrez votre ",
       heroDescriptionLinkNatal: "thème natal",
@@ -418,7 +418,7 @@ export const translations = {
       ctaDescription:
         "Rejoignez des milliers de personnes explorant leur destin astrologique.",
       ctaButton: "Commencer",
-      footerTagline: "Où la sagesse ancienne rencontre la précision moderne",
+      footerTagline: "Votre voyage astrologique à votre portée",
       footerServices: "Services",
       footerFeatures: "Fonctionnalités",
       footerResources: "Ressources",
@@ -433,7 +433,7 @@ export const translations = {
     dialogues: {
       title: "Dialogue de Pré‑Incarnation",
       description:
-        "Générez un dialogue mythopoétique entre votre âme et le conseil cosmique avant votre naissance.",
+        "Générez un dialogue symbolique entre votre âme et le conseil cosmique avant votre naissance.",
       firstName: "Prénom ou surnom (optionnel)",
       firstNamePlaceholder:
         "Sous quel prénom le dialogue doit-il vous adresser la parole ?",
@@ -447,8 +447,6 @@ export const translations = {
       generating: "Tissage de votre dialogue de pré‑incarnation...",
       generate: "Générer le dialogue",
       resetForm: "Réinitialiser le formulaire",
-      downloadingPdf: "Création du PDF...",
-      downloadPdf: "Télécharger en PDF",
       downloadingPdf: "Création du PDF...",
       downloadPdf: "Télécharger en PDF",
       pdfSubtitle: "Dialogue pré‑incarnation",
@@ -685,6 +683,7 @@ export const translations = {
       pricing: "Precios",
       settings: "Configuración",
       about: "Acerca de",
+      contact: "Contacto",
       beginJourney: "Comenzar",
     },
     home: {
@@ -755,7 +754,7 @@ export const translations = {
     dialogues: {
       title: "Diálogo de Pre‑Encarnación",
       description:
-        "Genera un diálogo mitopoético entre tu alma y el consejo cósmico antes de tu nacimiento.",
+        "Genera un diálogo simbólico entre tu alma y el consejo cósmico antes de tu nacimiento.",
       firstName: "Nombre o apodo (opcional)",
       firstNamePlaceholder:
         "¿Cómo debería dirigirse a ti el diálogo?",
@@ -771,8 +770,6 @@ export const translations = {
       resetForm: "Restablecer formulario",
       downloadingPdf: "Creando el PDF...",
       downloadPdf: "Descargar en PDF",
-      downloadingPdf: "Creando PDF...",
-      downloadPdf: "Descargar PDF",
       pdfSubtitle: "Diálogo de pre‑encarnación",
       disclaimer:
         "La astrología aquí se ofrece como entretenimiento: una forma ligera de reflexionar, sin valor de verdad absoluta.",
