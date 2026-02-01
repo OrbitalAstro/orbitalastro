@@ -270,8 +270,18 @@ function isSectionTitle(line: string): boolean {
   // Vérifier si c'est un titre markdown
   if (/^#{1,6}\s+/.test(trimmed)) return true
   
-  // Vérifier si c'est un titre connu
-  const normalized = trimmed.toLowerCase()
+  // Vérifier si c'est un titre avec numéro au début (ex: "2.4) Filtre de décision", "4.5) Séquence temporelle")
+  if (/^\d+\.\d+\)\s+/.test(trimmed) || /^\d+\)\s+/.test(trimmed)) {
+    // C'est probablement un titre si après le numéro il y a du texte en majuscule ou avec majuscule
+    const afterNumber = trimmed.replace(/^\d+\.\d+\)\s+/, '').replace(/^\d+\)\s+/, '').trim()
+    if (afterNumber.length > 0 && afterNumber.length < 100 && /^\p{Lu}/u.test(afterNumber)) {
+      return true
+    }
+  }
+  
+  // Vérifier si c'est un titre connu (après avoir retiré les numéros)
+  const withoutNumbers = trimmed.replace(/^\d+\.\d+\)\s+/, '').replace(/^\d+\)\s+/, '').trim()
+  const normalized = withoutNumbers.toLowerCase()
   for (const title of KNOWN_SECTION_TITLES) {
     if (normalized === title.toLowerCase() || normalized.startsWith(title.toLowerCase())) {
       return true
@@ -293,15 +303,21 @@ function isSectionTitle(line: string): boolean {
 
 function cleanTitleText(text: string): string {
   // Retirer les numéros de titres comme "2.4) Filtre de décision" → "Filtre de décision"
-  // Patterns: "2.4) ", "2.4. ", "2) ", "(2.4) ", etc.
+  // Patterns: "2.4) ", "2.4. ", "2) ", "(2.4) ", "4.5) Séquence temporelle 2026 - TABLEAU" → "Séquence temporelle 2026 - TABLEAU"
   let cleaned = text
     .replace(/^#{1,6}\s+/, '') // Retirer les # markdown
-    .replace(/^\d+\.\d+\)\s+/, '') // "2.4) "
+    .replace(/^\d+\.\d+\)\s+/, '') // "2.4) " ou "4.5) "
     .replace(/^\d+\.\d+\.\s+/, '') // "2.4. "
     .replace(/^\d+\)\s+/, '') // "2) "
     .replace(/^\(\d+\.\d+\)\s+/, '') // "(2.4) "
     .replace(/^\(\d+\)\s+/, '') // "(2) "
     .trim()
+  
+  // Si le texte commence encore par un numéro après le premier nettoyage, réessayer
+  if (/^\d+\.\d+\)\s+/.test(cleaned) || /^\d+\)\s+/.test(cleaned)) {
+    cleaned = cleaned.replace(/^\d+\.\d+\)\s+/, '').replace(/^\d+\)\s+/, '').trim()
+  }
+  
   return cleaned
 }
 

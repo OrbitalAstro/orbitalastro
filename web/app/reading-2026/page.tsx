@@ -652,7 +652,44 @@ export default function Reading2026Page() {
                     <ReactMarkdown 
                       className="dialogue-prose pdf-body pdf-panel"
                       components={{
+                        h1: ({ node, ...props }) => {
+                          const rawText = Array.isArray(props.children)
+                            ? props.children.map((c: any) => (typeof c === 'string' ? c : '')).join('').trim()
+                            : (props.children as any)?.toString().trim()
+                          // Retirer les numéros des titres
+                          const cleaned = rawText.replace(/^\d+\.\d+\)\s+/, '').replace(/^\d+\)\s+/, '').trim()
+                          return <h1 {...props} className="dialogue-prose h1">{cleaned}</h1>
+                        },
+                        h2: ({ node, ...props }) => {
+                          const rawText = Array.isArray(props.children)
+                            ? props.children.map((c: any) => (typeof c === 'string' ? c : '')).join('').trim()
+                            : (props.children as any)?.toString().trim()
+                          // Retirer les numéros des titres
+                          const cleaned = rawText.replace(/^\d+\.\d+\)\s+/, '').replace(/^\d+\)\s+/, '').trim()
+                          return <h2 {...props} className="dialogue-prose h2">{cleaned}</h2>
+                        },
+                        h3: ({ node, ...props }) => {
+                          const rawText = Array.isArray(props.children)
+                            ? props.children.map((c: any) => (typeof c === 'string' ? c : '')).join('').trim()
+                            : (props.children as any)?.toString().trim()
+                          // Retirer les numéros des titres
+                          const cleaned = rawText.replace(/^\d+\.\d+\)\s+/, '').replace(/^\d+\)\s+/, '').trim()
+                          return <h3 {...props} className="dialogue-prose h3">{cleaned}</h3>
+                        },
                         p: ({ node, ...props }) => {
+                          // Détecter si c'est un titre avec numéro (ex: "2.4) Filtre de décision")
+                          const rawText = Array.isArray(props.children)
+                            ? props.children.map((c: any) => (typeof c === 'string' ? c : '')).join('').trim()
+                            : (props.children as any)?.toString().trim()
+                          
+                          // Vérifier si c'est un titre avec numéro
+                          if (/^\d+\.\d+\)\s+/.test(rawText) || /^\d+\)\s+/.test(rawText)) {
+                            const afterNumber = rawText.replace(/^\d+\.\d+\)\s+/, '').replace(/^\d+\)\s+/, '').trim()
+                            if (afterNumber.length > 0 && afterNumber.length < 100 && /^\p{Lu}/u.test(afterNumber)) {
+                              // C'est un titre, le rendre comme un h2
+                              return <h2 className="dialogue-prose h2">{afterNumber}</h2>
+                            }
+                          }
                           const rawText = Array.isArray(props.children)
                             ? props.children.map((c: any) => (typeof c === 'string' ? c : '')).join('').trim()
                             : (props.children as any)?.toString().trim()
@@ -808,30 +845,32 @@ export default function Reading2026Page() {
                         let i = 0
                         
                         while (i < allLines.length) {
-                          const line = allLines[i].trim()
+                          const line = allLines[i]
+                          const trimmedLine = line.trim()
                           
                           // Détecter si cette ligne commence par "Tu pourrais remarquer :" ou similaire
-                          const observationMatch = line.match(/^(tu\s+(pourrais|remarqueras|noteras|observeras|constateras)|vous\s+(pourriez|remarquerez|noterez|observerez|constaterez)|on\s+(pourrait|remarque|note|observe|constate))\s*:\s*(.*)$/i)
+                          const observationMatch = trimmedLine.match(/^(tu\s+(pourrais|remarqueras|noteras|observeras|constateras)|vous\s+(pourriez|remarquerez|noterez|observerez|constaterez)|on\s+(pourrait|remarque|note|observe|constate))\s*:\s*(.*)$/i)
                           
                           if (observationMatch) {
-                            // Commencer un nouveau bloc avec cette ligne
+                            // Commencer un nouveau bloc avec cette ligne (garder les retours à la ligne)
                             let combinedText = line
                             i++
                             
                             // Continuer à ajouter les lignes suivantes jusqu'à ce qu'on trouve :
                             // - Une ligne vide (fin de paragraphe)
                             // - Un nouveau dialogue (ligne avec "Nom :")
-                            // - Un titre (ligne qui commence par # ou qui est un titre connu)
+                            // - Un titre (ligne qui commence par #, numéro, ou qui est un titre connu)
                             while (i < allLines.length) {
-                              const nextLine = allLines[i].trim()
+                              const nextLine = allLines[i]
+                              const trimmedNextLine = nextLine.trim()
                               
                               // Arrêter si ligne vide
-                              if (!nextLine) {
+                              if (!trimmedNextLine) {
                                 break
                               }
                               
                               // Arrêter si c'est un nouveau dialogue
-                              const dialogueMatch = nextLine.match(/^([^\n:]{2,24})\s*:\s*(.*)$/)
+                              const dialogueMatch = trimmedNextLine.match(/^([^\n:]{2,24})\s*:\s*(.*)$/)
                               if (dialogueMatch) {
                                 const label = dialogueMatch[1].trim().toLowerCase()
                                 const isNewDialogue = 
@@ -842,13 +881,16 @@ export default function Reading2026Page() {
                                 }
                               }
                               
-                              // Arrêter si c'est un titre (commence par # ou est un titre connu)
-                              if (/^#{1,6}\s+/.test(nextLine) || 
-                                  nextLine.length < 80 && /^\p{Lu}/u.test(nextLine) && !nextLine.endsWith('.') && !nextLine.endsWith(',') && !nextLine.includes(' : ')) {
+                              // Arrêter si c'est un titre (commence par #, numéro, ou est un titre connu)
+                              const isTitle = /^#{1,6}\s+/.test(trimmedNextLine) || 
+                                /^\d+\.\d+\)\s+/.test(trimmedNextLine) || 
+                                /^\d+\)\s+/.test(trimmedNextLine) ||
+                                (trimmedNextLine.length < 80 && /^\p{Lu}/u.test(trimmedNextLine) && !trimmedNextLine.endsWith('.') && !trimmedNextLine.endsWith(',') && !trimmedNextLine.includes(' : '))
+                              if (isTitle) {
                                 break
                               }
                               
-                              // Ajouter cette ligne au bloc combiné
+                              // Ajouter cette ligne au bloc combiné (garder les retours à la ligne)
                               combinedText += '\n' + nextLine
                               i++
                             }
@@ -861,6 +903,8 @@ export default function Reading2026Page() {
                           }
                         }
                         
+                        // Joindre avec des doubles retours à la ligne pour que ReactMarkdown traite chaque bloc comme un paragraphe séparé
+                        // Mais garder les \n simples dans les blocs combinés pour que le texte reste dans la même bulle
                         return processedLines.join('\n\n')
                       })()}
                     </ReactMarkdown>
