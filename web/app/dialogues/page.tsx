@@ -417,7 +417,17 @@ export default function Dialogues() {
         ascendantSign: extractedAscendantSign || undefined,
       })
       
-      console.log('Dialogue generated successfully')
+      console.log('Dialogue generated successfully', {
+        originalLength: response.data?.content?.length || 0,
+        normalizedLength: dialogueText.length,
+        firstChars: dialogueText.substring(0, 200),
+        lastChars: dialogueText.substring(Math.max(0, dialogueText.length - 200)),
+      })
+      
+      if (!dialogueText || dialogueText.trim().length === 0) {
+        throw new Error('Le dialogue généré est vide. Veuillez réessayer.')
+      }
+      
       setDialogue(dialogueText)
       await sendDialoguePdfByEmail(dialogueText)
       

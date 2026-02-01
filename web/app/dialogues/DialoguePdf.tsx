@@ -499,6 +499,13 @@ export default function DialoguePdf({
     .replace(/[\u2010\u2011\u2012\u2013\u2014\u2212]/g, '-')
   const paragraphs = (() => {
     const rawDialogue = dialogue || ''
+    
+    // Log pour déboguer
+    if (!rawDialogue || rawDialogue.trim().length === 0) {
+      console.warn('[DialoguePdf] Dialogue vide ou manquant:', { dialogue, rawDialogue })
+      return []
+    }
+    
     const hasBlankLine = /\n\s*\n/.test(rawDialogue)
     const lines = rawDialogue.split(/\r?\n/)
     const result: string[] = []
