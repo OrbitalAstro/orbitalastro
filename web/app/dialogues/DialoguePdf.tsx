@@ -864,7 +864,7 @@ export default function DialoguePdf({
             <Text style={styles.footnote}>{renderText(t.dialogues.disclaimer)}</Text>
           )}
 
-          {feedbackSurveyUrl && (
+          {feedbackSurveyUrl && t.dialogues.feedbackPrompt && (
             <View style={{ marginTop: 10 }}>
               {(() => {
                 const raw = t.dialogues.feedbackPrompt || ''
@@ -887,13 +887,15 @@ export default function DialoguePdf({
                   </>
                 )
               })()}
-              <Text style={styles.footnote}>
-                <Link src={feedbackSurveyUrl} style={{ color: GOLD, textDecoration: 'underline' }}>
-                  {t.dialogues.feedbackLinkLabel}
-                </Link>
-              </Text>
-              <Text style={styles.footnote}>{renderText(t.dialogues.feedbackPromo)}</Text>
-              <Text style={styles.footnote}>{renderText(t.dialogues.feedbackCta)}</Text>
+              {t.dialogues.feedbackLinkLabel && (
+                <Text style={styles.footnote}>
+                  <Link src={feedbackSurveyUrl} style={{ color: GOLD, textDecoration: 'underline' }}>
+                    {t.dialogues.feedbackLinkLabel}
+                  </Link>
+                </Text>
+              )}
+              {t.dialogues.feedbackPromo && <Text style={styles.footnote}>{renderText(t.dialogues.feedbackPromo)}</Text>}
+              {t.dialogues.feedbackCta && <Text style={styles.footnote}>{renderText(t.dialogues.feedbackCta)}</Text>}
             </View>
           )}
           </View>

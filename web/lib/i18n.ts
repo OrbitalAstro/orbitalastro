@@ -452,13 +452,10 @@ export const translations = {
       pdfSubtitle: "Dialogue pré‑incarnation",
       disclaimer:
         "L'astrologie ici est offerte comme un divertissement, une manière légère de réfléchir, sans valeur de vérité absolue.",
-      feedbackPrompt:
-        "J’espère que tu as trouvé ta lecture amusante ♡\nSi tu as quelques minutes et que tu as envie d’aider à optimiser le concept, voici un questionnaire retour d’expérience :",
-      feedbackLinkLabel: "Rétroaction dialogue pré-incarnation",
-      feedbackPromo:
-        "Après ta réponse au sondage, je t’enverrai ton code promo pour offrir des Dialogues à tes proches, ainsi que l’accès au tarif fondateur, pour te remercier de ton soutien tôt dans l’aventure. C’est excitant!",
-      feedbackCta:
-        "Date limite : 22 janvier 2026",
+      feedbackPrompt: "",
+      feedbackLinkLabel: "",
+      feedbackPromo: "",
+      feedbackCta: "",
       rateLimitError:
         "Limite de requêtes atteinte. Veuillez attendre quelques instants et réessayer.",
       validationBirthDateTimeRequired: "Date et heure de naissance requises",
