@@ -677,12 +677,13 @@ export default function Reading2026Page() {
                           return <h3 {...props} className="dialogue-prose h3">{cleaned}</h3>
                         },
                         p: ({ node, ...props }) => {
-                          // Détecter si c'est un titre avec numéro (ex: "2.4) Filtre de décision")
                           const rawText = Array.isArray(props.children)
                             ? props.children.map((c: any) => (typeof c === 'string' ? c : '')).join('').trim()
                             : (props.children as any)?.toString().trim()
                           
-                          // Vérifier si c'est un titre avec numéro
+                          // Les titres sont maintenant convertis en ## avant ReactMarkdown,
+                          // donc on ne devrait plus avoir de titres ici. Mais on garde cette vérification
+                          // au cas où un titre serait passé dans un paragraphe.
                           if (/^\d+\.\d+\)\s+/.test(rawText) || /^\d+\)\s+/.test(rawText)) {
                             const afterNumber = rawText.replace(/^\d+\.\d+\)\s+/, '').replace(/^\d+\)\s+/, '').trim()
                             if (afterNumber.length > 0 && afterNumber.length < 100 && /^\p{Lu}/u.test(afterNumber)) {
@@ -836,7 +837,91 @@ export default function Reading2026Page() {
                           }
                         }
                         
-                        // Pré-traiter le texte pour regrouper les lignes qui suivent "Tu pourrais remarquer :" dans le même bloc
+                        // Fonctions pour détecter et nettoyer les titres
+                        const KNOWN_SECTION_TITLES = [
+                          'Missions de l\'année 2026',
+                          'Missions de l\'année',
+                          'Missions',
+                          'Grandes dynamiques de croissance',
+                          'Grandes dynamiques',
+                          'Dynamiques de croissance',
+                          'Cycles intérieurs',
+                          'Cycles intérieurs (Lune)',
+                          'Cycles intérieurs Lune',
+                          'Destinée',
+                          'Destinée (Nœud Nord + MC / axe vocation)',
+                          'Destinée Nœud Nord MC axe vocation',
+                          'Image symbolique de 2026',
+                          'Image symbolique',
+                          'Séquence temporelle 2026',
+                          'Séquence temporelle',
+                          'Filtre de décision',
+                          'En résumé',
+                          'Résumé',
+                          'Conclusion',
+                          'Clôture vivante 2026',
+                        ]
+                        
+                        const isSectionTitle = (line: string): boolean => {
+                          const trimmed = line.trim()
+                          if (!trimmed) return false
+                          
+                          // Vérifier si c'est un titre markdown
+                          if (/^#{1,6}\s+/.test(trimmed)) return true
+                          
+                          // Vérifier si c'est un titre avec numéro au début
+                          if (/^\d+\.\d+\)\s+/.test(trimmed) || /^\d+\)\s+/.test(trimmed)) {
+                            const afterNumber = trimmed.replace(/^\d+\.\d+\)\s+/, '').replace(/^\d+\)\s+/, '').trim()
+                            if (afterNumber.length > 0 && afterNumber.length < 100 && /^\p{Lu}/u.test(afterNumber)) {
+                              return true
+                            }
+                          }
+                          
+                          // Vérifier si c'est un titre connu (après avoir retiré les numéros)
+                          const withoutNumbers = trimmed.replace(/^\d+\.\d+\)\s+/, '').replace(/^\d+\)\s+/, '').trim()
+                          const normalized = withoutNumbers.toLowerCase()
+                          for (const title of KNOWN_SECTION_TITLES) {
+                            const titleLower = title.toLowerCase()
+                            if (normalized === titleLower || normalized.startsWith(titleLower) || titleLower.startsWith(normalized)) {
+                              return true
+                            }
+                            // Vérifier si le titre contient des mots-clés importants
+                            const titleWords = titleLower.split(/\s+/).filter(w => w.length > 3)
+                            const normalizedWords = normalized.split(/\s+/).filter(w => w.length > 3)
+                            const matchingWords = titleWords.filter(w => normalizedWords.includes(w))
+                            if (matchingWords.length >= 2) {
+                              return true
+                            }
+                          }
+                          
+                          // Vérifier les patterns de titres génériques
+                          if (trimmed.length < 100 && 
+                              (/^\p{Lu}/u.test(trimmed) || /^\d+[\.\)]\s+\p{Lu}/u.test(trimmed)) && 
+                              !trimmed.endsWith('.') && 
+                              !trimmed.endsWith(',') &&
+                              !trimmed.endsWith(';') &&
+                              !trimmed.includes(' : ') && // Pas un dialogue
+                              trimmed.split(' ').length <= 15) {
+                            return true
+                          }
+                          
+                          return false
+                        }
+                        
+                        const cleanTitleText = (text: string): string => {
+                          return text
+                            .replace(/^#{1,6}\s+/, '') // Retirer les # markdown
+                            .replace(/^\d+\.\d+\)\s+/, '') // "2.4) "
+                            .replace(/^\d+\.\d+\.\s+/, '') // "2.4. "
+                            .replace(/^\d+\)\s+/, '') // "2) "
+                            .replace(/^\(\d+\.\d+\)\s+/, '') // "(2.4) "
+                            .replace(/^\(\d+\)\s+/, '') // "(2) "
+                            .trim()
+                        }
+                        
+                        // Pré-traiter le texte pour :
+                        // 1. Convertir les titres en markdown ##
+                        // 2. Regrouper les lignes qui suivent "Tu pourrais remarquer :" dans le même bloc
                         const processedLines: string[] = []
                         const allLines = text.split('\n')
                         let i = 0
@@ -844,6 +929,15 @@ export default function Reading2026Page() {
                         while (i < allLines.length) {
                           const line = allLines[i]
                           const trimmedLine = line.trim()
+                          
+                          // D'abord, vérifier si c'est un titre (avant de vérifier "Tu pourrais remarquer")
+                          if (isSectionTitle(trimmedLine)) {
+                            // Convertir en markdown ## pour que ReactMarkdown le reconnaisse comme un titre
+                            const cleanedTitle = cleanTitleText(trimmedLine)
+                            processedLines.push(`## ${cleanedTitle}`)
+                            i++
+                            continue
+                          }
                           
                           // Détecter si cette ligne commence par "Tu pourrais remarquer :" ou similaire
                           const observationMatch = trimmedLine.match(/^(tu\s+(pourrais|remarqueras|noteras|observeras|constateras)|vous\s+(pourriez|remarquerez|noterez|observerez|constaterez)|on\s+(pourrait|remarque|note|observe|constate))\s*:\s*(.*)$/i)
@@ -878,12 +972,8 @@ export default function Reading2026Page() {
                                 }
                               }
                               
-                              // Arrêter si c'est un titre (commence par #, numéro, ou est un titre connu)
-                              const isTitle = /^#{1,6}\s+/.test(trimmedNextLine) || 
-                                /^\d+\.\d+\)\s+/.test(trimmedNextLine) || 
-                                /^\d+\)\s+/.test(trimmedNextLine) ||
-                                (trimmedNextLine.length < 80 && /^\p{Lu}/u.test(trimmedNextLine) && !trimmedNextLine.endsWith('.') && !trimmedNextLine.endsWith(',') && !trimmedNextLine.includes(' : '))
-                              if (isTitle) {
+                              // Arrêter si c'est un titre
+                              if (isSectionTitle(trimmedNextLine)) {
                                 break
                               }
                               
