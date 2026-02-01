@@ -640,7 +640,8 @@ export default function Reading2026Page() {
                             ? props.children.map((c: any) => (typeof c === 'string' ? c : '')).join('').trim()
                             : (props.children as any)?.toString().trim()
                           
-                          const speakerMatch = (rawText || '').match(/^([^\n:]{2,24})\s*:\s*(.*)$/s)
+                          // Détecter le format "Nom : texte" avec support pour phrases comme "Tu pourrais remarquer : "
+                          const speakerMatch = (rawText || '').match(/^([^\n:]{2,50})\s*:\s*(.*)$/s)
                           const isDialogue = (() => {
                             if (!speakerMatch) return false
                             const label = speakerMatch[1].trim()
@@ -651,7 +652,9 @@ export default function Reading2026Page() {
                               labelLower === 'astrología' ||
                               labelLower === 'astrologia'
                             const looksLikeFirstName = /^[\p{L}'’-]+$/u.test(label) && label.length <= 16
-                            return isAstro || looksLikeFirstName
+                            // Détecter les phrases comme "Tu pourrais remarquer", "Tu remarqueras", etc.
+                            const isObservationPhrase = /^(tu\s+(pourrais|remarqueras|noteras|observeras|constateras)|vous\s+(pourriez|remarquerez|noterez|observerez|constaterez)|on\s+(pourrait|remarque|note|observe|constate))\s+/i.test(label)
+                            return isAstro || looksLikeFirstName || isObservationPhrase
                           })()
                           
                           const speakerName = speakerMatch ? speakerMatch[1].trim() : ''

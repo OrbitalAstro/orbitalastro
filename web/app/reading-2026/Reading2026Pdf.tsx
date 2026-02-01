@@ -125,10 +125,11 @@ const styles = StyleSheet.create({
   },
   heading: {
     fontFamily: 'Helvetica-Bold',
-    fontSize: 12,
-    marginTop: 6,
-    marginBottom: 6,
+    fontSize: 14, /* 2 points de plus que le texte (12 + 2 = 14) */
+    marginTop: 8,
+    marginBottom: 8,
     color: TEXT_BLACK,
+    fontWeight: 'bold',
   },
   bulletRow: {
     flexDirection: 'row',
@@ -191,7 +192,8 @@ function preventLineBreakAfterPunctuation(text: string): string {
 // Fonction pour rendre les dialogues avec noms en italique
 function renderDialogueLine(text: string, firstName?: string): React.ReactNode {
   // Détecter le format "Nom : « texte »" ou "Nom : texte"
-  const match = text.match(/^([^\n:]{2,24})\s*:\s*(.*)$/)
+  // Aussi détecter "Tu pourrais remarquer : " et inclure tout le texte suivant
+  const match = text.match(/^([^\n:]{2,50})\s*:\s*(.*)$/s)
   if (!match) {
     // Pas un dialogue, retourner le texte normal avec protection des retours à la ligne
     return preventLineBreakAfterPunctuation(text)
@@ -205,7 +207,10 @@ function renderDialogueLine(text: string, firstName?: string): React.ReactNode {
   const isAstrologie = labelLower === 'astrologie' || labelLower === 'astrology' || labelLower === 'astrología' || labelLower === 'astrologia'
   const looksLikeFirstName = /^[\p{L}'’-]+$/u.test(label) && label.length <= 16 && labelLower !== 'naissance' && labelLower !== 'atterrissage'
   
-  if (!isAstrologie && !looksLikeFirstName) {
+  // Détecter les phrases comme "Tu pourrais remarquer", "Tu remarqueras", etc.
+  const isObservationPhrase = /^(tu\s+(pourrais|remarqueras|noteras|observeras|constateras)|vous\s+(pourriez|remarquerez|noterez|observerez|constaterez)|on\s+(pourrait|remarque|note|observe|constate))\s+/i.test(label)
+  
+  if (!isAstrologie && !looksLikeFirstName && !isObservationPhrase) {
     // Pas un dialogue reconnu, retourner le texte normal
     return preventLineBreakAfterPunctuation(text)
   }
@@ -218,6 +223,86 @@ function renderDialogueLine(text: string, firstName?: string): React.ReactNode {
       {preventLineBreakAfterPunctuation(rest)}
     </>
   )
+}
+
+// Liste des titres de section connus pour la lecture 2026
+const KNOWN_SECTION_TITLES = [
+  'Missions de l\'année 2026',
+  'Missions de l\'année',
+  'Grandes dynamiques de croissance',
+  'Grandes dynamiques',
+  'Cycles intérieurs',
+  'Cycles intérieurs (Lune)',
+  'Destinée',
+  'Destinée (Nœud Nord + MC / axe vocation)',
+  'Image symbolique de 2026',
+  'Image symbolique',
+  'En résumé',
+  'Résumé',
+  // Versions anglaises
+  'Missions for 2026',
+  'Major Growth Dynamics',
+  'Inner Cycles',
+  'Inner Cycles (Moon)',
+  'Destiny',
+  'Destiny (North Node + MC / Vocation Axis)',
+  'Symbolic Image of 2026',
+  'Symbolic Image',
+  'Summary',
+  'In Summary',
+  // Versions espagnoles
+  'Misiones del año 2026',
+  'Grandes dinámicas de crecimiento',
+  'Ciclos interiores',
+  'Ciclos interiores (Luna)',
+  'Destino',
+  'Destino (Nodo Norte + MC / Eje de vocación)',
+  'Imagen simbólica de 2026',
+  'Imagen simbólica',
+  'Resumen',
+  'En resumen',
+]
+
+function isSectionTitle(line: string): boolean {
+  const trimmed = line.trim()
+  if (!trimmed) return false
+  
+  // Vérifier si c'est un titre markdown
+  if (/^#{1,6}\s+/.test(trimmed)) return true
+  
+  // Vérifier si c'est un titre connu
+  const normalized = trimmed.toLowerCase()
+  for (const title of KNOWN_SECTION_TITLES) {
+    if (normalized === title.toLowerCase() || normalized.startsWith(title.toLowerCase())) {
+      return true
+    }
+  }
+  
+  // Vérifier les patterns de titres : ligne courte, commence par majuscule, pas de point à la fin
+  if (trimmed.length < 80 && 
+      /^\p{Lu}/u.test(trimmed) && 
+      !trimmed.endsWith('.') && 
+      !trimmed.endsWith(',') &&
+      !trimmed.includes(' : ') && // Pas un dialogue
+      trimmed.split(' ').length <= 10) {
+    return true
+  }
+  
+  return false
+}
+
+function cleanTitleText(text: string): string {
+  // Retirer les numéros de titres comme "2.4) Filtre de décision" → "Filtre de décision"
+  // Patterns: "2.4) ", "2.4. ", "2) ", "(2.4) ", etc.
+  let cleaned = text
+    .replace(/^#{1,6}\s+/, '') // Retirer les # markdown
+    .replace(/^\d+\.\d+\)\s+/, '') // "2.4) "
+    .replace(/^\d+\.\d+\.\s+/, '') // "2.4. "
+    .replace(/^\d+\)\s+/, '') // "2) "
+    .replace(/^\(\d+\.\d+\)\s+/, '') // "(2.4) "
+    .replace(/^\(\d+\)\s+/, '') // "(2) "
+    .trim()
+  return cleaned
 }
 
 function parseBlocks(markdown: string): Block[] {
@@ -239,19 +324,18 @@ function parseBlocks(markdown: string): Block[] {
     // Si c'est une seule ligne, créer un bloc
     if (lines.length === 1) {
       const line = lines[0]
-      if (/^#{1,6}\s+/.test(line)) {
-        blocks.push({ type: 'heading', text: line.replace(/^#{1,6}\s+/, '').trim() })
+      if (isSectionTitle(line)) {
+        blocks.push({ type: 'heading', text: cleanTitleText(line) })
       } else if (/^(?:[-•*]|\d+\.)\s+/.test(line)) {
         blocks.push({ type: 'bullet', text: line.replace(/^(?:[-•*]|\d+\.)\s+/, '').trim() })
       } else {
         blocks.push({ type: 'paragraph', text: line })
       }
     } else {
-      // Si plusieurs lignes, créer un bloc paragraphe avec tout le contenu
-      // (pour préserver les dialogues et les retours à la ligne)
+      // Si plusieurs lignes, vérifier si la première est un titre
       const fullText = lines.join('\n')
-      if (/^#{1,6}\s+/.test(lines[0])) {
-        blocks.push({ type: 'heading', text: lines[0].replace(/^#{1,6}\s+/, '').trim() })
+      if (isSectionTitle(lines[0])) {
+        blocks.push({ type: 'heading', text: cleanTitleText(lines[0]) })
         if (lines.length > 1) {
           blocks.push({ type: 'paragraph', text: lines.slice(1).join('\n') })
         }
