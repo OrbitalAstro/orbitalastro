@@ -14,7 +14,7 @@ function getStripe() {
 
 export async function POST(request: NextRequest) {
   try {
-    const { priceId, productId, email, promoCode, acceptPromotions } = await request.json()
+    const { priceId, productId, email, promoCode } = await request.json()
 
     if (!priceId) {
       return NextResponse.json(
@@ -59,7 +59,10 @@ export async function POST(request: NextRequest) {
       metadata: {
         productId: productId || 'unknown',
         promoCode: promoCode || '',
-        acceptPromotions: acceptPromotions === true ? 'true' : 'false',
+      },
+      // Collecte du consentement marketing dans Stripe Checkout
+      consent_collection: {
+        marketing_consent: 'required', // Case à cocher obligatoire pour recevoir les promotions
       },
       // Message d'avertissement pour paiement réel
       custom_text: {

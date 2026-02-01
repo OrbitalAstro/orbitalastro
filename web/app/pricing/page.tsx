@@ -14,7 +14,6 @@ export default function PricingPage() {
   const [promoCode, setPromoCode] = useState('')
   const [appliedPromo, setAppliedPromo] = useState<string | null>(null)
   const [email, setEmail] = useState('')
-  const [acceptPromotions, setAcceptPromotions] = useState(false)
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -206,25 +205,6 @@ export default function PricingPage() {
                       ✓ Code promo appliqué (50% de rabais)
                     </p>
                   )}
-                </div>
-
-                {/* Case à cocher pour accepter les promotions */}
-                <div className="mt-4 flex items-start gap-3 p-4 bg-gradient-to-r from-cosmic-purple/20 to-cosmic-gold/10 rounded-lg border border-cosmic-gold/30">
-                  <input
-                    type="checkbox"
-                    id={`promotions-${product.id}`}
-                    checked={acceptPromotions}
-                    onChange={(e) => setAcceptPromotions(e.target.checked)}
-                    className="mt-0.5 h-5 w-5 rounded border-2 border-cosmic-gold/50 bg-white/10 text-cosmic-gold focus:ring-2 focus:ring-cosmic-gold focus:ring-offset-0 cursor-pointer accent-cosmic-gold"
-                  />
-                  <label
-                    htmlFor={`promotions-${product.id}`}
-                    className="text-sm text-white cursor-pointer flex-1 leading-relaxed"
-                  >
-                    <span className="font-semibold text-cosmic-gold">📧 Recevoir nos promotions</span>
-                    <br />
-                    <span className="text-cosmic-silver">J'accepte de recevoir des offres spéciales et des promotions par email</span>
-                  </label>
                 </div>
 
                 {product.id === 'valentine-2026' ? (
