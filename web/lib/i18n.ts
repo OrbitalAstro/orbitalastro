@@ -363,7 +363,7 @@ export const translations = {
     },
     terms: {
       title: "Terms and Conditions",
-      lastUpdated: "Last updated: January 2025",
+      lastUpdated: "Last updated: February 2026",
       section1Title: "1. Acceptance of Terms",
       section1Content: "By using Orbital Astro services, you agree to be bound by these terms and conditions. If you do not accept these conditions, please do not use our services.",
       section1Content2: "Orbital Astro reserves the right to modify these terms at any time. Changes will take effect immediately upon publication on this site.",
@@ -389,7 +389,7 @@ export const translations = {
     },
     privacy: {
       title: "Privacy Policy",
-      lastUpdated: "Last updated: January 2025",
+      lastUpdated: "Last updated: February 2026",
       section1Title: "1. Information We Collect",
       section1Content: "We collect the following information when you use our services:",
       section1Item1: "Birth information (date, time, place) for astrological calculations",
@@ -751,7 +751,7 @@ export const translations = {
     },
     terms: {
       title: "Termes et Conditions",
-      lastUpdated: "Dernière mise à jour : janvier 2025",
+      lastUpdated: "Dernière mise à jour : février 2026",
       section1Title: "1. Acceptation des conditions",
       section1Content: "En utilisant les services d'Orbital Astro, vous acceptez d'être lié par ces termes et conditions. Si vous n'acceptez pas ces conditions, veuillez ne pas utiliser nos services.",
       section1Content2: "Orbital Astro se réserve le droit de modifier ces termes à tout moment. Les modifications entreront en vigueur dès leur publication sur ce site.",
@@ -777,7 +777,7 @@ export const translations = {
     },
     privacy: {
       title: "Politique de Confidentialité",
-      lastUpdated: "Dernière mise à jour : janvier 2025",
+      lastUpdated: "Dernière mise à jour : février 2026",
       section1Title: "1. Informations que nous collectons",
       section1Content: "Nous collectons les informations suivantes lorsque vous utilisez nos services :",
       section1Item1: "Informations de naissance (date, heure, lieu) pour les calculs astrologiques",
@@ -1167,7 +1167,7 @@ export const translations = {
     },
     terms: {
       title: "Términos y Condiciones",
-      lastUpdated: "Última actualización: enero 2025",
+      lastUpdated: "Última actualización: febrero 2026",
       section1Title: "1. Aceptación de los términos",
       section1Content: "Al usar los servicios de Orbital Astro, aceptas estar sujeto a estos términos y condiciones. Si no aceptas estas condiciones, por favor no uses nuestros servicios.",
       section1Content2: "Orbital Astro se reserva el derecho de modificar estos términos en cualquier momento. Los cambios entrarán en vigor inmediatamente después de su publicación en este sitio.",
@@ -1193,7 +1193,7 @@ export const translations = {
     },
     privacy: {
       title: "Política de Privacidad",
-      lastUpdated: "Última actualización: enero 2025",
+      lastUpdated: "Última actualización: febrero 2026",
       section1Title: "1. Información que recopilamos",
       section1Content: "Recopilamos la siguiente información cuando usas nuestros servicios:",
       section1Item1: "Información de nacimiento (fecha, hora, lugar) para cálculos astrológicos",
