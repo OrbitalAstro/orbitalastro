@@ -19,16 +19,16 @@ export default function Starfield() {
   // Generate stars only on client to avoid hydration mismatch
   useEffect(() => {
     setStars(
-      Array.from({ length: 1000 }).map((_, i) => ({
+      Array.from({ length: 150 }).map((_, i) => ({
         id: i,
         x: Math.random() * 100,
         y: Math.random() * 100,
-        size: Math.random() * 2.5 + 0.5,
-        duration: Math.random() * 4 + 2,
-        delay: Math.random() * 2,
-        xOffset: (Math.random() - 0.5) * 20, // Movement range
-        yOffset: (Math.random() - 0.5) * 20,
-        rotation: Math.random() * 360,
+        size: Math.random() * 1.5 + 1,
+        duration: Math.random() * 3 + 3,
+        delay: Math.random() * 1,
+        xOffset: (Math.random() - 0.5) * 5, // Movement range réduit
+        yOffset: (Math.random() - 0.5) * 5,
+        rotation: 0, // Pas de rotation
       }))
     )
   }, [])
@@ -46,25 +46,14 @@ export default function Starfield() {
             height: star.size,
           }}
           animate={{
-            opacity: [0.3, 1, 0.7, 1, 0.3],
-            scale: [1, 1.4, 0.9, 1.3, 1],
-            x: [0, star.xOffset, -star.xOffset, star.xOffset * 0.5, 0],
-            y: [0, star.yOffset, -star.yOffset, star.yOffset * 0.5, 0],
-            rotate: [star.rotation, star.rotation + 180, star.rotation + 360],
-            boxShadow: [
-              '0 0 2px rgba(255,255,255,0.5)',
-              '0 0 8px rgba(255,255,255,0.9), 0 0 12px rgba(255,255,255,0.6)',
-              '0 0 4px rgba(255,255,255,0.7)',
-              '0 0 10px rgba(255,255,255,0.8), 0 0 15px rgba(255,255,255,0.5)',
-              '0 0 2px rgba(255,255,255,0.5)',
-            ],
+            opacity: [0.4, 0.9, 0.4],
+            scale: [1, 1.1, 1],
           }}
           transition={{
             duration: star.duration,
             delay: star.delay,
             repeat: Infinity,
             ease: "easeInOut",
-            times: [0, 0.25, 0.5, 0.75, 1],
           }}
         />
       ))}
