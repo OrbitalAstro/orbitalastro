@@ -10,6 +10,7 @@ import {
   Settings, 
   Info,
   Mail,
+  HelpCircle,
   Menu,
   X
 } from 'lucide-react'
@@ -66,7 +67,7 @@ export default function Navigation() {
                 </Link>
               ))}
               
-              {/* Settings, About and Contact */}
+              {/* Settings, About, FAQ and Contact */}
               <div className="flex items-center gap-2 ml-2 pl-2 border-l border-white/10">
                 <Link
                   href="/settings"
@@ -92,6 +93,18 @@ export default function Navigation() {
                   `}
                 >
                   {t.nav.about}
+                </Link>
+                <Link
+                  href="/faq"
+                  className={`
+                    px-3 py-2 rounded-lg text-sm font-medium transition-all
+                    ${isActive('/faq')
+                      ? 'bg-white/10 text-white'
+                      : 'text-white/70 hover:text-white hover:bg-white/10'
+                    }
+                  `}
+                >
+                  {t.nav.faq}
                 </Link>
                 <Link
                   href="/contact"
@@ -197,6 +210,20 @@ export default function Navigation() {
                     >
                       <Info className="h-5 w-5 text-cosmic-gold" />
                       <span className="font-medium">{t.nav.about}</span>
+                    </Link>
+                    <Link
+                      href="/faq"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={`
+                        flex items-center gap-3 p-3 rounded-lg transition text-white
+                        ${isActive('/faq')
+                          ? 'bg-white/10'
+                          : 'hover:bg-white/10'
+                        }
+                      `}
+                    >
+                      <HelpCircle className="h-5 w-5 text-cosmic-gold" />
+                      <span className="font-medium">{t.nav.faq}</span>
                     </Link>
                     <Link
                       href="/contact"

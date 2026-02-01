@@ -28,6 +28,7 @@ export const translations = {
       settings: "Settings",
       about: "About",
       contact: "Contact",
+      faq: "FAQ",
       beginJourney: "Begin Journey",
     },
     home: {
@@ -339,6 +340,26 @@ export const translations = {
       depthLong: "Long",
       depthComprehensive: "Comprehensive",
     },
+    faq: {
+      title: "FAQ: What you want to know (straightforward)",
+      subtitle: "Straight answers to your questions",
+      q1: {
+        question: "What exactly is this \"Astrology and its Guild\"?",
+        answer: "It's our idea of a gathering of the 10 planets, 12 signs, and other cosmic elements united and animated to illuminate your sky. Imagine a team of cosmic data scientists who transform the positions of the stars into actionable advice. We're here to give you the keys to evolution.",
+      },
+      q2: {
+        question: "Is this magazine horoscope?",
+        answer: "Absolutely not. We're in high resolution. We analyze orbital trajectories with precision to give you real insights into your daily life. It's astrology for those who want to understand the \"why\" of the \"how\".",
+      },
+      q3: {
+        question: "Do you need to be an astrology expert to play?",
+        answer: "Zero prerequisites. We handle the technical complexity, you get the clarity. It's like a car: we explain what's under the hood, but what we want is for you to enjoy driving.",
+      },
+      q4: {
+        question: "What does \"Orbital Dialogues\" mean?",
+        answer: "These are fictional conversations based on your astrology with your natal chart, current transits.",
+      },
+    },
   },
   fr: {
     common: {
@@ -365,6 +386,7 @@ export const translations = {
       settings: "Paramètres",
       about: "À propos",
       contact: "Contact",
+      faq: "FAQ",
       beginJourney: "Commencer",
     },
     home: {
@@ -655,6 +677,26 @@ export const translations = {
       depthLong: "Long",
       depthComprehensive: "Complet",
     },
+    faq: {
+      title: "FAQ : Ce que tu veux savoir (sans détour)",
+      subtitle: "Réponses directes à tes questions",
+      q1: {
+        question: "C'est quoi exactement cette \"Astrologie et sa Guilde\" ?",
+        answer: "C'est notre idée d'un regroupement des 10 planètes, 12 signes et autres éléments cosmiques réunis et qui s'animent pour éclairer ton ciel. Imagine une équipe de scientifiques de données du cosmos qui transforment les positions des astres en conseils actionnables. On est là pour te donner les clés d'évolution.",
+      },
+      q2: {
+        question: "Est-ce que c'est de l'horoscope de magazine ?",
+        answer: "Absolument pas. On est dans la haute résolution. On analyse les trajectoires orbitales avec précision pour te donner des insights réels sur ton quotidien. C'est de l'astrologie pour ceux qui veulent comprendre le \"pourquoi\" du \"comment\".",
+      },
+      q3: {
+        question: "Faut-il être un expert en astro pour jouer ?",
+        answer: "Zéro prérequis. On s'occupe de la complexité technique, tu récupères la clarté. C'est comme une voiture : on t'explique ce qu'il y a sous le capot, mais ce qu'on veut, c'est que tu prennes du plaisir à conduire.",
+      },
+      q4: {
+        question: "Ça veut dire quoi \"Dialogues Orbital\" ?",
+        answer: "Ce sont des conversations fictives appuyé sur ton astrologie avec ta carte du ciel natale, les transits en cours.",
+      },
+    },
   },
   es: {
     common: {
@@ -681,6 +723,7 @@ export const translations = {
       settings: "Configuración",
       about: "Acerca de",
       contact: "Contacto",
+      faq: "FAQ",
       beginJourney: "Comenzar",
     },
     home: {
@@ -998,6 +1041,26 @@ export const translations = {
       depthStandard: "Estándar",
       depthLong: "Largo",
       depthComprehensive: "Exhaustivo",
+    },
+    faq: {
+      title: "FAQ: Lo que quieres saber (sin rodeos)",
+      subtitle: "Respuestas directas a tus preguntas",
+      q1: {
+        question: "¿Qué es exactamente esta \"Astrología y su Gremio\"?",
+        answer: "Es nuestra idea de una reunión de los 10 planetas, 12 signos y otros elementos cósmicos unidos y animados para iluminar tu cielo. Imagina un equipo de científicos de datos del cosmos que transforman las posiciones de los astros en consejos accionables. Estamos aquí para darte las claves de evolución.",
+      },
+      q2: {
+        question: "¿Es esto horóscopo de revista?",
+        answer: "Absolutamente no. Estamos en alta resolución. Analizamos las trayectorias orbitales con precisión para darte insights reales sobre tu vida diaria. Es astrología para aquellos que quieren entender el \"por qué\" del \"cómo\".",
+      },
+      q3: {
+        question: "¿Necesitas ser un experto en astrología para jugar?",
+        answer: "Cero prerrequisitos. Nos ocupamos de la complejidad técnica, tú obtienes la claridad. Es como un auto: te explicamos lo que hay bajo el capó, pero lo que queremos es que disfrutes conducir.",
+      },
+      q4: {
+        question: "¿Qué significa \"Diálogos Orbitales\"?",
+        answer: "Son conversaciones ficticias basadas en tu astrología con tu carta natal, los tránsitos en curso.",
+      },
     },
   },
 } as const;
