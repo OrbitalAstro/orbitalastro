@@ -678,7 +678,7 @@ export const translations = {
       depthComprehensive: "Complet",
     },
     faq: {
-      title: "FAQ : Ce que tu veux savoir (sans détour)",
+      title: "FAQ : Ce que tu veux savoir\u00A0(sans détour)",
       subtitle: "Réponses directes à tes questions",
       q1: {
         question: "C'est quoi exactement cette \"Astrologie et sa Guilde\" ?",
@@ -694,7 +694,7 @@ export const translations = {
       },
       q4: {
         question: "Ça veut dire quoi \"Dialogues Orbital\" ?",
-        answer: "Ce sont des conversations fictives appuyé sur ton astrologie avec ta carte du ciel natale, les transits en cours.",
+        answer: "Ce sont des conversations fictives appuyées sur ton astrologie avec ta carte du ciel natale, les transits en cours.",
       },
     },
   },

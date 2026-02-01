@@ -22,7 +22,7 @@ export default function FAQPage() {
 
         <div className="text-center max-w-4xl mx-auto mt-10 mb-12">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
-            <h1 className="text-4xl sm:text-5xl font-heading font-bold text-cosmic-gold mb-4">
+            <h1 className="text-2xl sm:text-4xl lg:text-5xl font-heading font-bold text-cosmic-gold mb-4 whitespace-nowrap">
               {t.faq.title}
             </h1>
             <p className="text-cosmic-gold/85 text-lg leading-relaxed">
