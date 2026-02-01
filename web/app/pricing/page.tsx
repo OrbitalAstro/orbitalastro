@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Loader2, CreditCard, Sparkles, Calendar, Gift, Check, Heart, Infinity } from 'lucide-react'
 import { oneTimeProducts, subscriptions, type Product } from '@/lib/stripe'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import Starfield from '@/components/Starfield'
 
 export default function PricingPage() {
@@ -349,11 +350,22 @@ export default function PricingPage() {
           <p className="mb-2">
             Paiement sécurisé par Stripe. Aucune information de carte n'est stockée sur nos serveurs.
           </p>
+          <p className="text-sm mb-2">
+            En procédant au paiement, vous acceptez nos{' '}
+            <Link href="/terms" className="text-cosmic-gold hover:underline">
+              Termes et Conditions
+            </Link>
+            {' '}et notre{' '}
+            <Link href="/privacy" className="text-cosmic-gold hover:underline">
+              Politique de Confidentialité
+            </Link>
+            .
+          </p>
           <p className="text-sm">
             Questions ?{' '}
-            <a href="/about" className="text-cosmic-gold hover:underline">
+            <Link href="/contact" className="text-cosmic-gold hover:underline">
               Contactez-nous
-            </a>
+            </Link>
           </p>
         </div>
       </div>

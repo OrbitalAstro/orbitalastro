@@ -12,6 +12,8 @@ import {
   Info,
   Mail,
   HelpCircle,
+  FileText,
+  Shield,
   Menu,
   X
 } from 'lucide-react'
@@ -138,6 +140,30 @@ export default function Navigation() {
                   `}
                 >
                   {t.nav.contact}
+                </Link>
+                <Link
+                  href="/terms"
+                  className={`
+                    px-3 py-2 rounded-lg text-sm font-medium transition-all
+                    ${isActive('/terms')
+                      ? 'bg-white/10 text-white'
+                      : 'text-white/70 hover:text-white hover:bg-white/10'
+                    }
+                  `}
+                >
+                  {t.nav.terms}
+                </Link>
+                <Link
+                  href="/privacy"
+                  className={`
+                    px-3 py-2 rounded-lg text-sm font-medium transition-all
+                    ${isActive('/privacy')
+                      ? 'bg-white/10 text-white'
+                      : 'text-white/70 hover:text-white hover:bg-white/10'
+                    }
+                  `}
+                >
+                  {t.nav.privacy}
                 </Link>
               </div>
             </div>
@@ -273,6 +299,34 @@ export default function Navigation() {
                     >
                       <Mail className="h-5 w-5 text-cosmic-gold" />
                       <span className="font-medium">{t.nav.contact}</span>
+                    </Link>
+                    <Link
+                      href="/terms"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={`
+                        flex items-center gap-3 p-3 rounded-lg transition text-white
+                        ${isActive('/terms')
+                          ? 'bg-white/10'
+                          : 'hover:bg-white/10'
+                        }
+                      `}
+                    >
+                      <FileText className="h-5 w-5 text-cosmic-gold" />
+                      <span className="font-medium">{t.nav.terms}</span>
+                    </Link>
+                    <Link
+                      href="/privacy"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={`
+                        flex items-center gap-3 p-3 rounded-lg transition text-white
+                        ${isActive('/privacy')
+                          ? 'bg-white/10'
+                          : 'hover:bg-white/10'
+                        }
+                      `}
+                    >
+                      <Shield className="h-5 w-5 text-cosmic-gold" />
+                      <span className="font-medium">{t.nav.privacy}</span>
                     </Link>
                   </div>
                 </nav>
