@@ -208,16 +208,6 @@ export default function PricingPage() {
                   )}
                 </div>
 
-                {/* Message d'avertissement pour paiement réel */}
-                <div className="mt-4 p-4 bg-yellow-500/20 border-2 border-yellow-500/50 rounded-lg">
-                  <p className="text-yellow-200 text-sm font-semibold text-center">
-                    ⚠️ Paiement final et définitif
-                  </p>
-                  <p className="text-yellow-300/80 text-xs text-center mt-1">
-                    Ce paiement sera débité immédiatement de votre carte bancaire.
-                  </p>
-                </div>
-
                 {/* Case à cocher pour accepter les promotions */}
                 <div className="mt-4 flex items-start gap-3 p-4 bg-gradient-to-r from-cosmic-purple/20 to-cosmic-gold/10 rounded-lg border border-cosmic-gold/30">
                   <input
@@ -302,16 +292,6 @@ export default function PricingPage() {
                       ))}
                     </ul>
                   )}
-
-                  {/* Message d'avertissement pour paiement réel */}
-                  <div className="mb-6 p-4 bg-yellow-500/20 border-2 border-yellow-500/50 rounded-lg">
-                    <p className="text-yellow-200 text-sm font-semibold text-center">
-                      ⚠️ Paiement final et définitif
-                    </p>
-                    <p className="text-yellow-300/80 text-xs text-center mt-1">
-                      Ce paiement sera débité immédiatement de votre carte bancaire.
-                    </p>
-                  </div>
 
                   {/* Case à cocher pour accepter les promotions */}
                   <div className="mb-6 flex items-start gap-3 p-4 bg-gradient-to-r from-cosmic-purple/20 to-cosmic-gold/10 rounded-lg border border-cosmic-purple/30">
