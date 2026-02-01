@@ -218,19 +218,21 @@ export default function PricingPage() {
                 </div>
 
                 {/* Case à cocher pour accepter les promotions */}
-                <div className="mt-4 flex items-start gap-3 p-3 bg-white/5 rounded-lg border border-white/10">
+                <div className="mt-4 flex items-start gap-3 p-4 bg-gradient-to-r from-cosmic-purple/20 to-cosmic-gold/10 rounded-lg border border-cosmic-gold/30">
                   <input
                     type="checkbox"
                     id={`promotions-${product.id}`}
                     checked={acceptPromotions}
                     onChange={(e) => setAcceptPromotions(e.target.checked)}
-                    className="mt-1 h-4 w-4 rounded border-white/30 bg-white/10 text-cosmic-gold focus:ring-2 focus:ring-cosmic-gold focus:ring-offset-0 cursor-pointer"
+                    className="mt-0.5 h-5 w-5 rounded border-2 border-cosmic-gold/50 bg-white/10 text-cosmic-gold focus:ring-2 focus:ring-cosmic-gold focus:ring-offset-0 cursor-pointer accent-cosmic-gold"
                   />
                   <label
                     htmlFor={`promotions-${product.id}`}
-                    className="text-sm text-cosmic-silver cursor-pointer flex-1"
+                    className="text-sm text-white cursor-pointer flex-1 leading-relaxed"
                   >
-                    J'accepte de recevoir des promotions et offres spéciales par email
+                    <span className="font-semibold text-cosmic-gold">📧 Recevoir nos promotions</span>
+                    <br />
+                    <span className="text-cosmic-silver">J'accepte de recevoir des offres spéciales et des promotions par email</span>
                   </label>
                 </div>
 
@@ -302,19 +304,21 @@ export default function PricingPage() {
                   </div>
 
                   {/* Case à cocher pour accepter les promotions */}
-                  <div className="mb-6 flex items-start gap-3 p-3 bg-white/5 rounded-lg border border-white/10">
+                  <div className="mb-6 flex items-start gap-3 p-4 bg-gradient-to-r from-cosmic-purple/20 to-cosmic-gold/10 rounded-lg border border-cosmic-purple/30">
                     <input
                       type="checkbox"
                       id={`promotions-${subscription.id}`}
                       checked={acceptPromotions}
                       onChange={(e) => setAcceptPromotions(e.target.checked)}
-                      className="mt-1 h-4 w-4 rounded border-white/30 bg-white/10 text-cosmic-purple focus:ring-2 focus:ring-cosmic-purple focus:ring-offset-0 cursor-pointer"
+                      className="mt-0.5 h-5 w-5 rounded border-2 border-cosmic-purple/50 bg-white/10 text-cosmic-purple focus:ring-2 focus:ring-cosmic-purple focus:ring-offset-0 cursor-pointer accent-cosmic-purple"
                     />
                     <label
                       htmlFor={`promotions-${subscription.id}`}
-                      className="text-sm text-cosmic-silver cursor-pointer flex-1"
+                      className="text-sm text-white cursor-pointer flex-1 leading-relaxed"
                     >
-                      J'accepte de recevoir des promotions et offres spéciales par email
+                      <span className="font-semibold text-cosmic-purple">📧 Recevoir nos promotions</span>
+                      <br />
+                      <span className="text-cosmic-silver">J'accepte de recevoir des offres spéciales et des promotions par email</span>
                     </label>
                   </div>
 

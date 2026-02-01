@@ -1,4 +1,4 @@
-﻿// Stripe client pour le frontend (publishable key uniquement)
+// Stripe client pour le frontend (publishable key uniquement)
 import { loadStripe, Stripe } from '@stripe/stripe-js'
 
 let stripePromise: Promise<Stripe | null>
