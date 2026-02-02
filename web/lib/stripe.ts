@@ -40,7 +40,13 @@ const getStripeMode = () => {
   const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || ''
   
   // Si la clé commence par pk_live_, on est en mode LIVE
-  if (publishableKey.startsWith('pk_live_')) {
+  if (publishableKey && publishableKey.startsWith('pk_live_')) {
+    return 'live'
+  }
+  
+  // Si on est en production (NODE_ENV=production) et qu'on n'a pas de clé de test, utiliser LIVE
+  if (typeof window === 'undefined' && process.env.NODE_ENV === 'production') {
+    // Côté serveur en production, utiliser LIVE par défaut
     return 'live'
   }
   
