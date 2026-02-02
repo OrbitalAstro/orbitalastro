@@ -93,14 +93,9 @@ export async function POST(request: NextRequest) {
         productId: productId || 'unknown',
         promoCode: promoCode || '',
       },
-      // Collecte du consentement marketing et des termes et conditions dans Stripe Checkout
-      consent_collection: {
-        terms_of_service: 'required', // Case à cocher obligatoire pour accepter les termes et conditions
-        // Note: promotions n'est pas disponible dans tous les pays, donc on l'enlève
-        // Le consentement marketing sera géré via les métadonnées si nécessaire
-      },
-      // URL des termes et conditions (doit être configurée dans le Dashboard Stripe OU passée ici)
-      terms_of_service_url: `${baseUrl}/terms`, // URL des termes et conditions
+      // Note: consent_collection retiré temporairement
+      // Pour activer les termes et conditions, il faut d'abord configurer l'URL dans le Dashboard Stripe
+      // https://dashboard.stripe.com/settings/public
       // Message d'avertissement pour paiement réel et informations requises
       custom_text: {
         submit: {
