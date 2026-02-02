@@ -59,7 +59,7 @@ export default function Navigation() {
             </Link>
 
             {/* Desktop Menu */}
-            <div className="hidden lg:flex items-center space-x-1">
+            <div className="hidden lg:flex items-center space-x-1 flex-nowrap">
               {menuItems.map((item) => {
                 if (item.disabled) {
                   return (
