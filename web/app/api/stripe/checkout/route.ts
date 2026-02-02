@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
       },
       // Collecte du consentement marketing et des termes et conditions dans Stripe Checkout
       consent_collection: {
-        marketing_consent: 'required', // Case à cocher obligatoire pour recevoir les promotions
+        promotions: 'auto', // Demander automatiquement le consentement marketing
         terms_of_service: 'required', // Case à cocher obligatoire pour accepter les termes et conditions
       },
       // Message d'avertissement pour paiement réel et informations requises
