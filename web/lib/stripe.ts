@@ -35,11 +35,17 @@ export interface Product {
 // Détecter si on utilise les clés LIVE (production) ou TEST (développement)
 // On détecte automatiquement selon la clé publishable configurée
 const getStripeMode = () => {
-  const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || ''
+  // Vérifier côté client (window) et côté serveur (process.env)
+  const publishableKey = 
+    (typeof window !== 'undefined' 
+      ? (window as any).__NEXT_DATA__?.env?.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY 
+      : null) 
+    || process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY 
+    || ''
   return publishableKey.startsWith('pk_live_') ? 'live' : 'test'
 }
 
-// Helper pour obtenir le bon Price ID selon l'environnement
+// Helper pour obtenir le bon Price ID selon l'environnement (au runtime)
 const getPriceId = (testId: string, liveId?: string) => {
   const mode = getStripeMode()
   // Si on est en production (LIVE) et qu'on a un Price ID de production, l'utiliser
@@ -50,52 +56,58 @@ const getPriceId = (testId: string, liveId?: string) => {
   return testId
 }
 
-// Produits à la pièce
-// NOTE: Pour passer en production, vous devrez :
-// 1. Créer les produits en Live mode dans Stripe
-// 2. Récupérer les Price IDs de production
-// 3. Les ajouter comme deuxième paramètre dans getPriceId() ci-dessous
-export const oneTimeProducts: Product[] = [
-  {
-    id: 'dialogue',
-    name: 'Dialogue pré-incarnation',
-    description: 'Génération d\'un dialogue pré-incarnation.',
-    price: 9.99,
-    currency: 'cad',
-    stripePriceId: getPriceId(
-      'price_1Sr8qkJOod2H9eSE8QV72G4p', // TEST (utilisé en local)
-      'price_1Sw9inJp4kRSmzLn7wY3DIUT' // LIVE (production)
-    ),
-    type: 'one-time',
-    launchOffer: true,
-  },
-  {
-    id: 'reading-2026',
-    name: 'Lecture 2026',
-    description: 'Générer la lecture astrologie de l\'année 2026',
-    price: 9.99,
-    currency: 'cad',
-    stripePriceId: getPriceId(
-      'price_1Sr8sKJOod2H9eSERiPO6965', // TEST (utilisé en local)
-      'price_1SwAFoJp4kRSmzLnS0MgV7VS' // LIVE (production)
-    ),
-    type: 'one-time',
-    launchOffer: true,
-  },
-  {
-    id: 'valentine-2026',
-    name: 'Saint-Valentin 2026',
-    description: 'Synastrie Saint-Valentin 2026',
-    price: 14.00,
-    currency: 'cad',
-    stripePriceId: getPriceId(
-      'price_1SrTNsJOod2H9eSEa2Nz1heK', // TEST (utilisé en local)
-      // 'price_1VOTRE_PRICE_ID_LIVE_VALENTINE' // LIVE (à ajouter après création en production)
-    ),
-    type: 'one-time',
-    launchOffer: false,
-  },
-]
+// Fonction pour obtenir les produits avec les Price IDs calculés au runtime
+const getProductsWithPriceIds = () => {
+  const baseProducts = [
+    {
+      id: 'dialogue',
+      name: 'Dialogue pré-incarnation',
+      description: 'Génération d\'un dialogue pré-incarnation.',
+      price: 9.99,
+      currency: 'cad',
+      testPriceId: 'price_1Sr8qkJOod2H9eSE8QV72G4p', // TEST
+      livePriceId: 'price_1Sw9inJp4kRSmzLn7wY3DIUT', // LIVE
+      type: 'one-time' as const,
+      launchOffer: true,
+    },
+    {
+      id: 'reading-2026',
+      name: 'Lecture 2026',
+      description: 'Générer la lecture astrologie de l\'année 2026',
+      price: 9.99,
+      currency: 'cad',
+      testPriceId: 'price_1Sr8sKJOod2H9eSERiPO6965', // TEST
+      livePriceId: 'price_1SwAFoJp4kRSmzLnS0MgV7VS', // LIVE
+      type: 'one-time' as const,
+      launchOffer: true,
+    },
+    {
+      id: 'valentine-2026',
+      name: 'Saint-Valentin 2026',
+      description: 'Synastrie Saint-Valentin 2026',
+      price: 14.00,
+      currency: 'cad',
+      testPriceId: 'price_1SrTNsJOod2H9eSEa2Nz1heK', // TEST
+      livePriceId: undefined, // LIVE (à ajouter après création en production)
+      type: 'one-time' as const,
+      launchOffer: false,
+    },
+  ]
+
+  return baseProducts.map(product => ({
+    id: product.id,
+    name: product.name,
+    description: product.description,
+    price: product.price,
+    currency: product.currency,
+    stripePriceId: getPriceId(product.testPriceId, product.livePriceId),
+    type: product.type,
+    launchOffer: product.launchOffer,
+  }))
+}
+
+// Produits à la pièce (calculés au runtime)
+export const oneTimeProducts: Product[] = getProductsWithPriceIds()
 
 // Abonnements (pour plus tard)
 export const subscriptions: Product[] = [
