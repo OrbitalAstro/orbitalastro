@@ -77,7 +77,7 @@ export const oneTimeProducts: Product[] = [
     currency: 'cad',
     stripePriceId: getPriceId(
       'price_1Sr8sKJOod2H9eSERiPO6965', // TEST (utilisé en local)
-      // 'price_1VOTRE_PRICE_ID_LIVE_READING' // LIVE (à ajouter après création en production)
+      'price_1SwAFoJp4kRSmzLnS0MgV7VS' // LIVE (production)
     ),
     type: 'one-time',
     launchOffer: true,
