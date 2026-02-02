@@ -165,12 +165,12 @@ export async function POST(request: NextRequest) {
 
     // Vérifier que le Price ID existe avant de créer la session
     try {
-      await stripe.prices.retrieve(priceId)
+      await stripe.prices.retrieve(actualPriceId)
     } catch (error) {
-      console.error('Invalid Price ID:', priceId, error)
+      console.error('Invalid Price ID:', actualPriceId, error)
       return NextResponse.json(
         { 
-          error: `Le Price ID "${priceId}" n'existe pas dans Stripe. Veuillez vérifier la configuration du produit "${productId}".` 
+          error: `Le Price ID "${actualPriceId}" n'existe pas dans Stripe. Veuillez vérifier la configuration du produit "${productId}".` 
         },
         { status: 400 }
       )
