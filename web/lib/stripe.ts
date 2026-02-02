@@ -65,44 +65,46 @@ const getPriceId = (testId: string, liveId?: string) => {
   return testId
 }
 
-// Fonction pour obtenir les produits avec les Price IDs calculés au runtime
-const getProductsWithPriceIds = () => {
-  const baseProducts = [
-    {
-      id: 'dialogue',
-      name: 'Dialogue pré-incarnation',
-      description: 'Génération d\'un dialogue pré-incarnation.',
-      price: 9.99,
-      currency: 'cad',
-      testPriceId: 'price_1Sr8qkJOod2H9eSE8QV72G4p', // TEST
-      livePriceId: 'price_1Sw9inJp4kRSmzLn7wY3DIUT', // LIVE
-      type: 'one-time' as const,
-      launchOffer: true,
-    },
-    {
-      id: 'reading-2026',
-      name: 'Lecture 2026',
-      description: 'Générer la lecture astrologie de l\'année 2026',
-      price: 9.99,
-      currency: 'cad',
-      testPriceId: 'price_1Sr8sKJOod2H9eSERiPO6965', // TEST
-      livePriceId: 'price_1SwAFoJp4kRSmzLnS0MgV7VS', // LIVE
-      type: 'one-time' as const,
-      launchOffer: true,
-    },
-    {
-      id: 'valentine-2026',
-      name: 'Saint-Valentin 2026',
-      description: 'Synastrie Saint-Valentin 2026',
-      price: 14.00,
-      currency: 'cad',
-      testPriceId: 'price_1SrTNsJOod2H9eSEa2Nz1heK', // TEST
-      livePriceId: undefined, // LIVE (à ajouter après création en production)
-      type: 'one-time' as const,
-      launchOffer: false,
-    },
-  ]
+// Base des produits (sans Price IDs)
+const baseProducts = [
+  {
+    id: 'dialogue',
+    name: 'Dialogue pré-incarnation',
+    description: 'Génération d\'un dialogue pré-incarnation.',
+    price: 9.99,
+    currency: 'cad',
+    testPriceId: 'price_1Sr8qkJOod2H9eSE8QV72G4p', // TEST
+    livePriceId: 'price_1Sw9inJp4kRSmzLn7wY3DIUT', // LIVE
+    type: 'one-time' as const,
+    launchOffer: true,
+  },
+  {
+    id: 'reading-2026',
+    name: 'Lecture 2026',
+    description: 'Générer la lecture astrologie de l\'année 2026',
+    price: 9.99,
+    currency: 'cad',
+    testPriceId: 'price_1Sr8sKJOod2H9eSERiPO6965', // TEST
+    livePriceId: 'price_1SwAFoJp4kRSmzLnS0MgV7VS', // LIVE
+    type: 'one-time' as const,
+    launchOffer: true,
+  },
+  {
+    id: 'valentine-2026',
+    name: 'Saint-Valentin 2026',
+    description: 'Synastrie Saint-Valentin 2026',
+    price: 14.00,
+    currency: 'cad',
+    testPriceId: 'price_1SrTNsJOod2H9eSEa2Nz1heK', // TEST
+    livePriceId: 'price_1SrTNsJOod2H9eSEa2Nz1heK', // LIVE (placeholder)
+    type: 'one-time' as const,
+    launchOffer: false,
+  },
+]
 
+// Fonction pour obtenir les produits avec les Price IDs calculés au runtime
+// Cette fonction est appelée à chaque fois qu'on a besoin des produits
+export const getOneTimeProducts = (): Product[] => {
   return baseProducts.map(product => ({
     id: product.id,
     name: product.name,
@@ -115,8 +117,8 @@ const getProductsWithPriceIds = () => {
   }))
 }
 
-// Produits à la pièce (calculés au runtime)
-export const oneTimeProducts: Product[] = getProductsWithPriceIds()
+// Produits à la pièce (pour compatibilité, mais utiliser getOneTimeProducts() de préférence)
+export const oneTimeProducts: Product[] = getOneTimeProducts()
 
 // Abonnements (pour plus tard)
 export const subscriptions: Product[] = [

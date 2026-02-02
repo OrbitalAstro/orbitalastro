@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Loader2, CreditCard, Sparkles, Calendar, Gift, Check, Heart, Infinity } from 'lucide-react'
-import { oneTimeProducts, subscriptions, type Product } from '@/lib/stripe'
+import { getOneTimeProducts, subscriptions, type Product } from '@/lib/stripe'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Starfield from '@/components/Starfield'
@@ -167,7 +167,7 @@ export default function PricingPage() {
             Services à la pièce
           </h2>
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto items-stretch">
-            {oneTimeProducts.map((product) => (
+            {getOneTimeProducts().map((product) => (
               <div
                 key={product.id}
                 className="rounded-2xl p-8 bg-gradient-to-br from-cosmic-gold/10 to-cosmic-purple/10 border-2 border-cosmic-gold relative flex flex-col h-full"
