@@ -55,13 +55,10 @@ const getStripeMode = () => {
 }
 
 // Helper pour obtenir le bon Price ID selon l'environnement (au runtime)
+// NOTE: Le frontend peut envoyer n'importe quel Price ID, l'API checkout le remplacera par le bon
 const getPriceId = (testId: string, liveId?: string) => {
-  const mode = getStripeMode()
-  // Si on est en production (LIVE) et qu'on a un Price ID de production, l'utiliser
-  // Sinon, utiliser celui de test (pour le développement local)
-  if (mode === 'live' && liveId) {
-    return liveId
-  }
+  // Toujours retourner un Price ID valide (même si c'est celui de test)
+  // L'API checkout déterminera le bon Price ID côté serveur
   return testId
 }
 
