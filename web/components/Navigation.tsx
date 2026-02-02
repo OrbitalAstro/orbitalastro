@@ -78,25 +78,25 @@ export default function Navigation() {
                     key={item.href}
                     href={item.href}
                     className={`
-                      flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all
+                      flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex-shrink-0
                       ${isActive(item.href)
                         ? 'bg-gradient-to-r from-purple-600/20 to-pink-600/20 text-white border border-purple-500/30'
                         : 'text-white/70 hover:text-white hover:bg-white/10'
                       }
                     `}
                   >
-                    <item.icon className="h-4 w-4" />
-                    <span>{item.label}</span>
+                    <item.icon className="h-4 w-4 flex-shrink-0" />
+                    <span className="whitespace-nowrap">{item.label}</span>
                   </Link>
                 )
               })}
               
               {/* FAQ, Terms, Privacy, Contact and Settings */}
-              <div className="flex items-center gap-2 ml-2 pl-2 border-l border-white/10">
+              <div className="flex items-center gap-2 ml-2 pl-2 border-l border-white/10 flex-nowrap">
                 <Link
                   href="/faq"
                   className={`
-                    px-3 py-2 rounded-lg text-sm font-medium transition-all
+                    px-3 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex-shrink-0
                     ${isActive('/faq')
                       ? 'bg-white/10 text-white'
                       : 'text-white/70 hover:text-white hover:bg-white/10'
@@ -108,7 +108,7 @@ export default function Navigation() {
                 <Link
                   href="/terms"
                   className={`
-                    px-3 py-2 rounded-lg text-sm font-medium transition-all
+                    px-3 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex-shrink-0
                     ${isActive('/terms')
                       ? 'bg-white/10 text-white'
                       : 'text-white/70 hover:text-white hover:bg-white/10'
@@ -120,7 +120,7 @@ export default function Navigation() {
                 <Link
                   href="/privacy"
                   className={`
-                    px-3 py-2 rounded-lg text-sm font-medium transition-all
+                    px-3 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex-shrink-0
                     ${isActive('/privacy')
                       ? 'bg-white/10 text-white'
                       : 'text-white/70 hover:text-white hover:bg-white/10'
@@ -132,7 +132,7 @@ export default function Navigation() {
                 <Link
                   href="/contact"
                   className={`
-                    px-3 py-2 rounded-lg text-sm font-medium transition-all
+                    px-3 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex-shrink-0
                     ${isActive('/contact')
                       ? 'bg-white/10 text-white'
                       : 'text-white/70 hover:text-white hover:bg-white/10'
