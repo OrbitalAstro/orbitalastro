@@ -35,14 +35,17 @@ export interface Product {
 // Détecter si on utilise les clés LIVE (production) ou TEST (développement)
 // On détecte automatiquement selon la clé publishable configurée
 const getStripeMode = () => {
-  // Vérifier côté client (window) et côté serveur (process.env)
-  const publishableKey = 
-    (typeof window !== 'undefined' 
-      ? (window as any).__NEXT_DATA__?.env?.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY 
-      : null) 
-    || process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY 
-    || ''
-  return publishableKey.startsWith('pk_live_') ? 'live' : 'test'
+  // Dans Next.js, NEXT_PUBLIC_* est disponible côté client via process.env
+  // Vérifier d'abord process.env (disponible côté client et serveur)
+  const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || ''
+  
+  // Si la clé commence par pk_live_, on est en mode LIVE
+  if (publishableKey.startsWith('pk_live_')) {
+    return 'live'
+  }
+  
+  // Par défaut, on est en mode TEST
+  return 'test'
 }
 
 // Helper pour obtenir le bon Price ID selon l'environnement (au runtime)
