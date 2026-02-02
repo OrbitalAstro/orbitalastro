@@ -439,7 +439,10 @@ Pour y arriver, vise le haut des fourchettes de phrases indiquées (ex: 2–5 ->
 [RÈGLE DE DENSITÉ — CONTENU]
 Chaque volet doit avoir de la matière : évite les généralités et le remplissage.
 Dans chaque section, ajoute au moins 2 éléments concrets et incarnés (exemples de situations, types de rencontres, contextes, gestes, choix, rythmes, sensations, lieux, façons de parler/agir), tout en restant fidèle au placement (signe + maison).
-Ne répète pas la même idée d’un volet à l’autre : chaque section apporte une nuance nouvelle.
+Ne répète pas la même idée d'un volet à l'autre : chaque section apporte une nuance nouvelle.
+
+[RÈGLE DE RÉPÉTITION – RÉPONSES ASTROLOGIE (OBLIGATOIRE)]
+Quand l'astrologie répond après que l'incarné ait exprimé un désir ou une intention, évite de répéter exactement les mêmes mots. Reformule avec des synonymes, des variantes ou des expressions équivalentes. Par exemple, si l'incarné dit "Je veux vivre mes émotions avec intensité", l'astrologie ne doit pas répondre "Tu vivras tes émotions avec intensité" mais plutôt reformuler : "Tu ressentiras profondément, avec une présence à chaque vague émotionnelle" ou une variante similaire. Varie le vocabulaire et la formulation pour éviter les répétitions littérales.
 
 [VERBATIM – intro]
 [Prénom], à un moment avant ton arrivée sur Terre, entre un [élément qui convient à la personnalité de la carte] et une [intensité qui convient à la personnalité de la carte] lumière, ton âme s'arrête un instant. L'Astrologie se tient devant toi comme une présence calme et bienveillante, prête à éclairer le choix de ta prochaine aventure. Ce dialogue n'est pas une prédiction : ton libre arbitre fera toujours autorité — au-dessus de toute tendance et de tout symbole — il aura le dernier mot, à chaque instant. C'est un échange symbolique pour éclairer les élans et les tendances de ton plan de jeu astrologique, celui qui influencera ta manière de vivre, de choisir, de grandir. Ici, tu alignes les vibrations que tu calibreras tout au long de ta prochaine vie.
@@ -462,7 +465,7 @@ Astrologie : Parfait. Maintenant, parlons de ta lumière, comment souhaites-tu r
 Astrologie : Parfait ce sera un Soleil en [Soleil_Signe] (Maison [Soleil_Maison]), [1–3 phrases qui traduisent signe+maison, au futur].
 
 [VERBATIM – Q Lune]
-Astrologie : Et tes émotions, tu les veux les vivre comment ?
+Astrologie : Et tes émotions, tu veux les vivre comment ?
 
 [Prénom] : (2–5 phrases. Style émotionnel, besoins, sécurité, sans astrologie.)
 

@@ -33,10 +33,11 @@ export default function Navigation() {
     icon: any
     disabled?: boolean
   }> = [
+    { href: '/about', label: t.nav.about, icon: Info },
+    { href: '/univers', label: t.nav.univers, icon: Orbit },
     { href: '/dialogues', label: t.nav.dialogues, icon: MessageSquare },
     { href: '/reading-2026', label: t.nav.reading2026, icon: Calendar },
     { href: '/saint-valentin', label: t.nav.valentine, icon: Heart, disabled: true },
-    { href: '/univers', label: t.nav.univers, icon: Orbit },
     { href: '/pricing', label: t.nav.pricing, icon: CreditCard },
   ]
 
@@ -90,33 +91,8 @@ export default function Navigation() {
                 )
               })}
               
-              {/* Settings, About, FAQ and Contact */}
+              {/* FAQ, Terms, Privacy, Contact and Settings */}
               <div className="flex items-center gap-2 ml-2 pl-2 border-l border-white/10">
-                <Link
-                  href="/settings"
-                  className={`
-                    p-2 rounded-lg transition-all
-                    ${isActive('/settings')
-                      ? 'bg-white/10 text-white'
-                      : 'text-white/70 hover:text-white hover:bg-white/10'
-                    }
-                  `}
-                  title={t.nav.settings}
-                >
-                  <Settings className="h-5 w-5" />
-                </Link>
-                <Link
-                  href="/about"
-                  className={`
-                    px-3 py-2 rounded-lg text-sm font-medium transition-all
-                    ${isActive('/about')
-                      ? 'bg-white/10 text-white'
-                      : 'text-white/70 hover:text-white hover:bg-white/10'
-                    }
-                  `}
-                >
-                  {t.nav.about}
-                </Link>
                 <Link
                   href="/faq"
                   className={`
@@ -128,18 +104,6 @@ export default function Navigation() {
                   `}
                 >
                   {t.nav.faq}
-                </Link>
-                <Link
-                  href="/contact"
-                  className={`
-                    px-3 py-2 rounded-lg text-sm font-medium transition-all
-                    ${isActive('/contact')
-                      ? 'bg-white/10 text-white'
-                      : 'text-white/70 hover:text-white hover:bg-white/10'
-                    }
-                  `}
-                >
-                  {t.nav.contact}
                 </Link>
                 <Link
                   href="/terms"
@@ -164,6 +128,31 @@ export default function Navigation() {
                   `}
                 >
                   {t.nav.privacy}
+                </Link>
+                <Link
+                  href="/contact"
+                  className={`
+                    px-3 py-2 rounded-lg text-sm font-medium transition-all
+                    ${isActive('/contact')
+                      ? 'bg-white/10 text-white'
+                      : 'text-white/70 hover:text-white hover:bg-white/10'
+                    }
+                  `}
+                >
+                  {t.nav.contact}
+                </Link>
+                <Link
+                  href="/settings"
+                  className={`
+                    p-2 rounded-lg transition-all
+                    ${isActive('/settings')
+                      ? 'bg-white/10 text-white'
+                      : 'text-white/70 hover:text-white hover:bg-white/10'
+                    }
+                  `}
+                  title={t.nav.settings}
+                >
+                  <Settings className="h-5 w-5" />
                 </Link>
               </div>
             </div>
@@ -245,34 +234,6 @@ export default function Navigation() {
                   
                   <div className="pt-4 mt-4 border-t border-white/10 space-y-2">
                     <Link
-                      href="/settings"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className={`
-                        flex items-center gap-3 p-3 rounded-lg transition text-white
-                        ${isActive('/settings')
-                          ? 'bg-white/10'
-                          : 'hover:bg-white/10'
-                        }
-                      `}
-                    >
-                      <Settings className="h-5 w-5 text-cosmic-gold" />
-                      <span className="font-medium">{t.nav.settings}</span>
-                    </Link>
-                    <Link
-                      href="/about"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className={`
-                        flex items-center gap-3 p-3 rounded-lg transition text-white
-                        ${isActive('/about')
-                          ? 'bg-white/10'
-                          : 'hover:bg-white/10'
-                        }
-                      `}
-                    >
-                      <Info className="h-5 w-5 text-cosmic-gold" />
-                      <span className="font-medium">{t.nav.about}</span>
-                    </Link>
-                    <Link
                       href="/faq"
                       onClick={() => setMobileMenuOpen(false)}
                       className={`
@@ -285,20 +246,6 @@ export default function Navigation() {
                     >
                       <HelpCircle className="h-5 w-5 text-cosmic-gold" />
                       <span className="font-medium">{t.nav.faq}</span>
-                    </Link>
-                    <Link
-                      href="/contact"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className={`
-                        flex items-center gap-3 p-3 rounded-lg transition text-white
-                        ${isActive('/contact')
-                          ? 'bg-white/10'
-                          : 'hover:bg-white/10'
-                        }
-                      `}
-                    >
-                      <Mail className="h-5 w-5 text-cosmic-gold" />
-                      <span className="font-medium">{t.nav.contact}</span>
                     </Link>
                     <Link
                       href="/terms"
@@ -327,6 +274,34 @@ export default function Navigation() {
                     >
                       <Shield className="h-5 w-5 text-cosmic-gold" />
                       <span className="font-medium">{t.nav.privacy}</span>
+                    </Link>
+                    <Link
+                      href="/contact"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={`
+                        flex items-center gap-3 p-3 rounded-lg transition text-white
+                        ${isActive('/contact')
+                          ? 'bg-white/10'
+                          : 'hover:bg-white/10'
+                        }
+                      `}
+                    >
+                      <Mail className="h-5 w-5 text-cosmic-gold" />
+                      <span className="font-medium">{t.nav.contact}</span>
+                    </Link>
+                    <Link
+                      href="/settings"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={`
+                        flex items-center gap-3 p-3 rounded-lg transition text-white
+                        ${isActive('/settings')
+                          ? 'bg-white/10'
+                          : 'hover:bg-white/10'
+                        }
+                      `}
+                    >
+                      <Settings className="h-5 w-5 text-cosmic-gold" />
+                      <span className="font-medium">{t.nav.settings}</span>
                     </Link>
                   </div>
                 </nav>

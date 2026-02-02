@@ -443,6 +443,9 @@ Vigilance avec le mot «plus» (et ses semblables); l'incarné.e n'a pas encore 
 Interdiction d'utiliser l'expression «Oui, je me reconnais…» (et ses semblables) l'incarné.e n'a pas encore vécu, il ne peut pas se reconnaître. 
 Évite la redondance, reformule pour éviter la répétition
 
+[RÈGLE DE RÉPÉTITION – RÉPONSES ASTROLOGIE (OBLIGATOIRE)]
+Quand l'astrologie répond après que l'incarné.e ait exprimé un désir ou une intention, évite de répéter exactement les mêmes mots. Reformule avec des synonymes, des variantes ou des expressions équivalentes. Par exemple, si l'incarné.e dit "Je veux vivre mes émotions avec intensité", l'astrologie ne doit pas répondre "Tu vivras tes émotions avec intensité" mais plutôt reformuler : "Tu ressentiras profondément, avec une présence à chaque vague émotionnelle" ou une variante similaire. Varie le vocabulaire et la formulation pour éviter les répétitions littérales.
+
 [RÈGLE DE TEMPS — STRICTE]
 Tout ce qui décrit la vie sur Terre / l'incarnation à venir (qualités, défis, apprentissages, ressources, mouvements intérieurs) doit être écrit majoritairement au futur simple.
 L'astrologie demande au présent et explique au futur 
@@ -481,7 +484,7 @@ Astrologie : Parfait ce sera un Soleil en [Soleil_Signe] (Maison [Soleil_Maison]
 
 [VERBATIM – Q Lune]
 
-Astrologie : Et tes émotions, tu les veux les vivre comment ?
+Astrologie : Et tes émotions, tu veux les vivre comment ?
 
 [Prénom] : (2–5 phrases. Style émotionnel, besoins, sécurité, sans astrologie.)
 
@@ -600,6 +603,7 @@ ABSOLUTE OUTPUT RULES (STRICT)
 - If the incarnated person expresses fear, pressure, difficulty, or "stop / no longer", immediately reframe as a direct positive desire: "I want / I choose / I prefer…". Avoid negative phrasing.
 - Avoid "more/better/less" self-improvement phrasing (they haven't lived yet). "More" is allowed only as a quantity (e.g., "more than 3") not as personal improvement.
 - Forbidden: "Yes, I recognize myself…" and similar ("I recognize myself", "That sounds like me", "I realize that…"). Replace with future-tense commitment ("Yes, I will choose…", "Yes, I will embody…").
+- REPETITION RULE — ASTROLOGY RESPONSES (MANDATORY): When Astrology responds after the incarnated person has expressed a desire or intention, avoid repeating the exact same words. Rephrase using synonyms, variants, or equivalent expressions. For example, if the incarnated person says "I want to live my emotions with intensity", Astrology should not respond "You will live your emotions with intensity" but rather rephrase: "You will feel deeply, with presence at each emotional wave" or a similar variant. Vary vocabulary and phrasing to avoid literal repetitions.
 
 LENGTH TARGET (STRICT)
 - Target about ${wordCount || 1700} words for the final dialogue.
@@ -716,6 +720,7 @@ REGLAS ABSOLUTAS (ESTRICTAS)
 - Si el/la encarnado/a expresa miedo, presión, dificultad o "dejar de / no más", reformula de inmediato en deseo positivo directo: "Quiero / Elijo / Prefiero…". Evita formulaciones negativas.
 - Evita el "más/mejor/menos" como mejora personal (aún no ha vivido). "Más" solo como cantidad.
 - Prohibido: "Sí, me reconozco…" y similares. Reemplaza por futuro ("Sí, elegiré…", "Sí, encarnaré…").
+- REGLA DE REPETICIÓN — RESPUESTAS DE ASTROLOGÍA (OBLIGATORIA): Cuando la Astrología responde después de que el/la encarnado/a haya expresado un deseo o intención, evita repetir exactamente las mismas palabras. Reformula usando sinónimos, variantes o expresiones equivalentes. Por ejemplo, si el/la encarnado/a dice "Quiero vivir mis emociones con intensidad", la Astrología no debe responder "Vivirás tus emociones con intensidad" sino reformular: "Sentirás profundamente, con presencia en cada ola emocional" o una variante similar. Varía el vocabulario y la formulación para evitar repeticiones literales.
 
 LONGITUD OBJETIVO (ESTRICTA)
 - Objetivo: aproximadamente ${wordCount || 1700} palabras en el diálogo final.
