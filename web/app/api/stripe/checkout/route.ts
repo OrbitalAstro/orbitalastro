@@ -99,6 +99,8 @@ export async function POST(request: NextRequest) {
         // Note: promotions n'est pas disponible dans tous les pays, donc on l'enlève
         // Le consentement marketing sera géré via les métadonnées si nécessaire
       },
+      // URL des termes et conditions (doit être configurée dans le Dashboard Stripe OU passée ici)
+      terms_of_service_url: `${baseUrl}/terms`, // URL des termes et conditions
       // Message d'avertissement pour paiement réel et informations requises
       custom_text: {
         submit: {
