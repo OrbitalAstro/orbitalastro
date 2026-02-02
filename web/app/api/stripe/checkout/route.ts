@@ -12,13 +12,46 @@ function getStripe() {
   })
 }
 
+// Mapping des Price IDs selon le produit et le mode (LIVE ou TEST)
+const getPriceIdForProduct = (productId: string): string | null => {
+  // Détecter le mode LIVE ou TEST selon la clé secrète
+  const secretKey = process.env.STRIPE_SECRET_KEY || ''
+  const isLiveMode = secretKey.startsWith('sk_live_')
+  
+  // Mapping des produits vers leurs Price IDs
+  const priceIdMap: Record<string, { test: string; live: string }> = {
+    'dialogue': {
+      test: 'price_1Sr8qkJOod2H9eSE8QV72G4p',
+      live: 'price_1Sw9inJp4kRSmzLn7wY3DIUT',
+    },
+    'reading-2026': {
+      test: 'price_1Sr8sKJOod2H9eSERiPO6965',
+      live: 'price_1SwAFoJp4kRSmzLnS0MgV7VS',
+    },
+    'valentine-2026': {
+      test: 'price_1SrTNsJOod2H9eSEa2Nz1heK',
+      live: 'price_1SrTNsJOod2H9eSEa2Nz1heK', // Placeholder
+    },
+  }
+  
+  const product = priceIdMap[productId]
+  if (!product) {
+    return null
+  }
+  
+  return isLiveMode ? product.live : product.test
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const { priceId, productId, email, promoCode } = await request.json()
+    const { priceId: priceIdFromClient, productId, email, promoCode } = await request.json()
 
-    if (!priceId) {
+    // Déterminer le bon Price ID côté serveur (plus fiable que côté client)
+    const actualPriceId = productId ? getPriceIdForProduct(productId) : priceIdFromClient
+
+    if (!actualPriceId) {
       return NextResponse.json(
-        { error: 'Price ID is required' },
+        { error: `Le Price ID pour le produit "${productId}" n'existe pas dans Stripe. Veuillez vérifier la configuration du produit.` },
         { status: 400 }
       )
     }
@@ -49,7 +82,7 @@ export async function POST(request: NextRequest) {
       payment_method_types: ['card'],
       line_items: [
         {
-          price: priceId,
+          price: actualPriceId, // Utiliser le Price ID déterminé côté serveur
           quantity: 1,
         },
       ],
