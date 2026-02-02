@@ -36,7 +36,7 @@ Le fichier `web/fly.toml` contient la configuration de votre application.
 
 ```powershell
 # Configurer la clé publique Stripe (frontend)
-flyctl secrets set NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_51Sr8QjJOod2H9eSEgSNhCzSQUJyX5yRWtsoHVEVDpQK69QRhwfSQtQvkbOvjZvz0h426s6i7wBDxgi1k3rbjQJ4z00OuKurvJC -a orbitalastro-web
+flyctl secrets set NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_VOTRE_CLE_PUBLIQUE_ICI -a orbitalastro-web
 
 # Configurer la clé secrète Stripe (backend - si nécessaire)
 # Note: La clé secrète est normalement dans l'API, pas dans le frontend
@@ -81,7 +81,7 @@ Si vous devez aussi déployer l'API :
 cd ..
 
 # Configurer les secrets de l'API (si nécessaire)
-flyctl secrets set STRIPE_SECRET_KEY=sk_test_51Sr8QjJOod2H9eSEKW7pjEib8jNe2OAY5sD51EoWXYvuOUAz5Ukvl3P2OHLY65PMUosxc0TA949F5jfZ43LCjAxH00SRV5PaGO -a orbitalastro-api
+flyctl secrets set STRIPE_SECRET_KEY=sk_test_VOTRE_CLE_SECRETE_ICI -a orbitalastro-api
 
 # Déployer l'API
 flyctl deploy -a orbitalastro-api

@@ -73,12 +73,12 @@ Assurez-vous que ces variables sont dans vos fichiers `.env` :
 
 **Fichier `web/.env.local`** :
 ```bash
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_51Sr8QjJOod2H9eSEgSNhCzSQUJyX5yRWtsoHVEVDpQK69QRhwfSQtQvkbOvjZvz0h426s6i7wBDxgi1k3rbjQJ4z00OuKurvJC
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_VOTRE_CLE_PUBLIQUE_ICI
 ```
 
 **Fichier `.env` (à la racine)** :
 ```bash
-STRIPE_SECRET_KEY=sk_test_51Sr8QjJOod2H9eSEKW7pjEib8jNe2OAY5sD51EoWXYvuOUAz5Ukvl3P2OHLY65PMUosxc0TA949F5jfZ43LCjAxH00SRV5PaGO
+STRIPE_SECRET_KEY=sk_test_VOTRE_CLE_SECRETE_ICI
 ```
 
 ### Étape 5 : Tester le système de paiement
