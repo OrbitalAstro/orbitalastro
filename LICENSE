@@ -1,21 +1,55 @@
-MIT License
+GNU AFFERO GENERAL PUBLIC LICENSE
+                          Version 3, 19 November 2007
 
-Copyright (c) 2025 OrbitalAstro
+ Copyright (C) 2007 Free Software Foundation, Inc. 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ Everyone is permitted to copy and distribute verbatim copies of this license document, but changing it is not allowed.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+ Preamble
+ The GNU Affero General Public License is a free, copyleft license specifically designed to ensure our users are also our own customers. This means that if you modify the program and use it to provide a service over a network, you must make the modified source available to the users of that service.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+ The Affero GPL is intended to complement the GNU General Public License (GPL) and all the freedoms it gives you. You can use, copy, modify, and distribute the program as you wish, provided that you respect the conditions set forth in this license.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+ 1. Definitions
+    This License refers to version 3 of the GNU Affero General Public License. It also refers to the "Software" as the program covered by this License and any associated files, formats, and documentation.
+
+ Overall, the essential freedoms are the following:
+ a) The freedom to run the program as you wish, for any purpose (freedom 0).
+ b) The freedom to study and change the program (freedom 1).
+ c) The freedom to redistribute copies of the original program (freedom 2).
+ d) The freedom to distribute copies of your modified versions to others (freedom 3).
+    By doing this you can give the whole community a chance to benefit from your changes. Access to the source code is a precondition for this.
+
+ 2. Basic Permissions
+    You may use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and permit persons to whom the Software is furnished to do so, provided that you satisfy the following conditions:
+
+ 3. Copyleft
+    This license is a strong copyleft license. If you distribute copies or modified versions of the Software, you must pass on the same rights to the recipients of the Software.
+
+ 4. Court Cases
+    If you cannot comply with this License, you cannot distribute the Software at all.
+
+ 5. Translations
+    When you translate the Software or this License into another language, you must do so accurately and include a copy of the License in that language.
+
+ 6. Terminology
+    For the purposes of the License, "you" refers to the individual or legal entity that would be exercising the rights under this License.
+
+ 7. Using the Software
+    You must provide clear attribution to the original source of the Software and publish the modified Software under the same License.
+
+ 8. Modification
+    You may modify the Software in any way, provided that you keep the original and modified versions clearly distinct.
+
+ 9. Disclaimer of Warranty
+    The Software is provided "as is", without warranty of any kind.
+
+ 10. Limitation of Liability
+    In no event shall the authors be liable for any damages arising from the use of the Software.
+
+ 11. Acceptance
+    By using or distributing the Software, you accept these terms in full.
+
+ 12. Motherhood Statements
+    If you do not agree with any part of the License, you should not use or distribute the Software.
+
+ This License is designed specifically for free software and guarantees the freedom for all users. It is a safeguard for the rights of every user and developer alike.
