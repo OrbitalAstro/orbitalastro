@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Master prompt builder for composing interpretation modules."""
 
 from typing import Dict, List, Optional

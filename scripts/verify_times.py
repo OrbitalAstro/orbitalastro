@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Vérifier que toutes les heures sont présentes dans le CSV."""
 
 import csv

@@ -145,6 +145,78 @@ const styles = StyleSheet.create({
     fontStyle: greatVibesLoaded ? 'normal' : 'italic',
     fontSize: 18,
   },
+  // Styles pour les bulles de dialogue
+  dialogueBubbleContainer: {
+    marginBottom: 16,
+  },
+  dialogueBubbleFullWidth: {
+    width: '100%',
+    alignSelf: 'stretch',
+  },
+  dialogueBubbleLeft: {
+    alignSelf: 'flex-start',
+    maxWidth: '85%',
+  },
+  dialogueBubbleRight: {
+    alignSelf: 'flex-end',
+    maxWidth: '85%',
+  },
+  dialogueBubbleAstro: {
+    alignSelf: 'flex-start',
+    maxWidth: '85%',
+  },
+  dialogueBubbleUser: {
+    alignSelf: 'flex-end',
+    maxWidth: '85%',
+  },
+  dialogueBubbleContent: {
+    padding: 12,
+    borderRadius: 18,
+    marginBottom: 6,
+  },
+  dialogueBubbleFullWidthContent: {
+    backgroundColor: '#FAF5FF', // Fond mauve clair
+    border: `1 solid ${GOLD}`,
+    borderRadius: 18, // Pas de queue pour largeur complète
+  },
+  dialogueBubbleLeftContent: {
+    backgroundColor: '#FAF5FF', // Fond mauve clair
+    border: `1 solid ${GOLD}`,
+    borderBottomLeftRadius: 6, // Queue de bulle à gauche
+  },
+  dialogueBubbleRightContent: {
+    backgroundColor: '#FCF8FF', // Fond mauve très clair
+    border: `1 solid ${GOLD}`,
+    borderBottomRightRadius: 6, // Queue de bulle à droite
+  },
+  dialogueBubbleAstroContent: {
+    backgroundColor: '#FAF5FF', // Fond mauve clair
+    border: `1 solid ${GOLD}`,
+    borderBottomLeftRadius: 6, // Queue de bulle
+  },
+  dialogueBubbleUserContent: {
+    backgroundColor: '#FCF8FF', // Fond mauve très clair
+    border: `1 solid ${GOLD}`,
+    borderBottomRightRadius: 6, // Queue de bulle
+  },
+  dialogueBubbleSpeaker: {
+    fontSize: 13,
+    fontWeight: 'bold',
+    marginBottom: 4,
+    fontStyle: 'italic',
+    color: GOLD,
+  },
+  dialogueBubbleUserSpeaker: {
+    textAlign: 'right',
+    color: GOLD_DARK,
+  },
+  dialogueBubbleText: {
+    fontFamily: 'Helvetica',
+    fontSize: 12,
+    lineHeight: 1.7,
+    color: TEXT_BLACK,
+    textAlign: 'left',
+  },
 })
 
 type Block =
@@ -174,38 +246,47 @@ function preventLineBreakAfterPunctuation(text: string): string {
     .replace(/»\s+/g, '»\u00A0') // Espace insécable après guillemet fermant
 }
 
-// Fonction pour rendre les dialogues avec noms en italique
-function renderDialogueLine(text: string, youName?: string, partnerName?: string): React.ReactNode {
-  // Détecter le format "Nom : « texte »" ou "Nom : texte"
-  const match = text.match(/^([^\n:]{2,24})\s*:\s*(.*)$/)
-  if (!match) {
-    // Pas un dialogue, retourner le texte normal avec protection des retours à la ligne
-    return preventLineBreakAfterPunctuation(text)
-  }
-
+// Fonction pour détecter si c'est un dialogue
+function isDialogueLine(text: string): { isDialogue: boolean; speaker?: string; content?: string } {
+  const match = text.match(/^([^\n:]{2,80})\s*:\s*(.*)$/s)
+  if (!match) return { isDialogue: false }
+  
   const label = match[1].trim()
-  const rest = match[2] ?? ''
   const labelLower = label.toLowerCase()
+  const dialogueText = match[2].trim()
   
-  // Détecter si c'est un nom (Toi, L'autre, ou les noms fournis)
-  const isYou = labelLower === 'toi' || labelLower === 'you' || labelLower === 'tú' || labelLower === 'tu'
-  const isPartner = labelLower === "l'autre" || labelLower === "l’autre" || labelLower === 'the other' || labelLower === 'el otro' || labelLower === 'la otra'
-  const isYouName = youName && labelLower === youName.toLowerCase()
-  const isPartnerName = partnerName && labelLower === partnerName.toLowerCase()
-  
-  if (!isYou && !isPartner && !isYouName && !isPartnerName) {
-    // Pas un dialogue reconnu, retourner le texte normal
-    return preventLineBreakAfterPunctuation(text)
+  // Exclure "Mode d'emploi relationnel" des dialogues
+  if (labelLower === "mode d'emploi relationnel" || labelLower === "relational user manual" || labelLower === "manual de uso relacional") {
+    return { isDialogue: false }
   }
-
-  // C'est un dialogue : mettre le nom en italique
-  return (
-    <>
-      <Text style={styles.inlineScript}>{label}</Text>
-      {': '}
-      {preventLineBreakAfterPunctuation(rest)}
-    </>
-  )
+  
+  // Si pas de texte après les deux-points, ce n'est pas un dialogue
+  if (!dialogueText || dialogueText.length < 3) return { isDialogue: false }
+  
+  const isAstro =
+    labelLower === 'astrologie' ||
+    labelLower === 'astrology' ||
+    labelLower === 'astrología' ||
+    labelLower === 'astrologia'
+  // Détecter les planètes/signes qui parlent : "Vénus d'Isabelle en Balance", "Lune de OA en Lion", etc.
+  const isPlanetInSign = /^(soleil|lune|mercure|venus|mars|jupiter|saturne|uranus|neptune|pluton|ascendant|midheaven|mc|asc|sun|moon|mercury|venus|mars|jupiter|saturn|uranus|neptune|pluto|ascendant|midheaven)\s+(de|d'|of|of')\s+[\p{L}'’-]+\s+en\s+(belier|bélier|taureau|gemeaux|gémeaux|cancer|lion|vierge|balance|scorpion|sagittaire|capricorne|verseau|poissons|poisson|aries|taurus|gemini|cancer|leo|virgo|libra|scorpio|sagittarius|capricorn|aquarius|pisces)$/iu.test(label)
+  // Détecter les prénoms simples (plus permissif)
+  const excludedWords = ['naissance', 'atterrissage', 'birth', 'nascimiento', 'gestes', 'actions', 'acciones', 'résumé', 'summary', 'resumen', 'conclusion', 'mode', 'emploi', 'relationnel', 'user', 'manual', 'uso', 'relacional']
+  const looksLikeFirstName = /^[\p{L}'’\s-]+$/u.test(label) && 
+    label.length <= 30 && 
+    label.length >= 2 &&
+    !excludedWords.some(word => labelLower === word || labelLower.startsWith(word + ' ') || labelLower.endsWith(' ' + word))
+  // Détecter les phrases d'observation
+  const isObservationPhrase = /^(tu\s+(pourrais|remarqueras|noteras|observeras|constateras)|vous\s+(pourriez|remarquerez|noterez|observerez|constaterez)|on\s+(pourrait|remarque|note|observe|constate))\s+/i.test(label)
+  
+  // Si c'est un titre de section connu, ce n'est pas un dialogue
+  const isSectionTitle = /^(ce qui marche|what works|lo que funciona|ce qui sécurise|what secures|lo que asegura|ce qui ne marche pas|what doesn't|lo que no funciona|frictions mignonnes|cute frictions|fricciones lindas|3 gestes|3 actions|3 acciones|en résumé|summary|resumen|conclusion)/i.test(labelLower)
+  
+  if (!isSectionTitle && (isAstro || isPlanetInSign || looksLikeFirstName || isObservationPhrase)) {
+    return { isDialogue: true, speaker: label, content: dialogueText }
+  }
+  
+  return { isDialogue: false }
 }
 
 function parseBlocks(markdown: string): Block[] {
@@ -222,6 +303,11 @@ function parseBlocks(markdown: string): Block[] {
 
     // Si le paragraphe contient plusieurs lignes, les traiter séparément
     const lines = chunk.split('\n').map((l) => l.trim()).filter(Boolean)
+      .filter((l) => {
+        // Filtrer les lignes qui sont uniquement des traits (---, ---, etc.)
+        const onlyDashes = /^[-─—]+$/.test(l)
+        return !onlyDashes
+      })
     if (!lines.length) continue
 
     // Si c'est une seule ligne, créer un bloc
@@ -254,7 +340,17 @@ function parseBlocks(markdown: string): Block[] {
         }
       } else {
         // Paragraphe normal avec plusieurs lignes (dialogue ou texte)
-        blocks.push({ type: 'paragraph', text: fullText })
+        // Si plusieurs lignes avec format dialogue, créer un bloc par ligne
+        const dialogueLines = lines.filter(line => /^([^\n:]{2,80})\s*:\s*(.*)$/s.test(line))
+        if (dialogueLines.length > 1) {
+          // Créer un bloc séparé pour chaque ligne de dialogue
+          for (const line of lines) {
+            blocks.push({ type: 'paragraph', text: line })
+          }
+        } else {
+          // Sinon, garder le texte complet
+          blocks.push({ type: 'paragraph', text: fullText })
+        }
       }
     }
   }
@@ -316,28 +412,360 @@ export default function ValentinePdf({ content, language = 'fr', youName, partne
                 )
               }
               if (block.type === 'bullet') {
+                // Retirer les puces - afficher juste le texte
                 return (
-                  <View key={index} style={styles.bulletRow}>
-                    <Text style={styles.bullet}>•</Text>
-                    <Text style={styles.bulletText}>{block.text}</Text>
+                  <Text key={index} style={styles.paragraph}>
+                    {preventLineBreakAfterPunctuation(block.text)}
+                  </Text>
+                )
+              }
+              
+              // Détecter "Mode d'emploi relationnel" comme titre
+              const blockTextLower = block.text.toLowerCase().trim()
+              
+              
+              if (blockTextLower === "mode d'emploi relationnel :" || blockTextLower === "mode d'emploi relationnel" || 
+                  blockTextLower === "relational user manual :" || blockTextLower === "relational user manual" ||
+                  blockTextLower === "manual de uso relacional :" || blockTextLower === "manual de uso relacional") {
+                return (
+                  <Text key={index} style={[styles.heading, { fontSize: 16, marginTop: 12, marginBottom: 8, fontWeight: 'bold' }]}>
+                    {block.text.replace(/:\s*$/, '').trim()}
+                  </Text>
+                )
+              }
+              
+              // Détecter "naviguer vos orbites" comme sous-titre
+              if (blockTextLower === "naviguer vos orbites" || blockTextLower === "navigate your orbits" || 
+                  blockTextLower === "navegar vuestras órbitas") {
+                return (
+                  <Text key={index} style={[styles.heading, { fontSize: 14, marginTop: 8, marginBottom: 6, fontStyle: 'italic' }]}>
+                    {block.text}
+                  </Text>
+                )
+              }
+              
+              // Détecter "Solution douce" et ne pas le mettre en bulle
+              const solutionMatch = block.text.match(/^Solution\s+douce\s*:\s*(.+)$/i)
+              if (solutionMatch) {
+                const solutionText = solutionMatch[1].trim()
+                return (
+                  <View key={index} style={{ marginTop: 12, marginBottom: 8 }}>
+                    <Text style={[styles.heading, { fontSize: 14, marginBottom: 4 }]}>
+                      Solution douce
+                    </Text>
+                    <Text style={styles.paragraph}>
+                      {preventLineBreakAfterPunctuation(solutionText)}
+                    </Text>
                   </View>
                 )
               }
-              // Vérifier si c'est un dialogue et appliquer le formatage
-              const dialogueContent = renderDialogueLine(block.text, youName, partnerName)
+              if (blockTextLower === "solution douce :" || blockTextLower === "solution douce" ||
+                  blockTextLower === "gentle solution :" || blockTextLower === "gentle solution" ||
+                  blockTextLower === "solución suave :" || blockTextLower === "solución suave") {
+                return (
+                  <Text key={index} style={[styles.heading, { fontSize: 14, marginTop: 8, marginBottom: 6 }]}>
+                    Solution douce
+                  </Text>
+                )
+              }
+              
+              // Séparer les dialogues multiples dans le même bloc
+              const lines = block.text.split('\n').map(l => l.trim()).filter(Boolean)
+              const dialogues: Array<{ speaker: string; text: string }> = []
+              
+              for (const line of lines) {
+                const lineMatch = line.match(/^([^\n:]{2,80})\s*:\s*(.*)$/s)
+                if (lineMatch) {
+                  const speaker = lineMatch[1].trim()
+                  const text = lineMatch[2].trim()
+                  if (text && text.length >= 3) {
+                    dialogues.push({ speaker, text })
+                  }
+                }
+              }
+              
+              // Si plusieurs dialogues sont détectés, les rendre séparément
+              if (dialogues.length > 1) {
+                return (
+                  <>
+                    {dialogues.map((dialogue, idx) => {
+                      const speaker = dialogue.speaker
+                      const content = dialogue.text
+                      const dialogueInfo = isDialogueLine(`${speaker}: ${content}`)
+                      if (!dialogueInfo.isDialogue || !dialogueInfo.speaker || !dialogueInfo.content) {
+                        return (
+                          <Text key={idx} style={styles.paragraph}>
+                            {preventLineBreakAfterPunctuation(content)}
+                          </Text>
+                        )
+                      }
+                      
+                      // Rendre la bulle pour ce dialogue - RÈGLES STRICTES
+                      const labelLower = speaker.toLowerCase()
+                      const isAstro =
+                        labelLower === 'astrologie' ||
+                        labelLower === 'astrology' ||
+                        labelLower === 'astrología' ||
+                        labelLower === 'astrologia'
+                      const isPlanetInSign = /^(soleil|lune|mercure|venus|mars|jupiter|saturne|uranus|neptune|pluton|ascendant|midheaven|mc|asc|sun|moon|mercury|venus|mars|jupiter|saturn|uranus|neptune|pluto|ascendant|midheaven)\s+(de|d'|of|of')\s+[\p{L}'’-]+\s+en\s+(belier|bélier|taureau|gemeaux|gémeaux|cancer|lion|vierge|balance|scorpion|sagittaire|capricorne|verseau|poissons|poisson|aries|taurus|gemini|cancer|leo|virgo|libra|scorpio|sagittarius|capricorn|aquarius|pisces)/iu.test(labelLower)
+                      const isAstroType = isAstro || isPlanetInSign
+                      
+                      // Déterminer la position de la bulle - RÈGLES STRICTES
+                      let positionStyle = styles.dialogueBubbleAstro
+                      let contentStyle = styles.dialogueBubbleAstroContent
+                      const youNameLower = (youName || '').toLowerCase().trim()
+                      const partnerNameLower = (partnerName || '').toLowerCase().trim()
+                      const speakerNameLower = speaker.toLowerCase().trim()
+                      
+                      // RÈGLE 1 : Astrologie = largeur complète
+                      if (isAstro) {
+                        positionStyle = styles.dialogueBubbleFullWidth
+                        contentStyle = styles.dialogueBubbleFullWidthContent
+                      } else {
+                        // RÈGLE 2 : Vérifier si c'est la personne principale (gauche) ou l'autre personne (droite)
+                        // Vérifier d'abord si c'est le prénom directement
+                        const isYouName = youNameLower && speakerNameLower === youNameLower
+                        const isPartnerName = partnerNameLower && speakerNameLower === partnerNameLower
+                        
+                        // Vérifier si c'est un placement de la personne principale
+                        const isYouPlacement = youNameLower && (
+                          speakerNameLower.includes(` de ${youNameLower}`) ||
+                          speakerNameLower.includes(` d'${youNameLower}`) ||
+                          speakerNameLower.includes(` of ${youNameLower}`)
+                        )
+                        
+                        // Vérifier si c'est un placement de l'autre personne
+                        const isPartnerPlacement = partnerNameLower && (
+                          speakerNameLower.includes(` de ${partnerNameLower}`) ||
+                          speakerNameLower.includes(` d'${partnerNameLower}`) ||
+                          speakerNameLower.includes(` of ${partnerNameLower}`)
+                        )
+                        
+                        // RÈGLE STRICTE : Personne principale = gauche, Autre personne = droite
+                        if (isYouName || isYouPlacement) {
+                          positionStyle = styles.dialogueBubbleLeft
+                          contentStyle = styles.dialogueBubbleLeftContent
+                        } else if (isPartnerName || isPartnerPlacement) {
+                          positionStyle = styles.dialogueBubbleRight
+                          contentStyle = styles.dialogueBubbleRightContent
+                        } else {
+                          // Par défaut si on ne peut pas déterminer (ne devrait pas arriver avec les règles strictes)
+                          positionStyle = styles.dialogueBubbleFullWidth
+                          contentStyle = styles.dialogueBubbleFullWidthContent
+                        }
+                      }
+                      
+                      return (
+                        <View
+                          key={idx}
+                          wrap={false}
+                          style={[
+                            styles.dialogueBubbleContainer,
+                            positionStyle,
+                          ]}
+                          minPresenceAhead={50}
+                        >
+                          <Text
+                            style={[
+                              styles.dialogueBubbleSpeaker,
+                              !isAstroType ? styles.dialogueBubbleUserSpeaker : null,
+                              { fontWeight: 'bold' },
+                            ]}
+                          >
+                            {speaker}
+                          </Text>
+                          <View
+                            style={[
+                              styles.dialogueBubbleContent,
+                              contentStyle,
+                            ]}
+                          >
+                            <Text style={styles.dialogueBubbleText}>
+                              {preventLineBreakAfterPunctuation(content)}
+                            </Text>
+                          </View>
+                        </View>
+                      )
+                    })}
+                  </>
+                )
+              }
+              
+              // Si un seul dialogue ou aucun, utiliser la logique existante
+              // Vérifier si c'est un dialogue et appliquer le formatage avec bulles
+              const dialogueInfo = isDialogueLine(block.text)
+              if (dialogueInfo.isDialogue && dialogueInfo.speaker && dialogueInfo.content) {
+              const speaker = dialogueInfo.speaker
+              const content = dialogueInfo.content
+              const labelLower = speaker.toLowerCase()
+              const isAstro =
+                labelLower === 'astrologie' ||
+                labelLower === 'astrology' ||
+                labelLower === 'astrología' ||
+                labelLower === 'astrologia'
+              // Les planètes/signes qui parlent sont aussi considérés comme "astro"
+              const isPlanetInSign = /^(soleil|lune|mercure|venus|mars|jupiter|saturne|uranus|neptune|pluton|ascendant|midheaven|mc|asc|sun|moon|mercury|venus|mars|jupiter|saturn|uranus|neptune|pluto|ascendant|midheaven)\s+(de|d'|of|of')\s+[\p{L}'’-]+\s+en\s+(belier|bélier|taureau|gemeaux|gémeaux|cancer|lion|vierge|balance|scorpion|sagittaire|capricorne|verseau|poissons|poisson|aries|taurus|gemini|cancer|leo|virgo|libra|scorpio|sagittarius|capricorn|aquarius|pisces)/iu.test(labelLower)
+              const isAstroType = isAstro || isPlanetInSign
+              
+              // Déterminer la position de la bulle pour Duo relationnel - RÈGLES STRICTES
+              let positionStyle = styles.dialogueBubbleAstro
+              let contentStyle = styles.dialogueBubbleAstroContent
+              const youNameLower = (youName || '').toLowerCase().trim()
+              const partnerNameLower = (partnerName || '').toLowerCase().trim()
+              const speakerNameLower = speaker.toLowerCase().trim()
+              
+              // RÈGLE 1 : Astrologie = largeur complète
+              if (isAstro) {
+                positionStyle = styles.dialogueBubbleFullWidth
+                contentStyle = styles.dialogueBubbleFullWidthContent
+              } else {
+                // RÈGLE 2 : Vérifier si c'est la personne principale (gauche) ou l'autre personne (droite)
+                // Vérifier d'abord si c'est le prénom directement
+                const isYouName = youNameLower && speakerNameLower === youNameLower
+                const isPartnerName = partnerNameLower && speakerNameLower === partnerNameLower
+                
+                // Vérifier si c'est un placement de la personne principale
+                const isYouPlacement = youNameLower && (
+                  speakerNameLower.includes(` de ${youNameLower}`) ||
+                  speakerNameLower.includes(` d'${youNameLower}`) ||
+                  speakerNameLower.includes(` of ${youNameLower}`)
+                )
+                
+                // Vérifier si c'est un placement de l'autre personne
+                const isPartnerPlacement = partnerNameLower && (
+                  speakerNameLower.includes(` de ${partnerNameLower}`) ||
+                  speakerNameLower.includes(` d'${partnerNameLower}`) ||
+                  speakerNameLower.includes(` of ${partnerNameLower}`)
+                )
+                
+                // RÈGLE STRICTE : Personne principale = gauche, Autre personne = droite
+                if (isYouName || isYouPlacement) {
+                  positionStyle = styles.dialogueBubbleLeft
+                  contentStyle = styles.dialogueBubbleLeftContent
+                } else if (isPartnerName || isPartnerPlacement) {
+                  positionStyle = styles.dialogueBubbleRight
+                  contentStyle = styles.dialogueBubbleRightContent
+                } else {
+                  // Par défaut si on ne peut pas déterminer (ne devrait pas arriver avec les règles strictes)
+                  positionStyle = styles.dialogueBubbleFullWidth
+                  contentStyle = styles.dialogueBubbleFullWidthContent
+                }
+              }
+                
+                return (
+                  <View
+                    key={index}
+                    wrap={false}
+                    style={[
+                      styles.dialogueBubbleContainer,
+                      positionStyle,
+                    ]}
+                    minPresenceAhead={50}
+                  >
+                    <Text
+                      style={[
+                        styles.dialogueBubbleSpeaker,
+                        !isAstroType ? styles.dialogueBubbleUserSpeaker : null,
+                        { fontWeight: 'bold' },
+                      ]}
+                    >
+                      {speaker}
+                    </Text>
+                  <View
+                    style={[
+                      styles.dialogueBubbleContent,
+                      contentStyle,
+                    ]}
+                    >
+                      <Text style={styles.dialogueBubbleText}>
+                        {preventLineBreakAfterPunctuation(content)}
+                      </Text>
+                    </View>
+                  </View>
+                )
+              }
+              
+              // Détecter et formater les 3 gestes relationnels ultra concrets (format simple)
+              // Chercher les patterns avec numérotation (1., 2., 3.)
+              if (block.text && /\d+\./.test(block.text)) {
+                // Séparer les gestes par numéros (1., 2., 3.)
+                const parts = block.text.split(/(?=^\d+\.)/m)
+                let gestes: Array<{ number: string; title: string; description: string }> = []
+                
+                for (const part of parts) {
+                  const trimmed = part.trim()
+                  if (!trimmed || /^\d+\.\s*$/.test(trimmed)) continue
+                  
+                  // Détecter le numéro au début
+                  const numMatch = trimmed.match(/^(\d+)\.\s*/)
+                  if (!numMatch) continue
+                  
+                  const num = numMatch[1]
+                  let rest = trimmed.substring(numMatch[0].length).trim()
+                  
+                  // Séparer titre et description (titre avant ":", description après)
+                  const titleMatch = rest.match(/^([^:\n]+?):\s*(.+)$/s)
+                  if (titleMatch) {
+                    gestes.push({
+                      number: num,
+                      title: titleMatch[1].trim(),
+                      description: titleMatch[2].trim()
+                    })
+                  } else {
+                    // Si pas de ":", tout le texte est la description
+                    gestes.push({
+                      number: num,
+                      title: '',
+                      description: rest
+                    })
+                  }
+                }
+                
+                // Si on a trouvé au moins 2 gestes, les formater simplement
+                if (gestes.length >= 2 && gestes.length <= 5) {
+                  return (
+                    <View key={index} style={{ marginTop: 12, marginBottom: 8 }}>
+                      {gestes.map((geste, idx) => (
+                        <Text key={idx} style={[styles.paragraph, { marginBottom: 6 }]}>
+                          <Text style={{ fontWeight: 'bold' }}>{geste.number}.</Text> {geste.title ? <Text style={{ fontWeight: 'bold' }}>{geste.title} : </Text> : ''}{preventLineBreakAfterPunctuation(geste.description)}
+                        </Text>
+                      ))}
+                    </View>
+                  )
+                }
+              }
+              
+              // Détecter "Phrase-signature Orbital" et le remplacer par "Orbital" + phrase comme conclusion
+              const signatureMatch = block.text.match(/^Phrase-signature\s+Orbital\s*:\s*(.+)$/i)
+              if (signatureMatch) {
+                const phrase = signatureMatch[1].trim()
+                return (
+                  <View key={index} style={{ marginTop: 16, paddingTop: 12, borderTopWidth: 1, borderTopColor: GOLD, borderTopStyle: 'solid', opacity: 0.3 }}>
+                    <Text style={[styles.footer, { fontSize: 14, fontWeight: 'bold', marginBottom: 4 }]}>
+                      Orbital
+                    </Text>
+                    <Text style={[styles.paragraph, { fontStyle: 'italic', fontSize: 13, color: TEXT_BLACK }]}>
+                      {preventLineBreakAfterPunctuation(phrase)}
+                    </Text>
+                  </View>
+                )
+              }
+              
+              // Sinon, texte normal
               return (
                 <Text key={index} style={styles.paragraph}>
-                  {dialogueContent}
+                  {preventLineBreakAfterPunctuation(block.text)}
                 </Text>
               )
             })}
 
             <Text style={styles.footer}>
-              {language === 'en'
-                ? 'Generated by OrbitalAstro'
-                : language === 'es'
-                  ? 'Generado por OrbitalAstro'
-                  : 'Généré par OrbitalAstro'}
+              Orbital
+            </Text>
+            
+            {/* Phrase de divertissement */}
+            <Text style={[styles.footer, { marginTop: 8, fontSize: 8, fontStyle: 'italic' }]}>
+              {t.valentine.disclaimer}
             </Text>
           </View>
         </View>
@@ -347,4 +775,3 @@ export default function ValentinePdf({ content, language = 'fr', youName, partne
     </Document>
   )
 }
-

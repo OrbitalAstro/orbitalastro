@@ -256,8 +256,18 @@ export async function POST(req: Request) {
               relationshipContext: (data.relationshipContext || '').trim() || undefined,
             })
 
-    const buffer = await renderToBuffer(doc)
+    console.log(`[email-pdf] ${requestId} Generating PDF for kind=${kind}...`)
+    let buffer: Buffer
+    try {
+      buffer = await renderToBuffer(doc)
+      console.log(`[email-pdf] ${requestId} PDF generated, size=${buffer.length} bytes`)
+    } catch (pdfError) {
+      console.error(`[email-pdf] ${requestId} PDF generation failed:`, pdfError)
+      throw new Error(`PDF generation failed: ${pdfError instanceof Error ? pdfError.message : String(pdfError)}`)
+    }
+    
     if (buffer.subarray(0, 4).toString() !== '%PDF') {
+      console.error(`[email-pdf] ${requestId} Invalid PDF header: ${buffer.subarray(0, 10).toString()}`)
       throw new Error('Failed to generate a valid PDF')
     }
 
@@ -265,13 +275,23 @@ export async function POST(req: Request) {
     const supportEmail = (process.env.SUPPORT_EMAIL || extractEmail(fromValue) || 'support@orbitalastro.ca').trim()
     const message = buildMessage({ kind, language, firstName, supportEmail })
 
-    const resendId = await sendWithResend({
-      to,
-      subject: message.subject,
-      text: message.text,
-      filename,
-      contentBase64: buffer.toString('base64'),
-    })
+    console.log(`[email-pdf] ${requestId} Sending email via Resend...`)
+    console.log(`[email-pdf] ${requestId} Resend config: from=${fromValue ? 'set' : 'missing'}, apiKey=${process.env.RESEND_API_KEY ? 'set' : 'missing'}`)
+    
+    let resendId: string | undefined
+    try {
+      resendId = await sendWithResend({
+        to,
+        subject: message.subject,
+        text: message.text,
+        filename,
+        contentBase64: buffer.toString('base64'),
+      })
+      console.log(`[email-pdf] ${requestId} Email sent successfully, resendId=${resendId || 'n/a'}`)
+    } catch (resendError) {
+      console.error(`[email-pdf] ${requestId} Resend error:`, resendError)
+      throw new Error(`Email sending failed: ${resendError instanceof Error ? resendError.message : String(resendError)}`)
+    }
 
     console.log(`[email-pdf] ${requestId} sent kind=${kind} to=${maskEmail(to)} resendId=${resendId || 'n/a'}`)
 
@@ -294,6 +314,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true })
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error'
+    const stack = error instanceof Error ? error.stack : undefined
+    console.error(`[email-pdf] ${requestId || 'unknown'} Error:`, message, stack)
     return NextResponse.json({ error: message }, { status: 500 })
   }
 }

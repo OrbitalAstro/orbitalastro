@@ -9,6 +9,7 @@ import { motion, useScroll, useTransform } from 'framer-motion'
 import Link from 'next/link'
 import Logo from '@/components/Logo'
 import { useTranslation } from '@/lib/useTranslation'
+import { PUBLIC_SITE_URL, SOURCE_CODE_REPOSITORY_URL, getApiDocsUrl } from '@/lib/site'
 import LogoBackground from '@/components/LogoBackground'
 import BrandText from '@/components/BrandText'
 import Starfield from '@/components/Starfield'
@@ -141,7 +142,34 @@ export default function LandingPage() {
               <ul className="space-y-2 text-cosmic-gold/80">
                 <li><Link href="/settings" className="hover:text-cosmic-gold transition text-base">{t.nav.settings}</Link></li>
                 <li><Link href="/about" className="hover:text-cosmic-gold transition text-base">{t.nav.about}</Link></li>
-                <li><a href="/docs" className="hover:text-cosmic-gold transition text-base">{t.home.footerApiDocs}</a></li>
+                <li>
+                  <a
+                    href={getApiDocsUrl()}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-cosmic-gold transition text-base"
+                  >
+                    {t.home.footerApiDocs}
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href={PUBLIC_SITE_URL}
+                    className="hover:text-cosmic-gold transition text-base break-all"
+                  >
+                    {PUBLIC_SITE_URL}
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href={SOURCE_CODE_REPOSITORY_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-cosmic-gold transition text-base"
+                  >
+                    {t.nav.sourceCode}
+                  </a>
+                </li>
               </ul>
             </div>
 

@@ -88,8 +88,8 @@ const baseProducts = [
   },
   {
     id: 'valentine-2026',
-    name: 'Saint-Valentin 2026',
-    description: 'Synastrie Saint-Valentin 2026',
+    name: 'Duo relationnel',
+    description: 'Deux thèmes natals, une conversation — duo relationnel (synastrie).',
     price: 14.00,
     currency: 'cad',
     testPriceId: 'price_1SrTNsJOod2H9eSEa2Nz1heK', // TEST

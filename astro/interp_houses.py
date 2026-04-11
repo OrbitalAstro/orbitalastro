@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Houses interpretation module."""
 
 from typing import Dict

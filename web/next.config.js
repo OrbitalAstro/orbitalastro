@@ -4,6 +4,14 @@ const {
   PHASE_PRODUCTION_BUILD,
 } = require('next/constants')
 
+/** Swagger FastAPI : même logique que `web/lib/site.ts` → getApiDocsUrl */
+function getApiDocsDestination() {
+  const base = (process.env.NEXT_PUBLIC_API_URL || 'https://api.orbitalastro.ca')
+    .trim()
+    .replace(/\/+$/, '')
+  return `${base}/docs`
+}
+
 const createConfig = (phase) => {
   const isProdBuild = phase === PHASE_PRODUCTION_BUILD
   const isDevServer = phase === PHASE_DEVELOPMENT_SERVER
@@ -30,6 +38,15 @@ const createConfig = (phase) => {
     // Skip static generation during build
     generateBuildId: async () => {
       return 'build-' + Date.now()
+    },
+    async redirects() {
+      return [
+        {
+          source: '/docs',
+          destination: getApiDocsDestination(),
+          permanent: false,
+        },
+      ]
     },
     env: {
       API_URL: process.env.API_URL || 'http://localhost:8000',

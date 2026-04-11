@@ -131,7 +131,7 @@ Avant de rendre public, vérifiez :
 - [ ] `.gitignore` est complet
 - [ ] `.env.example` existe et est à jour
 - [ ] `SECURITY.md` existe
-- [ ] `LICENSE` est approprié (MIT, Apache, etc.)
+- [ ] `LICENSE` est approprié (projet sous GNU AGPL-3.0 + Swiss Ephemeris)
 - [ ] `README.md` explique comment configurer les variables d'environnement
 
 ## 📚 Ressources

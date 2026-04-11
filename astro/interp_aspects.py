@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Aspects interpretation module."""
 
 from typing import Dict, List

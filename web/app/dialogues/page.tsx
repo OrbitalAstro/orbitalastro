@@ -21,7 +21,9 @@ import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
 import { pdf } from '@react-pdf/renderer'
 import DialoguePdf from './DialoguePdf'
+import TextNarrationControls from '@/components/TextNarrationControls'
 import { checkAccessFromURL, markProductAsPaid, recordGeneration, checkProductAccess, type AccessResult } from '@/lib/checkPayment'
+import { isDevTestBypass, DEV_TEST_ACCESS_RESULT } from '@/lib/devTestMode'
 import { useRouter } from 'next/navigation'
 
 const FEEDBACK_SURVEY_URL = 'https://forms.gle/eyPRR4Bicf32dCGg6'
@@ -169,6 +171,14 @@ export default function Dialogues() {
   // Vérifier l'accès au chargement de la page
   useEffect(() => {
     const checkAccess = async () => {
+      if (isDevTestBypass()) {
+        setAccessInfo(DEV_TEST_ACCESS_RESULT)
+        setHasAccess(true)
+        setCheckingAccess(false)
+        console.log('[Dialogues] Mode dev local : accès sans paiement')
+        return
+      }
+
       // Récupérer l'email depuis localStorage ou le formulaire
       const savedEmail = localStorage.getItem('last_email_dialogue')
       const emailInput = document.querySelector('input[type="email"]') as HTMLInputElement
@@ -350,26 +360,24 @@ export default function Dialogues() {
     // Sauvegarder l'email pour la vérification
     localStorage.setItem(`last_email_dialogue`, email)
 
-    // Récupérer le sessionId depuis accessInfo ou localStorage
     const sessionId = accessInfo?.sessionId || localStorage.getItem('session_dialogue') || undefined
-    
-    // Vérifier l'accès directement avec l'email et le sessionId
-    const accessResult = await checkProductAccess('dialogue', email, sessionId)
-    
-    if (!accessResult.hasAccess) {
-      // Rediriger vers la page de tarification
-      if (accessResult.quantityRemaining === 0 && accessResult.quantityPurchased > 0) {
-        alert('Vous avez déjà utilisé toutes vos générations. Veuillez commander à nouveau pour générer un autre dialogue.')
-      } else {
-        alert('Accès non autorisé. Veuillez commander votre accès.')
+
+    if (!isDevTestBypass()) {
+      const accessResult = await checkProductAccess('dialogue', email, sessionId)
+
+      if (!accessResult.hasAccess) {
+        if (accessResult.quantityRemaining === 0 && accessResult.quantityPurchased > 0) {
+          alert('Vous avez déjà utilisé toutes vos générations. Veuillez commander à nouveau pour générer un autre dialogue.')
+        } else {
+          alert('Accès non autorisé. Veuillez commander votre accès.')
+        }
+        router.push('/pricing?redirect=dialogue')
+        return
       }
-      router.push('/pricing?redirect=dialogue')
-      return
+
+      setAccessInfo(accessResult)
+      setHasAccess(accessResult.hasAccess)
     }
-    
-    // Mettre à jour accessInfo avec le résultat
-    setAccessInfo(accessResult)
-    setHasAccess(accessResult.hasAccess)
 
     // API key check moved to backend
 
@@ -504,25 +512,25 @@ export default function Dialogues() {
         // Ne pas bloquer le processus si l'email échoue
       }
       
-      // Enregistrer la génération (ne pas bloquer si ça échoue)
-      try {
-        const sessionId = accessInfo?.sessionId || localStorage.getItem('session_dialogue')
-        await recordGeneration('dialogue', email, sessionId || undefined)
-      } catch (recordError) {
-        console.error('[Dialogues] Erreur lors de l\'enregistrement de la génération (non bloquant):', recordError)
-        // Ne pas bloquer le processus si l'enregistrement échoue
-      }
-      
-      // Mettre à jour l'accès en utilisant le sessionId stocké ou l'email
-      // Ne pas utiliser checkAccessFromURL car l'URL a été nettoyée
-      try {
-        const sessionId = accessInfo?.sessionId || localStorage.getItem('session_dialogue')
-        const updatedAccessResult = await checkProductAccess('dialogue', email, sessionId || undefined)
-        setAccessInfo(updatedAccessResult)
-        setHasAccess(updatedAccessResult.hasAccess)
-      } catch (accessError) {
-        console.error('[Dialogues] Erreur lors de la mise à jour de l\'accès (non bloquant):', accessError)
-        // Ne pas bloquer le processus si la mise à jour de l'accès échoue
+      if (!isDevTestBypass()) {
+        try {
+          const sid = accessInfo?.sessionId || localStorage.getItem('session_dialogue')
+          await recordGeneration('dialogue', email, sid || undefined)
+        } catch (recordError) {
+          console.error('[Dialogues] Erreur lors de l\'enregistrement de la génération (non bloquant):', recordError)
+        }
+
+        try {
+          const sid = accessInfo?.sessionId || localStorage.getItem('session_dialogue')
+          const updatedAccessResult = await checkProductAccess('dialogue', email, sid || undefined)
+          setAccessInfo(updatedAccessResult)
+          setHasAccess(updatedAccessResult.hasAccess)
+        } catch (accessError) {
+          console.error('[Dialogues] Erreur lors de la mise à jour de l\'accès (non bloquant):', accessError)
+        }
+      } else {
+        setAccessInfo(DEV_TEST_ACCESS_RESULT)
+        setHasAccess(true)
       }
     } catch (error: any) {
       console.error('Error generating dialogue:', error)
@@ -575,6 +583,15 @@ export default function Dialogues() {
           </h1>
 
           <p className="text-cosmic-gold/90 mb-6">{t.dialogues.description}</p>
+
+          {isDevTestBypass() && (
+            <div className="mb-6 p-4 bg-yellow-500/20 border border-yellow-500/50 rounded-lg">
+              <p className="text-yellow-200 text-sm font-semibold text-center">
+                Mode développement : génération sans paiement sur localhost. Ajoute{' '}
+                <code className="text-yellow-100">?test=false</code> à l’URL pour tester le flux avec paiement.
+              </p>
+            </div>
+          )}
 
           {/* Message de paiement requis */}
           {checkingAccess ? (
@@ -764,12 +781,18 @@ export default function Dialogues() {
               animate={{ opacity: 1, y: 0 }}
               className=""
             >
-              <div className="flex flex-col sm:flex-row sm:justify-end sm:items-center gap-2 mb-4">
+              <div className="flex flex-col gap-3 mb-4 sm:flex-row sm:flex-wrap sm:justify-end sm:items-start">
+                <TextNarrationControls
+                  text={dialogue}
+                  language={(settings.language || 'fr') as 'en' | 'fr' | 'es'}
+                  labels={t.narration}
+                  className="w-full sm:max-w-md sm:mr-auto"
+                />
                 <button
                   type="button"
                   onClick={handleDownloadPdf}
                   disabled={downloading}
-                  className="w-full sm:w-auto px-4 py-2 bg-cosmic-gold/20 text-cosmic-gold rounded-lg border border-cosmic-gold/40 hover:bg-cosmic-gold/30 transition disabled:opacity-50"
+                  className="w-full sm:w-auto px-4 py-2 bg-cosmic-gold/20 text-cosmic-gold rounded-lg border border-cosmic-gold/40 hover:bg-cosmic-gold/30 transition disabled:opacity-50 shrink-0"
                 >
                   {downloading ? t.dialogues.downloadingPdf : t.dialogues.downloadPdf}
                 </button>

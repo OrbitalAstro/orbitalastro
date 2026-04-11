@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Créer un fichier CSV de test avec seulement 2 personnes."""
 
 import csv

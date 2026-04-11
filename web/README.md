@@ -363,4 +363,4 @@ The app uses Tailwind CSS with a custom cosmic theme:
 
 ## License
 
-[Your License Here]
+Copyright (C) 2025 OrbitalAstro. Licensed under **GNU AGPL-3.0** — see the repository root [`LICENSE`](../LICENSE) and [`NOTICE`](../NOTICE). Swiss Ephemeris attribution: [`LICENSES/SWISS_EPHEMERIS.txt`](../LICENSES/SWISS_EPHEMERIS.txt).

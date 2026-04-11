@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Aspect detection and pattern recognition engine."""
 
 from __future__ import annotations

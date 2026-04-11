@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Extra astrological objects computation (Arabic Parts, Vertex, etc.)."""
 
 from math import cos, radians

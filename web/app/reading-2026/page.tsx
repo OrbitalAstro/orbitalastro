@@ -16,11 +16,13 @@ import { useTranslation } from '@/lib/useTranslation'
 import { pdf } from '@react-pdf/renderer'
 import Reading2026Pdf from './Reading2026Pdf'
 import { checkAccessFromURL, checkProductAccess, markProductAsPaid, recordGeneration, type AccessResult } from '@/lib/checkPayment'
+import { isDevTestBypass, DEV_TEST_ACCESS_RESULT } from '@/lib/devTestMode'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import { cleanText } from '@/lib/cleanText'
 import Starfield from '@/components/Starfield'
 import Logo from '@/components/Logo'
+import TextNarrationControls from '@/components/TextNarrationControls'
 
 export default function Reading2026Page() {
   const settings = useSettingsStore()
@@ -102,7 +104,15 @@ export default function Reading2026Page() {
       const email = emailInput?.value || savedEmail || null
 
       console.log('[Reading2026] Vérification de l\'accès au chargement...', { email, savedEmail })
-      
+
+      if (isDevTestBypass()) {
+        setAccessInfo(DEV_TEST_ACCESS_RESULT)
+        setHasAccess(true)
+        setCheckingAccess(false)
+        console.log('[Reading2026] Mode dev local : accès sans paiement')
+        return
+      }
+
       const accessResult = await checkAccessFromURL('reading-2026')
       console.log('[Reading2026] Résultat de la vérification:', accessResult)
       
@@ -215,20 +225,20 @@ export default function Reading2026Page() {
 
     console.log('[Reading2026] Vérification de l\'accès avant génération...', { email, sessionId })
 
-    // Vérifier l'accès avec l'email et le session_id
-    const accessResult = await checkProductAccess('reading-2026', email, sessionId)
-    console.log('[Reading2026] Résultat de la vérification avant génération:', accessResult)
-    
-    setAccessInfo(accessResult)
-    if (!accessResult.hasAccess) {
-      // Rediriger vers la page de tarification
-      if (accessResult.quantityRemaining === 0 && accessResult.quantityPurchased > 0) {
-        alert('Vous avez déjà utilisé toutes vos générations. Veuillez commander à nouveau pour générer une autre lecture.')
-      } else {
-        alert('Accès non autorisé. Veuillez effectuer un paiement pour générer une lecture.')
+    if (!isDevTestBypass()) {
+      const accessResult = await checkProductAccess('reading-2026', email, sessionId)
+      console.log('[Reading2026] Résultat de la vérification avant génération:', accessResult)
+
+      setAccessInfo(accessResult)
+      if (!accessResult.hasAccess) {
+        if (accessResult.quantityRemaining === 0 && accessResult.quantityPurchased > 0) {
+          alert('Vous avez déjà utilisé toutes vos générations. Veuillez commander à nouveau pour générer une autre lecture.')
+        } else {
+          alert('Accès non autorisé. Veuillez effectuer un paiement pour générer une lecture.')
+        }
+        router.push('/pricing?redirect=reading-2026')
+        return
       }
-      router.push('/pricing?redirect=reading-2026')
-      return
     }
 
     setEmailStatus('idle')
@@ -408,15 +418,17 @@ export default function Reading2026Page() {
       console.log('[Reading 2026] Derniers 500 caractères:', cleanedText.substring(Math.max(0, cleanedText.length - 500)))
       setReading(cleanedText)
       await sendReadingPdfByEmail(cleanedText)
-      
-      // Enregistrer la génération
-      const sessionId = accessInfo?.sessionId || localStorage.getItem('session_reading-2026')
-      await recordGeneration('reading-2026', email, sessionId || undefined)
-      
-      // Mettre à jour l'accès
-      const newAccessResult = await checkAccessFromURL('reading-2026')
-      setAccessInfo(newAccessResult)
-      setHasAccess(newAccessResult.hasAccess)
+
+      if (!isDevTestBypass()) {
+        const sessionId = accessInfo?.sessionId || localStorage.getItem('session_reading-2026')
+        await recordGeneration('reading-2026', email, sessionId || undefined)
+        const newAccessResult = await checkAccessFromURL('reading-2026')
+        setAccessInfo(newAccessResult)
+        setHasAccess(newAccessResult.hasAccess)
+      } else {
+        setAccessInfo(DEV_TEST_ACCESS_RESULT)
+        setHasAccess(true)
+      }
     } catch (error: any) {
       console.error('Error generating reading:', error)
       const errorMsg = error.message || 'Erreur inconnue'
@@ -504,6 +516,15 @@ export default function Reading2026Page() {
           <p className="text-cosmic-gold/90 mb-6 text-center">
             {t.reading2026.description}
           </p>
+
+          {isDevTestBypass() && (
+            <div className="mb-6 p-4 bg-yellow-500/20 border border-yellow-500/50 rounded-lg">
+              <p className="text-yellow-200 text-sm font-semibold text-center">
+                Mode développement : génération sans paiement sur localhost. Ajoute{' '}
+                <code className="text-yellow-100">?test=false</code> à l’URL pour tester le flux avec paiement.
+              </p>
+            </div>
+          )}
 
           {/* Message de paiement requis */}
           {checkingAccess ? (
@@ -685,12 +706,18 @@ export default function Reading2026Page() {
                 animate={{ opacity: 1, y: 0 }}
                 className="relative z-10"
               >
-                <div className="flex flex-col sm:flex-row sm:justify-end sm:items-center gap-2 mb-4">
+                <div className="flex flex-col gap-3 mb-4 sm:flex-row sm:flex-wrap sm:justify-end sm:items-start">
+                  <TextNarrationControls
+                    text={reading}
+                    language={(settings.language || 'fr') as 'en' | 'fr' | 'es'}
+                    labels={t.narration}
+                    className="w-full sm:max-w-md sm:mr-auto"
+                  />
                   <button
                     type="button"
                     onClick={handleDownloadPdf}
                     disabled={downloading}
-                    className="w-full sm:w-auto px-4 py-2 bg-cosmic-gold/20 text-cosmic-gold rounded-lg border border-cosmic-gold/40 hover:bg-cosmic-gold/30 transition disabled:opacity-50"
+                    className="w-full sm:w-auto px-4 py-2 bg-cosmic-gold/20 text-cosmic-gold rounded-lg border border-cosmic-gold/40 hover:bg-cosmic-gold/30 transition disabled:opacity-50 shrink-0"
                   >
                     {downloading ? t.reading2026.downloadingPdf : t.reading2026.downloadPdf}
                   </button>

@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { 
   MessageSquare, 
   Calendar,
-  Heart,
+  Users,
   CreditCard,
   Orbit,
   Settings, 
@@ -37,7 +37,7 @@ export default function Navigation() {
     { href: '/univers', label: t.nav.univers, icon: Orbit },
     { href: '/dialogues', label: t.nav.dialogues, icon: MessageSquare },
     { href: '/reading-2026', label: t.nav.reading2026, icon: Calendar },
-    { href: '/saint-valentin', label: t.nav.valentine, icon: Heart, disabled: true },
+    { href: '/saint-valentin', label: t.nav.valentine, icon: Users },
     { href: '/pricing', label: t.nav.pricing, icon: CreditCard },
   ]
 

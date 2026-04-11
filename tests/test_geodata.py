@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+
 import pytest
 
 from astro.geodata import lookup_city, list_supported_cities

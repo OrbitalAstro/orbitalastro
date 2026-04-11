@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Loader and interpolator for the precomputed ephemeris cache."""
 
 from __future__ import annotations

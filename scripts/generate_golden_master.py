@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Generate golden master reference charts for testing."""
 
 from __future__ import annotations

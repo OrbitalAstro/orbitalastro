@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+
 def validate_preincarnation_payload(data: dict):
     required_natal_fields = [
         "sun_sign",

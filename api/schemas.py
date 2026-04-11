@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Shared Pydantic schemas for API endpoints."""
 
 from typing import List, Optional

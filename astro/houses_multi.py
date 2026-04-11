@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Multi-house system implementations - using Swiss Ephemeris exclusively."""
 import logging
 from typing import List, Tuple

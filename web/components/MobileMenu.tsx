@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Menu, X, Home, BookOpen, MessageSquare, Settings, Info, TrendingUp, Zap, Wand2, Calendar, Heart } from 'lucide-react'
+import { Menu, X, Home, BookOpen, MessageSquare, Settings, Info, TrendingUp, Zap, Wand2, Calendar, Users } from 'lucide-react'
 import Link from 'next/link'
 import Logo from './Logo'
 import { useTranslation } from '@/lib/useTranslation'
@@ -19,7 +19,7 @@ export default function MobileMenu() {
     { href: '/stories', label: t.nav.stories, icon: BookOpen },
     { href: '/dialogues', label: t.nav.dialogues, icon: MessageSquare },
     { href: '/reading-2026', label: t.nav.reading2026, icon: Calendar },
-    { href: '/saint-valentin', label: t.nav.valentine, icon: Heart },
+    { href: '/saint-valentin', label: t.nav.valentine, icon: Users },
     { href: '/chat', label: t.nav.chat, icon: MessageSquare },
     { href: '/settings', label: t.nav.settings, icon: Settings },
     { href: '/about', label: t.nav.about, icon: Info },

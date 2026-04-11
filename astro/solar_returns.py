@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Solar return chart finder and calculator."""
 
 from __future__ import annotations

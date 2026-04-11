@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Generate golden master cases using Swiss Ephemeris for validation."""
 
 from __future__ import annotations

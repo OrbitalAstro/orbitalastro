@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """
 Script pour générer des dialogues pré-incarnation en lot pour plusieurs personnes.
 Génère un PDF distinct pour chaque personne dans un répertoire spécifié.

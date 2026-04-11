@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Calculate planetary positions directly using Swiss Ephemeris."""
 from typing import Dict
 from datetime import datetime

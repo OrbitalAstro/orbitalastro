@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+
 import pytest
 
 from astro.validate_preincarnation_payload import validate_preincarnation_payload

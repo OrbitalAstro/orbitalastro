@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Simple telemetry collector for request and cache metrics."""
 
 from __future__ import annotations

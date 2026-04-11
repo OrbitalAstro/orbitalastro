@@ -221,7 +221,15 @@ OrbitalAstro uses a carefully crafted brand identity:
 
 ## License
 
-[Your License Here]
+Copyright (C) 2025 OrbitalAstro.
+
+This program is licensed under the **GNU Affero General Public License v3.0** (AGPL-3.0). See [`LICENSE`](LICENSE) for the full text.
+
+**Swiss Ephemeris:** Astrological calculations use [Swiss Ephemeris](https://www.astro.com/ftp/swisseph/) via `pyswisseph`. This project is distributed under AGPL-3.0 in accordance with the Swiss Ephemeris dual-license option. The Astrodienst copyright notice and conditions are in [`LICENSES/SWISS_EPHEMERIS.txt`](LICENSES/SWISS_EPHEMERIS.txt). Additional project notices: [`NOTICE`](NOTICE).
+
+**AGPL reminder:** If you offer this software as a network service, you must comply with the AGPL (including making Corresponding Source available to users as described in the license). Secrets (API keys, Stripe, Supabase, Gemini, etc.) must remain in environment variables and must not be published in the repository.
+
+If you prefer a commercial, closed-source deployment without these obligations, you must obtain a **Swiss Ephemeris Professional License** from Astrodienst instead of relying on the AGPL path.
 
 ## Acknowledgments
 

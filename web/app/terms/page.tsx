@@ -6,6 +6,7 @@ import BackButton from '@/components/BackButton'
 import Logo from '@/components/Logo'
 import Starfield from '@/components/Starfield'
 import { useTranslation } from '@/lib/useTranslation'
+import { SOURCE_CODE_REPOSITORY_URL } from '@/lib/site'
 
 export default function TermsPage() {
   const t = useTranslation()
@@ -105,6 +106,32 @@ export default function TermsPage() {
           >
             <h2 className="text-2xl sm:text-3xl font-semibold mb-4 text-cosmic-gold">{t.terms.section6Title}</h2>
             <p className="text-white/85 leading-relaxed text-base sm:text-lg">{t.terms.section6Content}</p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7, delay: 0.55 }}
+            className="bg-white/10 p-8 sm:p-10 rounded-3xl border border-cosmic-gold/20 backdrop-blur-sm"
+          >
+            <h2 className="text-2xl sm:text-3xl font-semibold mb-4 text-cosmic-gold">{t.terms.section7Title}</h2>
+            <div className="space-y-4 text-white/85 text-base sm:text-lg leading-relaxed">
+              <p>{t.terms.section7P1}</p>
+              <p>{t.terms.section7P2}</p>
+              <p>{t.terms.section7P3}</p>
+            </div>
+            <p className="mt-8 text-cosmic-gold/90 text-sm sm:text-base font-medium">
+              {t.terms.section7LinkIntro}
+            </p>
+            <a
+              href={SOURCE_CODE_REPOSITORY_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block mt-2 text-cosmic-gold hover:text-rose-gold underline underline-offset-4 break-all text-base sm:text-lg"
+            >
+              {SOURCE_CODE_REPOSITORY_URL}
+            </a>
           </motion.div>
         </section>
       </div>

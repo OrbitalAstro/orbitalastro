@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+
 import csv
 
 csv_file = r"C:\Users\isabe\Downloads\Finances - Vision - Mission - Actions - PDF.csv"

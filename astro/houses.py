@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Legacy module - no longer used. All calculations now use Swiss Ephemeris via houses_multi.py.
 
 This file is kept for backward compatibility but is not used in production.

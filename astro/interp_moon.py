@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Moon interpretation module."""
 
 from typing import Dict

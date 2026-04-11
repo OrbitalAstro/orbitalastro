@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """City lookup helper used by the natal endpoint."""
 
 from __future__ import annotations

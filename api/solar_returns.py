@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """FastAPI endpoints for solar return calculations."""
 
 from __future__ import annotations

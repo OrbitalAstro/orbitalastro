@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """FastAPI endpoints that expose the pure-Python natal engine."""
 
 from __future__ import annotations

@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Helper to convert UTC datetimes into Julian Days."""
 
 from datetime import datetime

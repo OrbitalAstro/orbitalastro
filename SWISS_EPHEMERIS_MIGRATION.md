@@ -3,6 +3,9 @@
 ## Résumé
 L'application utilise maintenant **Swiss Ephemeris exclusivement** pour tous les calculs astrologiques.
 
+## Licence (OrbitalAstro + Swiss Ephemeris)
+Le dépôt est sous **GNU AGPL-3.0**. Swiss Ephemeris est utilisé avec l’**option AGPL** du dual-license Astrodienst (voir `LICENSE`, `NOTICE`, `LICENSES/SWISS_EPHEMERIS.txt`).
+
 ## Changements effectués
 
 ### 1. Calculs des positions planétaires

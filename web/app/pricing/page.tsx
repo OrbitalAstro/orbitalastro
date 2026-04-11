@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Loader2, CreditCard, Sparkles, Calendar, Gift, Check, Heart, Infinity } from 'lucide-react'
+import { Loader2, CreditCard, Sparkles, Calendar, Gift, Check, Users, Infinity } from 'lucide-react'
 import { getOneTimeProducts, subscriptions, type Product } from '@/lib/stripe'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -184,7 +184,7 @@ export default function PricingPage() {
                   ) : product.id === 'reading-2026' ? (
                     <Calendar className="h-12 w-12 text-cosmic-gold mx-auto mb-4" />
                   ) : (
-                    <Heart className="h-12 w-12 text-cosmic-gold mx-auto mb-4" />
+                    <Users className="h-12 w-12 text-cosmic-gold mx-auto mb-4" />
                   )}
                   <h3 className="text-2xl font-bold mb-2">{product.name}</h3>
                   <p className="text-cosmic-silver text-sm mb-4">{product.description}</p>

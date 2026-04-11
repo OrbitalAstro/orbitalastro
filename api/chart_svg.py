@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """FastAPI endpoint for SVG chart rendering."""
 
 from __future__ import annotations

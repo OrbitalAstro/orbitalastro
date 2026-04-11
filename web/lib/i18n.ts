@@ -10,6 +10,20 @@ export const translations = {
       closeMenu: "Close menu",
       clearLocation: "Clear location",
     },
+    narration: {
+      listen: "Listen (browser audio)",
+      pause: "Pause",
+      resume: "Resume",
+      stop: "Stop",
+      unsupported: "Read-aloud is not available in this browser.",
+      hint: "Uses your computer or phone’s built-in voice. Works on desktop browsers too; handy in the car or with the screen off. Quality varies by browser and OS.",
+      voice: "Voice",
+      voiceDefault: "System default",
+      voiceGroupRecommended: "Suggested for this language",
+      voiceGroupOther: "Other installed voices (try any)",
+      voiceNote:
+        "Only voices already on this device are listed—usually free, bundled with your OS or browser. Not a catalog of every voice online.",
+    },
     quickActions: {
       noResults: "No actions found",
     },
@@ -30,7 +44,10 @@ export const translations = {
       about: "About",
       contact: "Contact",
       faq: "FAQ",
+      terms: "Terms",
+      privacy: "Privacy",
       beginJourney: "Begin Journey",
+      sourceCode: "Source code",
     },
     home: {
       heroTitle1: "Your Cosmic Blueprint",
@@ -173,9 +190,9 @@ export const translations = {
       errorGenerating: "Error generating dialogue: {error}",
     },
     valentine: {
-      title: "Valentine Synastry",
+      title: "Relational Duo",
       description:
-        "Generate a warm, practical Valentine synastry reading that feels like a gift and helps you love better day to day.",
+        "Generate a warm, practical relational duo reading from two charts—like a gift that helps you navigate your link day to day.",
       sectionYou: "You",
       sectionPartner: "The other person",
       youName: "Name or nickname (optional)",
@@ -194,19 +211,19 @@ export const translations = {
       relationshipContext: "Relationship context (optional)",
       relationshipContextPlaceholder:
         "Couple / dating / long-distance / new / long-term / current issues (1–2 lines)",
-      generating: "Generating your Valentine synastry...",
+      generating: "Generating your Relational Duo...",
       generate: "Generate the reading",
       generateAnother: "Generate another reading",
       resetForm: "Reset form",
       disclaimer:
         "Astrology here is offered as entertainment—a light way to reflect—without any claim of absolute truth.",
       validationBirthDateTimeRequired: "Birth date and time are required (for both)",
-      validationBirthPlaceRequired: "Birth place is required (for both)",
+      validationBirthPlaceRequired: "Please select a birth place from the dropdown list (for both)",
       validationEmailRequired: "A valid email address is required",
       emailSending: "Sending your PDF by email...",
       emailSent: "PDF sent to {email}.",
       emailFailed: "Could not send the PDF by email. Please try again.",
-      errorGenerating: "Error generating Valentine synastry: {error}",
+      errorGenerating: "Error generating Relational Duo: {error}",
       downloadingPdf: "Creating PDF...",
       downloadPdf: "Download PDF",
     },
@@ -395,6 +412,14 @@ export const translations = {
       section5Content: "Orbital Astro will not be liable for direct, indirect, incidental, special, or consequential damages resulting from the use or inability to use our services. Our services are provided \"as is\" without warranty of any kind.",
       section6Title: "6. Applicable Law",
       section6Content: "These terms and conditions are governed by the laws of Quebec and Canada. Any dispute will be subject to the exclusive jurisdiction of the courts of Quebec.",
+      section7Title: "7. Open Source Software and Source Code",
+      section7P1:
+        "OrbitalAstro’s astrological engine computes planetary positions and related data using Swiss Ephemeris, a library published by Astrodienst AG (Switzerland). Swiss Ephemeris is offered under a dual license; this project uses it under the GNU Affero General Public License option for that component. The OrbitalAstro software that incorporates it is distributed under the GNU Affero General Public License, version 3 (AGPL-3.0). Third-party copyright and license notices for Swiss Ephemeris are included in the public repository (see LICENSES/SWISS_EPHEMERIS.txt).",
+      section7P2:
+        "Using the website as a visitor or customer does not require you to download or reuse the source code. This section explains how the software is licensed for anyone who copies, modifies, or redistributes it.",
+      section7P3:
+        "If you take this code (or a modified version) and distribute it or make it available to others over a network, you must comply with the AGPL-3.0 and the applicable Swiss Ephemeris terms. In particular, you must offer recipients the same rights: among other things, you must make the corresponding source code available under the same license, as set out in the full license texts. The following link points to our public repository; the binding legal text is in the LICENSE and NOTICE files there, not replaced by this summary.",
+      section7LinkIntro: "Public source code repository:",
     },
     privacy: {
       title: "Privacy Policy",
@@ -426,6 +451,20 @@ export const translations = {
       closeMenu: "Fermer le menu",
       clearLocation: "Effacer le lieu",
     },
+    narration: {
+      listen: "Écouter (audio navigateur)",
+      pause: "Pause",
+      resume: "Reprendre",
+      stop: "Arrêter",
+      unsupported: "La lecture à voix haute n’est pas disponible dans ce navigateur.",
+      hint: "Voix intégrée au navigateur sur ordinateur comme sur téléphone. Pratique en voiture ou les yeux fermés. La qualité dépend du navigateur et du système.",
+      voice: "Voix",
+      voiceDefault: "Défaut du système",
+      voiceGroupRecommended: "Adaptées à cette langue",
+      voiceGroupOther: "Autres voix installées (essai)",
+      voiceNote:
+        "Seules les voix déjà sur cet appareil apparaissent ici — en général gratuites, fournies avec Windows, macOS ou le navigateur. Ce n’est pas un catalogue de toutes les voix possibles sur Internet.",
+    },
     quickActions: {
       noResults: "Aucune action trouvée",
     },
@@ -449,6 +488,7 @@ export const translations = {
       terms: "Termes",
       privacy: "Confidentialité",
       beginJourney: "Commencer",
+      sourceCode: "Code source",
     },
     home: {
       heroTitle1: "Votre Plan Cosmique",
@@ -593,15 +633,15 @@ export const translations = {
       errorGenerating: "Erreur lors de la génération du dialogue : {error}",
     },
     valentine: {
-      title: "Synastrie Saint-Valentin",
+      title: "Duo relationnel",
       description:
-        "Générez une synastrie St-Valentin chaleureuse, complice et concrète, comme un cadeau facile à lire.",
+        "Générez un duo relationnel chaleureux, complice et concret, comme un cadeau facile à lire.",
       sectionYou: "Toi",
       sectionPartner: "L'autre personne",
       youName: "Nom ou surnom (optionnel)",
-      youNamePlaceholder: "Sous quel prénom la lecture synastrie doit-elle s'adresser à vous ?",
+      youNamePlaceholder: "Sous quel prénom la lecture dialogue doit-elle s'adresser à vous ?",
       partnerName: "Nom ou surnom de l'autre personne (optionnel)",
-      partnerNamePlaceholder: "Sous quel prénom la lecture synastrie doit-elle désigner l'autre personne ?",
+      partnerNamePlaceholder: "Sous quel prénom la lecture dialogue doit-elle désigner l'autre personne ?",
       email: "Courriel",
       emailPlaceholder: "nom@exemple.com",
       birthDate: "Ta date de naissance",
@@ -614,19 +654,19 @@ export const translations = {
       relationshipContext: "Contexte relationnel (optionnel)",
       relationshipContextPlaceholder:
         "Couple / dating / relation à distance / récente / longue durée / enjeux actuels (1–2 lignes)",
-      generating: "Génération de votre synastrie St-Valentin...",
+      generating: "Génération de votre duo relationnel...",
       generate: "Générer la lecture",
       generateAnother: "Générer une autre lecture",
       resetForm: "Réinitialiser le formulaire",
       disclaimer:
         "L'astrologie ici est offerte comme un divertissement : une façon légère de réfléchir, sans vérité absolue.",
       validationBirthDateTimeRequired: "Date et heure de naissance requises (pour vous deux)",
-      validationBirthPlaceRequired: "Lieu de naissance requis (pour vous deux)",
+      validationBirthPlaceRequired: "Veuillez sélectionner un lieu de naissance dans la liste déroulante (pour vous deux)",
       validationEmailRequired: "Un courriel valide est requis",
       emailSending: "Envoi du PDF par courriel...",
       emailSent: "PDF envoyé à {email}.",
       emailFailed: "Impossible d'envoyer le PDF par courriel. Réessaie.",
-      errorGenerating: "Erreur lors de la génération de la synastrie : {error}",
+      errorGenerating: "Erreur lors de la génération du duo relationnel : {error}",
       downloadingPdf: "Création du PDF...",
       downloadPdf: "Télécharger le PDF",
     },
@@ -792,6 +832,14 @@ export const translations = {
       section5Content: "Orbital Astro ne sera pas responsable des dommages directs, indirects, accessoires, spéciaux ou consécutifs résultant de l'utilisation ou de l'impossibilité d'utiliser nos services. Nos services sont fournis \"tels quels\" sans garantie d'aucune sorte.",
       section6Title: "6. Droit applicable",
       section6Content: "Ces termes et conditions sont régis par les lois du Québec et du Canada. Tout litige sera soumis à la juridiction exclusive des tribunaux du Québec.",
+      section7Title: "7. Logiciel libre et code source",
+      section7P1:
+        "Le moteur astrologique d’OrbitalAstro calcule les positions planétaires et les données associées au moyen de Swiss Ephemeris, une bibliothèque publiée par Astrodienst AG (Suisse). Swiss Ephemeris est proposée sous une double licence ; ce projet l’utilise dans le cadre de l’option GNU Affero General Public License pour ce composant. Le logiciel OrbitalAstro qui l’intègre est distribué sous la GNU Affero General Public License, version 3 (AGPL-3.0). Les mentions de droit d’auteur et de licence pour Swiss Ephemeris figurent dans le dépôt public (fichier LICENSES/SWISS_EPHEMERIS.txt).",
+      section7P2:
+        "Utiliser le site en tant que visiteuse ou cliente ne vous oblige pas à télécharger ni à réutiliser le code source. Cette section vise à expliquer comment le logiciel est licencié pour toute personne qui le copie, le modifie ou le redistribue.",
+      section7P3:
+        "Si vous reprenez ce code (ou une version modifiée) et que vous le distribuez ou le mettez à la disposition d’autres personnes par le réseau, vous devez respecter l’AGPL-3.0 ainsi que les conditions Swiss Ephemeris applicables. Notamment, vous devez offrir aux destinataires les mêmes libertés : entre autres, vous devez mettre le code source correspondant à disposition sous la même licence, tel que prévu dans les textes de licence complets. Le lien ci-dessous mène à notre dépôt public ; le texte juridique qui fait foi se trouve dans les fichiers LICENSE et NOTICE de ce dépôt, et n’est pas remplacé par ce résumé.",
+      section7LinkIntro: "Dépôt public du code source :",
     },
     privacy: {
       title: "Politique de Confidentialité",
@@ -823,6 +871,20 @@ export const translations = {
       closeMenu: "Cerrar menú",
       clearLocation: "Borrar ubicación",
     },
+    narration: {
+      listen: "Escuchar (audio del navegador)",
+      pause: "Pausa",
+      resume: "Continuar",
+      stop: "Detener",
+      unsupported: "La lectura en voz alta no está disponible en este navegador.",
+      hint: "Usa la voz integrada del navegador en ordenador y en móvil. Útil en el coche o con la pantalla apagada. La calidad depende del navegador y del sistema.",
+      voice: "Voz",
+      voiceDefault: "Predeterminada del sistema",
+      voiceGroupRecommended: "Recomendadas para este idioma",
+      voiceGroupOther: "Otras voces instaladas (prueba)",
+      voiceNote:
+        "Solo aparecen voces ya instaladas en este dispositivo: suelen ser gratuitas, del sistema o del navegador. No es un catálogo de todas las voces de Internet.",
+    },
     quickActions: {
       noResults: "No se encontraron acciones",
     },
@@ -846,6 +908,7 @@ export const translations = {
       terms: "Términos",
       privacy: "Privacidad",
       beginJourney: "Comenzar",
+      sourceCode: "Código fuente",
     },
     home: {
       heroTitle1: "Tu Plan Cósmico",
@@ -994,9 +1057,9 @@ export const translations = {
       errorGenerating: "Error al generar el diálogo: {error}",
     },
     valentine: {
-      title: "Sinastría San Valentín",
+      title: "Duo relacional",
       description:
-        "Genera una sinastría de San Valentín cálida, cómplice y concreta, como un regalo fácil de leer.",
+        "Genera un duo relacional cálido, cómplice y concreto, como un regalo fácil de leer.",
       sectionYou: "Tú",
       sectionPartner: "La otra persona",
       youName: "Tu nombre o apodo (opcional)",
@@ -1015,19 +1078,19 @@ export const translations = {
       relationshipContext: "Contexto de la relación (opcional)",
       relationshipContextPlaceholder:
         "Pareja / dating / a distancia / reciente / larga duración / temas actuales (1–2 líneas)",
-      generating: "Generando tu sinastría de San Valentín...",
+      generating: "Generando tu duo relacional...",
       generate: "Generar la lectura",
       generateAnother: "Generar otra lectura",
       resetForm: "Restablecer formulario",
       disclaimer:
         "La astrología aquí se ofrece como entretenimiento: una forma ligera de reflexionar, sin verdad absoluta.",
       validationBirthDateTimeRequired: "Se requieren fecha y hora de nacimiento (de ambos)",
-      validationBirthPlaceRequired: "Se requiere lugar de nacimiento (de ambos)",
+      validationBirthPlaceRequired: "Por favor seleccione un lugar de nacimiento de la lista desplegable (de ambos)",
       validationEmailRequired: "Se requiere un correo válido",
       emailSending: "Enviando tu PDF por correo...",
       emailSent: "PDF enviado a {email}.",
       emailFailed: "No se pudo enviar el PDF por correo. Inténtalo de nuevo.",
-      errorGenerating: "Error al generar la sinastría: {error}",
+      errorGenerating: "Error al generar el duo relacional: {error}",
       downloadingPdf: "Creando PDF...",
       downloadPdf: "Descargar PDF",
     },
@@ -1216,6 +1279,14 @@ export const translations = {
       section5Content: "Orbital Astro no será responsable de daños directos, indirectos, incidentales, especiales o consecuentes resultantes del uso o la imposibilidad de usar nuestros servicios. Nuestros servicios se proporcionan \"tal cual\" sin garantía de ningún tipo.",
       section6Title: "6. Ley aplicable",
       section6Content: "Estos términos y condiciones se rigen por las leyes de Quebec y Canadá. Cualquier disputa estará sujeta a la jurisdicción exclusiva de los tribunales de Quebec.",
+      section7Title: "7. Software libre y código fuente",
+      section7P1:
+        "El motor astrológico de OrbitalAstro calcula posiciones planetarias y datos relacionados mediante Swiss Ephemeris, una biblioteca publicada por Astrodienst AG (Suiza). Swiss Ephemeris se ofrece bajo una licencia dual; este proyecto la utiliza en el marco de la opción GNU Affero General Public License para ese componente. El software OrbitalAstro que la incorpora se distribuye bajo la GNU Affero General Public License, versión 3 (AGPL-3.0). Los avisos de copyright y licencia de Swiss Ephemeris están en el repositorio público (archivo LICENSES/SWISS_EPHEMERIS.txt).",
+      section7P2:
+        "Usar el sitio como visitante o clienta no exige descargar ni reutilizar el código fuente. Esta sección explica cómo se licencia el software para quien lo copie, modifique o redistribuya.",
+      section7P3:
+        "Si tomas este código (o una versión modificada) y lo distribuyes o lo pones a disposición de otras personas por red, debes cumplir la AGPL-3.0 y las condiciones aplicables de Swiss Ephemeris. En particular, debes ofrecer a quienes lo reciban los mismos derechos: entre otras cosas, debes poner a disposición el código fuente correspondiente bajo la misma licencia, según los textos completos de la licencia. El enlace siguiente apunta a nuestro repositorio público; el texto jurídico vinculante está en los archivos LICENSE y NOTICE de ese repositorio, y este resumen no lo sustituye.",
+      section7LinkIntro: "Repositorio público del código fuente:",
     },
     privacy: {
       title: "Política de Privacidad",

@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Birth-time rectification helpers and scoring."""
 
 from __future__ import annotations

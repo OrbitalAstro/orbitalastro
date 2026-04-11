@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Secondary progressions engine (1 day = 1 year)."""
 
 from __future__ import annotations

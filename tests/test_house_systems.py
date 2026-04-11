@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Tests for multi-house system implementations."""
 
 import pytest
