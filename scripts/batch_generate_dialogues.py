@@ -448,12 +448,12 @@ Quand l'astrologie répond après que l'incarné ait exprimé un désir ou une i
 [Prénom], à un moment avant ton arrivée sur Terre, entre un [élément qui convient à la personnalité de la carte] et une [intensité qui convient à la personnalité de la carte] lumière, ton âme s'arrête un instant. L'Astrologie se tient devant toi comme une présence calme et bienveillante, prête à éclairer le choix de ta prochaine aventure. Ce dialogue n'est pas une prédiction : ton libre arbitre fera toujours autorité — au-dessus de toute tendance et de tout symbole — il aura le dernier mot, à chaque instant. C'est un échange symbolique pour éclairer les élans et les tendances de ton plan de jeu astrologique, celui qui influencera ta manière de vivre, de choisir, de grandir. Ici, tu alignes les vibrations que tu calibreras tout au long de ta prochaine vie.
 
 [VERBATIM – Q1]
-Astrologie : [Prénom], félicitations! C'est le moment pour nous d'aligner ta prochaine incarnation. Dis-moi comment as-tu envie d'atterrir, quelle essence de présence désire-tu porter dès la première seconde ?
+Astrologie : [Prénom], félicitations! C'est le moment pour nous d'aligner ton prochain atterrissage. Dis-moi comment as-tu envie de te déposer dans ta vie, quelle essence de présence désire-tu porter dès la première seconde ?
 
 [Prénom] : (2–4 phrases. Désirs concrets de présence, sans astrologie.)
 
 [VERBATIM – Ascendant]
-Astrologie : Allons-y donc avec un Ascendant en [Ascendant_Signe] (Maison [Ascendant_Maison]), pour une incarnation où ton premier réflexe, ce sera : "[phrase-réflexe simple et concrète qui traduit l'Ascendant]", au futur.
+Astrologie : Allons-y donc avec un Ascendant en [Ascendant_Signe] (Maison [Ascendant_Maison]), pour une présence où ton premier réflexe, ce sera : "[phrase-réflexe simple et concrète qui traduit l'Ascendant, au futur]"
 
 [Prénom] : (1–3 phrases. Résume le positif de l'Ascendant + le défi choisi)
 

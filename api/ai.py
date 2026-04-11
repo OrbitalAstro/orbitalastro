@@ -1,9 +1,15 @@
 import os
 import logging
 import requests
+from pathlib import Path
 from typing import Optional
+from dotenv import load_dotenv
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
+
+# Racine du dépôt (api/ -> parent) : garantit GEMINI_API_KEY même si main.py n’est pas l’entrée
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+load_dotenv(_PROJECT_ROOT / ".env")
 
 # Configure logger
 logger = logging.getLogger("orbitalastro")
@@ -44,7 +50,7 @@ async def generate_interpretation(req: Request, request: InterpretationRequest):
     Generate an astrological interpretation using Google's Gemini API.
     The API key is securely stored in the backend environment variables.
     """
-    api_key = os.environ.get("GEMINI_API_KEY")
+    api_key = (os.environ.get("GEMINI_API_KEY") or "").strip()
     
     if not api_key:
         logger.error("GEMINI_API_KEY environment variable is not set")

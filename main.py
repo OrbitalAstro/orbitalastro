@@ -1,5 +1,12 @@
 """Application entry point for Vercel / FastAPI deployments."""
 
+from pathlib import Path
+from dotenv import load_dotenv
+
+# Charger .env EN PREMIER — avant tout import du package api (sinon GEMINI_API_KEY peut rester vide)
+_ROOT = Path(__file__).resolve().parent
+load_dotenv(_ROOT / ".env")
+
 from api.chart_svg import router as chart_svg_router
 from api.natal import app
 from api.progressions import router as progressions_router
@@ -7,11 +14,7 @@ from api.rectification import router as rectification_router
 from api.solar_returns import router as solar_returns_router
 from api.transits import router as transits_router
 from api.ai import router as ai_router
-from dotenv import load_dotenv
 import os
-
-# Load environment variables from .env file
-load_dotenv()
 
 # Include all routers
 app.include_router(transits_router)

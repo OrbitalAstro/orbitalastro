@@ -5,6 +5,14 @@ const resolveApiBases = () => {
   const envBase = (process.env.NEXT_PUBLIC_API_URL || '').trim();
   const fallbackFly = 'https://orbitalastro-api.fly.dev';
 
+  // En dev sur la machine locale : toujours le backend local (évite NEXT_PUBLIC_API_URL vers la prod)
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname.toLowerCase();
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return { primary: 'http://127.0.0.1:8000' };
+    }
+  }
+
   if (envBase) {
     const primary = stripTrailingSlashes(envBase);
     const fallback = primary === 'https://api.orbitalastro.ca' ? fallbackFly : undefined;
@@ -13,10 +21,6 @@ const resolveApiBases = () => {
 
   if (typeof window !== 'undefined') {
     const hostname = window.location.hostname.toLowerCase();
-
-    if (hostname === 'localhost' || hostname === '127.0.0.1') {
-      return { primary: 'http://127.0.0.1:8000' };
-    }
 
     if (hostname === 'www.orbitalastro.ca' || hostname === 'orbitalastro.ca') {
       return { primary: 'https://api.orbitalastro.ca', fallback: fallbackFly };
@@ -30,7 +34,11 @@ const resolveApiBases = () => {
   return { primary: 'http://127.0.0.1:8000' };
 };
 
-const { primary: API_BASE, fallback: API_FALLBACK } = resolveApiBases();
+/** Résolu à chaque requête : au premier chargement du module, window peut être absent (SSR) et figer une mauvaise URL. */
+function getApiBasesNow() {
+  return resolveApiBases();
+}
+
 const VERCEL_BYPASS_TOKEN = process.env.NEXT_PUBLIC_VERCEL_BYPASS_TOKEN || '8tPx2wLmV7H9rQ4sK1dJ0aYbU3zN5eTf';
 
 interface ApiResponse<T = unknown> {
@@ -95,6 +103,9 @@ class ApiClient {
 
   async get<T = unknown>(endpoint: string): Promise<ApiResponse<T>> {
     try {
+      const resolved = getApiBasesNow();
+      this.baseUrl = resolved.primary;
+      this.fallbackUrl = resolved.fallback;
       const headers = this.getHeaders(this.baseUrl);
       delete (headers as Record<string, string>)['Content-Type']; // GET doesn't need Content-Type
       
@@ -126,6 +137,9 @@ class ApiClient {
   }
 
   async post<T = unknown>(endpoint: string, body: unknown, timeout?: number): Promise<ApiResponse<T>> {
+    const resolved = getApiBasesNow();
+    this.baseUrl = resolved.primary;
+    this.fallbackUrl = resolved.fallback;
     let url = `${this.baseUrl}${endpoint}`;
     try {
       // For Vercel deployments, add bypass parameters to URL as well as headers
@@ -234,15 +248,20 @@ class ApiClient {
   };
 }
 
-export const apiClient = new ApiClient(API_BASE, API_FALLBACK);
+export const apiClient = new ApiClient(
+  getApiBasesNow().primary,
+  getApiBasesNow().fallback
+);
 
 export const api = {
   get: async (endpoint: string) => {
-    const response = await fetch(`${API_BASE}${endpoint}`);
+    const base = getApiBasesNow().primary;
+    const response = await fetch(`${base}${endpoint}`);
     return response.json();
   },
   post: async (endpoint: string, data: unknown) => {
-    const response = await fetch(`${API_BASE}${endpoint}`, {
+    const base = getApiBasesNow().primary;
+    const response = await fetch(`${base}${endpoint}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)

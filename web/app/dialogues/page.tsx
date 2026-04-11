@@ -304,10 +304,10 @@ export default function Dialogues() {
       link.href = url
       const baseName =
         t.locale === 'fr'
-          ? 'Dialogue-pre-incarnation'
+          ? 'Dialogue-Avant-atterrissage'
           : t.locale === 'es'
-            ? 'dialogo-pre-encarnacion'
-            : 'pre-incarnation-dialogue'
+            ? 'Dialogo-Antes-aterrizaje'
+            : 'Dialogue-Before-landing'
       const defaultName = t.locale === 'fr' ? 'lecture' : t.locale === 'es' ? 'lectura' : 'reading'
       link.download = `${baseName}-${birthData.firstName || defaultName}.pdf`
       link.click()
@@ -566,9 +566,12 @@ export default function Dialogues() {
           animate={{ opacity: 1, y: 0 }}
           className="bg-gradient-to-br from-cosmic-purple to-magenta-purple rounded-xl p-8 border border-cosmic-gold/35 shadow-[0_28px_70px_rgba(0,0,0,0.55)] relative z-10"
         >
-          <h1 className="text-3xl font-bold text-cosmic-gold mb-8 flex items-center">
-            <MessageSquare className="h-8 w-8 mr-3 text-cosmic-gold" />
-            {t.dialogues.title}
+          <h1 className="text-3xl font-bold text-cosmic-gold mb-8 flex items-center gap-3">
+            <MessageSquare className="h-8 w-8 shrink-0 text-cosmic-gold" />
+            <span className="flex flex-col leading-tight">
+              <span>{t.dialogues.titleLine1}</span>
+              {t.dialogues.titleLine2 ? <span>{t.dialogues.titleLine2}</span> : null}
+            </span>
           </h1>
 
           <p className="text-cosmic-gold/90 mb-6">{t.dialogues.description}</p>
@@ -582,7 +585,7 @@ export default function Dialogues() {
             <div className="mb-6 p-6 bg-gradient-to-br from-cosmic-purple/40 to-magenta-purple/40 border border-cosmic-gold/30 rounded-xl backdrop-blur-sm">
               <div className="text-center mb-4">
                 <Sparkles className="h-8 w-8 text-cosmic-gold mx-auto mb-3" />
-                <h3 className="text-xl font-bold text-cosmic-gold mb-2">Découvrez votre dialogue pré-incarnation</h3>
+                <h3 className="text-xl font-bold text-cosmic-gold mb-2">{t.dialogues.accessHeading}</h3>
                 {accessInfo && accessInfo.quantityPurchased > 0 && accessInfo.quantityRemaining === 0 ? (
                   <>
                     <p className="text-cosmic-gold/90 mb-4">

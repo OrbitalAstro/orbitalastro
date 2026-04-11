@@ -66,8 +66,8 @@ const getPriceId = (testId: string, liveId?: string) => {
 const baseProducts = [
   {
     id: 'dialogue',
-    name: 'Dialogue pré-incarnation',
-    description: 'Génération d\'un dialogue pré-incarnation.',
+    name: 'Dialogue Avant l\'atterrissage',
+    description: 'Génération d\'un Dialogue Avant l\'atterrissage.',
     price: 9.99,
     currency: 'cad',
     testPriceId: 'price_1Sr8qkJOod2H9eSE8QV72G4p', // TEST
@@ -77,8 +77,8 @@ const baseProducts = [
   },
   {
     id: 'reading-2026',
-    name: 'Lecture 2026',
-    description: 'Générer la lecture astrologie de l\'année 2026',
+    name: 'Révolution solaire',
+    description: 'Générer le dialogue des quatre saisons à venir.',
     price: 9.99,
     currency: 'cad',
     testPriceId: 'price_1Sr8sKJOod2H9eSERiPO6965', // TEST
@@ -131,7 +131,7 @@ export const subscriptions: Product[] = [
     features: [
       'Lectures astrologiques illimitées',
       'Suivi des transits en temps réel',
-      'Dialogues pré-incarnation',
+      'Dialogues Avant l\'atterrissage',
       'Calculs de thème natal avancés',
       'Progressions et retours solaires',
       'Export PDF de vos analyses',

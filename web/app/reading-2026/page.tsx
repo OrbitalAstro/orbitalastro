@@ -269,9 +269,14 @@ export default function Reading2026Page() {
         throw new Error('Chart response missing planets data')
       }
 
-      // Calculate transits for 2026
-      // Use mid-year date for representative transits
-      const targetDate2026 = '2026-06-15T12:00:00Z'
+      // Période du dialogue : jour de génération → +365 jours ; transits = instantané au milieu
+      const periodStart = new Date()
+      periodStart.setHours(0, 0, 0, 0)
+      const periodEnd = new Date(periodStart)
+      periodEnd.setDate(periodEnd.getDate() + 365)
+      const periodMid = new Date(periodStart)
+      periodMid.setDate(periodMid.getDate() + 182)
+      const targetDateTransits = periodMid.toISOString()
       
       // Build natal positions dictionary
       // Note: The API expects natal positions WITHOUT the "natal_" prefix in the keys
@@ -291,7 +296,9 @@ export default function Reading2026Page() {
       const natalMc = chart.midheaven || null
 
       console.log('[Reading 2026] Calculating transits for:', {
-        targetDate: targetDate2026,
+        targetDate: targetDateTransits,
+        periodStart: periodStart.toISOString(),
+        periodEnd: periodEnd.toISOString(),
         natalPositionsCount: Object.keys(natalPositions).length,
         natalAsc,
         natalMc,
@@ -301,7 +308,7 @@ export default function Reading2026Page() {
         natal_positions: natalPositions,
         natal_asc: natalAsc,
         natal_mc: natalMc,
-        target_date: targetDate2026,
+        target_date: targetDateTransits,
         latitude: birthData.latitude,
         longitude: birthData.longitude,
         house_system: settings.houseSystem || 'placidus',
@@ -351,7 +358,10 @@ export default function Reading2026Page() {
 
       // Generate reading using backend AI endpoint
       const lang = (settings.language || 'fr') as 'en' | 'fr' | 'es'
-      const { systemPrompt, userPrompt } = generateReadingPrompt(birthData, chart, transits, lang)
+      const { systemPrompt, userPrompt } = generateReadingPrompt(birthData, chart, transits, lang, {
+        periodStart,
+        periodEnd,
+      })
 
       const response = await apiClient.ai.interpret(userPrompt, systemPrompt)
 
@@ -387,7 +397,7 @@ export default function Reading2026Page() {
       const lines = cleanedText.split('\n')
       if (lines.length > 0) {
         const firstLine = lines[0].trim()
-        const titlePattern = /^[^-]+ - Plan de jeu astrologique 2026$/i
+        const titlePattern = /^[^-]+ - Plan de jeu astrologique/i
         if (titlePattern.test(firstLine)) {
           cleanedText = lines.slice(1).join('\n').trim()
           console.log('[Reading 2026] Titre retiré, longueur restante:', cleanedText.length)
@@ -437,7 +447,12 @@ export default function Reading2026Page() {
       const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
-      const baseName = t.locale === 'fr' ? 'Lecture-2026' : t.locale === 'es' ? 'Lectura-2026' : '2026-Reading'
+      const baseName =
+        t.locale === 'fr'
+          ? 'Dialogue-Quatre-saisons-a-venir'
+          : t.locale === 'es'
+            ? 'Dialogo-Cuatro-estaciones-por-venir'
+            : 'Dialogue-four-seasons-to-come'
       const defaultName = t.locale === 'fr' ? 'lecture' : t.locale === 'es' ? 'lectura' : 'reading'
       link.download = `${baseName}-${birthData.firstName || defaultName}.pdf`
       link.click()
@@ -462,7 +477,7 @@ export default function Reading2026Page() {
     }
   }
 
-  const pdfSubtitle = (t.reading2026.title || 'Lecture 2026')
+  const pdfSubtitle = (t.reading2026.title || 'Révolution solaire')
     .replace(/&/g, '-')
     .replace(/[\u2010\u2011\u2012\u2013\u2014\u2212]/g, '-')
 
@@ -477,9 +492,12 @@ export default function Reading2026Page() {
           className="bg-gradient-to-br from-cosmic-purple/60 to-magenta-purple/60 backdrop-blur-sm rounded-xl p-8 border border-cosmic-gold/20 relative z-10"
         >
           <div className="flex items-center justify-center gap-3 mb-8">
-            <Calendar className="h-8 w-8 text-cosmic-gold" />
-            <h1 className="text-3xl font-bold text-cosmic-gold">
-              {t.reading2026.title}
+            <Calendar className="h-8 w-8 shrink-0 text-cosmic-gold" />
+            <h1 className="text-3xl font-bold text-cosmic-gold text-center leading-tight">
+              <span className="flex flex-col">
+                <span>{t.reading2026.titleLine1}</span>
+                {t.reading2026.titleLine2 ? <span>{t.reading2026.titleLine2}</span> : null}
+              </span>
             </h1>
           </div>
 
@@ -879,7 +897,7 @@ export default function Reading2026Page() {
                         const lines = text.split('\n')
                         if (lines.length > 0) {
                           const firstLine = lines[0].trim()
-                          const titlePattern = /^[^-]+ - Plan de jeu astrologique 2026$/i
+                          const titlePattern = /^[^-]+ - Plan de jeu astrologique/i
                           if (titlePattern.test(firstLine)) {
                             text = lines.slice(1).join('\n').trim()
                           }
@@ -887,6 +905,7 @@ export default function Reading2026Page() {
                         
                         // Fonctions pour détecter et nettoyer les titres
                         const KNOWN_SECTION_TITLES = [
+                          'Missions de la période',
                           'Missions de l\'année 2026',
                           'Missions de l\'année',
                           'Missions',
@@ -899,6 +918,7 @@ export default function Reading2026Page() {
                           'Destinée',
                           'Destinée (Nœud Nord + MC / axe vocation)',
                           'Destinée Nœud Nord MC axe vocation',
+                          'Image symbolique de la période',
                           'Image symbolique de 2026',
                           'Image symbolique',
                           'Séquence temporelle 2026',
@@ -908,6 +928,7 @@ export default function Reading2026Page() {
                           'Résumé',
                           'Conclusion',
                           'Clôture vivante 2026',
+                          'Clôture vivante',
                         ]
                         
                         const isSectionTitle = (line: string): boolean => {

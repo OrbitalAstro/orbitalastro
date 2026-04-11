@@ -21,7 +21,7 @@ export const translations = {
       rectification: "Rectification",
       stories: "Stories",
       dialogues: "Dialogues",
-      reading2026: "2026 Reading",
+      reading2026: "Solar return",
       valentine: "Valentine Synastry",
       chat: "Chat",
       pricing: "Products",
@@ -35,14 +35,14 @@ export const translations = {
     home: {
       heroTitle1: "Your Cosmic Blueprint",
       heroTitle2: "Awaits",
-      heroSubtitle: "Your astrological journey at your fingertips",
-      heroLead: "Discover your pre-incarnation dialogue and your astrological reading for 2026.",
+      heroSubtitle:
+        "Discover the astrological influences in your life journey.",
       heroDescription: "Discover your ",
       heroDescriptionLinkNatal: "natal chart",
       heroDescriptionLinkTransits: "transits",
       heroDescriptionLinkProgressions: "progressions",
       heroDescriptionAnd: "and hear the ",
-      heroDescriptionLinkDialogues: "pre-incarnation dialogue",
+      heroDescriptionLinkDialogues: "Dialogue Before landing",
       ctaCalculate: "Calculate Your Chart",
       ctaReadStories: "Read Stories",
       storiesTitle: "Mythopoetic Narratives",
@@ -89,10 +89,15 @@ export const translations = {
       footerLearnMore: "Learn more →",
       footerApiDocs: "API Docs",
       footerCopyright:
-        "© 2024 OrbitalAstro. Built with precision and poetry.",
+        "© 2026 orbitalastro.ca. Built with precision and poetry.",
     },
     dialogues: {
-      title: "Pre‑Incarnation Dialogue",
+      title: "Dialogue Before landing",
+      titleLine1: "Before landing",
+      titleLine2: "",
+      heroCtaSubtitle:
+        "A fictional dialogue, between Astrology and you, inspired by your birth chart.",
+      accessHeading: "Discover your Dialogue Before landing",
       description:
         "Generate a symbolic dialogue between your soul and the cosmic council before your birth.",
       firstName: "First name or nickname (optional)",
@@ -104,12 +109,12 @@ export const translations = {
       birthPlace: "Birth place",
       apiKeyRequired:
         "To generate the dialogue, please configure your Gemini API key in the Settings page.",
-      generating: "Weaving your pre‑incarnation dialogue...",
+      generating: "Weaving your Dialogue Before landing...",
       generate: "Generate Dialogue",
       resetForm: "Reset form",
       downloadingPdf: "Creating the PDF...",
       downloadPdf: "Download as PDF",
-      pdfSubtitle: "Pre‑incarnation dialogue",
+      pdfSubtitle: "Dialogue Before landing",
       disclaimer:
         "Astrology here is offered as entertainment—a light way to reflect—without any claim of absolute truth.",
       feedbackPrompt:
@@ -118,7 +123,7 @@ export const translations = {
       feedbackPromo:
         "People who complete the survey may receive promotions on upcoming products.",
       feedbackCta:
-        "Order pre‑incarnation dialogues for your loved ones and 2026 readings now.",
+        "Order Dialogue Before landing and Four seasons to come dialogues for your loved ones now.",
       rateLimitError:
         "Rate limit reached. Please wait a moment and try again.",
       validationBirthDateTimeRequired: "Birth date and time are required",
@@ -130,38 +135,42 @@ export const translations = {
       errorGenerating: "Error generating dialogue: {error}",
     },
     reading2026: {
-      title: "2026 Reading",
+      title: "Solar return",
+      titleLine1: "Solar return",
+      titleLine2: "",
+      heroCtaSubtitle:
+        "A fictional dialogue, between Astrology and you, about the next 365 days.",
       description:
-        "Generate a focused 2026 reading based on your natal chart and upcoming transits.",
+        "Generate a focused dialogue for the four seasons to come, based on your natal chart and upcoming transits.",
       firstName: "First name or nickname (optional)",
-      firstNamePlaceholder: "How should the reading address you?",
+      firstNamePlaceholder: "How should the dialogue address you?",
       email: "Email",
       emailPlaceholder: "name@example.com",
       birthDate: "Birth date",
       birthTime: "Birth time",
       birthPlace: "Birth place",
-      generating: "Generating your 2026 reading...",
-      generate: "Generate 2026 Reading",
-      generateAnother: "Generate another reading",
+      generating: "Generating your Dialogue Four seasons to come...",
+      generate: "Generate dialogue",
+      generateAnother: "Generate another dialogue",
       resetForm: "Reset form",
       downloadingPdf: "Creating PDF...",
       downloadPdf: "Download PDF",
       disclaimer:
-        "This reading is symbolic—offered for entertainment and reflection—without any claim of absolute truth.",
+        "This dialogue is symbolic—offered for entertainment and reflection—without any claim of absolute truth.",
       feedbackPrompt:
         "Your opinion matters to us—thank you for taking a moment to share your feedback via this survey:",
       feedbackLinkLabel: "Share my feedback (survey)",
       feedbackPromo:
         "People who complete the survey may receive promotions on upcoming products.",
       feedbackCta:
-        "Order pre‑incarnation dialogues for your loved ones and 2026 readings now.",
+        "Order Dialogue Before landing and Four seasons to come dialogues for your loved ones now.",
       validationBirthDateTimeRequired: "Birth date and time are required",
       validationBirthPlaceRequired: "Birth place is required",
       validationEmailRequired: "A valid email address is required",
       emailSending: "Sending your PDF by email...",
       emailSent: "PDF sent to {email}.",
       emailFailed: "Could not send the PDF by email. Please try again.",
-      errorGenerating: "Error generating reading: {error}",
+      errorGenerating: "Error generating dialogue: {error}",
     },
     valentine: {
       title: "Valentine Synastry",
@@ -429,7 +438,7 @@ export const translations = {
       stories: "Histoires",
       dialogues: "Dialogues",
       chat: "Chat",
-      reading2026: "Lecture 2026",
+      reading2026: "Révolution solaire",
       valentine: "Saint-Valentin",
       pricing: "Produits",
       univers: "Univers",
@@ -444,14 +453,14 @@ export const translations = {
     home: {
       heroTitle1: "Votre Plan Cosmique",
       heroTitle2: "Vous Attend",
-      heroSubtitle: "Votre voyage astrologique à votre portée",
-      heroLead: "Découvrez votre dialogue pré-incarnation et votre lecture astrologique pour 2026.",
+      heroSubtitle:
+        "Découvre les influences astrologiques de ton jeu de vie.",
       heroDescription: "Découvrez votre ",
       heroDescriptionLinkNatal: "thème natal",
       heroDescriptionLinkTransits: "transits",
       heroDescriptionLinkProgressions: "progressions",
       heroDescriptionAnd: "et écoutez le ",
-      heroDescriptionLinkDialogues: "dialogue pré-incarnation",
+      heroDescriptionLinkDialogues: "dialogue Avant l'atterrissage",
       ctaCalculate: "Calculer Votre Carte",
       ctaReadStories: "Lire les Histoires",
       storiesTitle: "Récits Mythopoétiques",
@@ -492,7 +501,7 @@ export const translations = {
       ctaDescription:
         "Rejoignez des milliers de personnes explorant leur destin astrologique.",
       ctaButton: "Commencer",
-      footerTagline: "Votre voyage astrologique à votre portée",
+      footerTagline: "Ton aventure astrologique en mode dialogue.",
       footerServices: "Services",
       footerFeatures: "Fonctionnalités",
       footerResources: "Ressources",
@@ -502,10 +511,15 @@ export const translations = {
       footerLearnMore: "En savoir plus →",
       footerApiDocs: "Docs API",
       footerCopyright:
-        "© 2024 OrbitalAstro. Construit avec précision et poésie.",
+        "© 2026 orbitalastro.ca. Construit avec précision et poésie.",
     },
     dialogues: {
-      title: "Dialogue de Pré‑Incarnation",
+      title: "Dialogue Avant l'atterrissage",
+      titleLine1: "Avant l'atterrissage",
+      titleLine2: "",
+      heroCtaSubtitle:
+        "Dialogue fictif, entre l'Astrologie et toi, inspiré de ta carte du ciel.",
+      accessHeading: "Découvrez votre Dialogue Avant l'atterrissage",
       description:
         "Générez un dialogue symbolique entre votre âme et le conseil cosmique avant votre naissance.",
       firstName: "Prénom ou surnom (optionnel)",
@@ -518,12 +532,12 @@ export const translations = {
       birthPlace: "Lieu de naissance",
       apiKeyRequired:
         "Pour générer le dialogue, veuillez configurer votre clé API Gemini dans la page Paramètres.",
-      generating: "Tissage de votre dialogue de pré‑incarnation...",
+      generating: "Tissage de votre Dialogue Avant l'atterrissage...",
       generate: "Générer le dialogue",
       resetForm: "Réinitialiser le formulaire",
       downloadingPdf: "Création du PDF...",
       downloadPdf: "Télécharger en PDF",
-      pdfSubtitle: "Dialogue pré‑incarnation",
+      pdfSubtitle: "Dialogue Avant l'atterrissage",
       disclaimer:
         "L'astrologie ici est offerte comme un divertissement, une manière légère de réfléchir, sans valeur de vérité absolue.",
       feedbackPrompt: "",
@@ -541,38 +555,42 @@ export const translations = {
       errorGenerating: "Erreur lors de la génération du dialogue : {error}",
     },
     reading2026: {
-      title: "Lecture 2026",
+      title: "Révolution solaire",
+      titleLine1: "Révolution solaire",
+      titleLine2: "",
+      heroCtaSubtitle:
+        "Dialogue fictif, entre l'Astrologie et toi, à propos des 365 prochains jours.",
       description:
-        "Générez une lecture 2026 ciblée à partir de votre thème natal et des transits à venir.",
+        "Générez un dialogue centré sur les quatre saisons à venir, à partir de votre thème natal et des transits.",
       firstName: "Prénom ou surnom (optionnel)",
-      firstNamePlaceholder: "Sous quel prénom la lecture doit-elle vous parler ?",
+      firstNamePlaceholder: "Sous quel prénom le dialogue doit-il vous parler ?",
       email: "Courriel",
       emailPlaceholder: "nom@exemple.com",
       birthDate: "Date de naissance",
       birthTime: "Heure de naissance",
       birthPlace: "Lieu de naissance",
-      generating: "Génération de votre lecture 2026...",
-      generate: "Générer la lecture 2026",
-      generateAnother: "Générer une nouvelle lecture",
+      generating: "Génération de votre Dialogue Quatre saisons à venir...",
+      generate: "Générer le dialogue",
+      generateAnother: "Générer un nouveau dialogue",
       resetForm: "Réinitialiser le formulaire",
       downloadingPdf: "Création du PDF...",
       downloadPdf: "Télécharger le PDF",
       disclaimer:
-        "Cette lecture est symbolique, offerte pour le divertissement et la réflexion, sans valeur de vérité absolue.",
+        "Ce dialogue est symbolique, offert pour le divertissement et la réflexion, sans valeur de vérité absolue.",
       feedbackPrompt:
         "Votre opinion est importante pour nous. Merci de prendre un moment pour répondre à ce sondage de rétroaction :",
       feedbackLinkLabel: "Sondage de rétroaction OrbitalAstro",
       feedbackPromo:
         "Les personnes qui répondent au sondage recevront des promotions sur les produits à venir.",
       feedbackCta:
-        "Commande dès maintenant les dialogues pré-incarnations pour tes êtres chers et les lectures 2026.",
+        "Commande dès maintenant les dialogues Avant l'atterrissage pour tes êtres chers et les dialogues Quatre saisons à venir.",
       validationBirthDateTimeRequired: "Date et heure de naissance requises",
       validationBirthPlaceRequired: "Lieu de naissance requis",
       validationEmailRequired: "Un courriel valide est requis",
       emailSending: "Envoi du PDF par courriel...",
       emailSent: "PDF envoyé à {email}.",
       emailFailed: "Impossible d'envoyer le PDF par courriel. Réessaie.",
-      errorGenerating: "Erreur lors de la génération de la lecture : {error}",
+      errorGenerating: "Erreur lors de la génération du dialogue : {error}",
     },
     valentine: {
       title: "Synastrie Saint-Valentin",
@@ -761,7 +779,7 @@ export const translations = {
       section2Item2Title: "Clause de non-responsabilité :",
       section2Item2Content: "L'astrologie présentée sur ce site est offerte comme un divertissement, une manière légère de réfléchir, sans valeur de vérité absolue. Nous ne garantissons aucun résultat spécifique.",
       section2Item3Title: "Services offerts :",
-      section2Item3Content: "Dialogues pré-incarnation, lectures astrologiques, calculs de thème natal, et autres services astrologiques numériques.",
+      section2Item3Content: "Dialogues Avant l'atterrissage, lectures astrologiques, calculs de thème natal, et autres services astrologiques numériques.",
       section2Item4Title: "Prix et paiement :",
       section2Item4Content: "Les prix sont indiqués en dollars canadiens (CAD) et incluent les taxes applicables (TPS/TVQ au Québec). Les paiements sont traités de manière sécurisée via Stripe.",
       section3Title: "3. Politique de remboursement",
@@ -817,7 +835,7 @@ export const translations = {
       stories: "Historias",
       dialogues: "Diálogos",
       chat: "Chat",
-      reading2026: "Lectura 2026",
+      reading2026: "Revolución solar",
       valentine: "San Valentín",
       pricing: "Productos",
       univers: "Universo",
@@ -833,14 +851,13 @@ export const translations = {
       heroTitle1: "Tu Plan Cósmico",
       heroTitle2: "Te Espera",
       heroSubtitle:
-        "Donde la sabiduría antigua se encuentra con la precisión moderna",
-      heroLead: "Descubre tu diálogo pre-encarnación y tu lectura astrológica para 2026.",
+        "Descubre las influencias astrológicas de tu juego de vida.",
       heroDescription: "Descubre tu ",
       heroDescriptionLinkNatal: "carta natal",
       heroDescriptionLinkTransits: "tránsitos",
       heroDescriptionLinkProgressions: "progresiones",
       heroDescriptionAnd: "y escucha el ",
-      heroDescriptionLinkDialogues: "diálogo pre-encarnación",
+      heroDescriptionLinkDialogues: "diálogo Antes del aterrizaje",
       ctaCalculate: "Calcula Tu Carta",
       ctaReadStories: "Leer Historias",
       storiesTitle: "Narrativas Mitopoéticas",
@@ -892,10 +909,15 @@ export const translations = {
       footerLearnMore: "Saber más →",
       footerApiDocs: "Docs API",
       footerCopyright:
-        "© 2024 OrbitalAstro. Construido con precisión y poesía.",
+        "© 2026 orbitalastro.ca. Construido con precisión y poesía.",
     },
     dialogues: {
-      title: "Diálogo de Pre‑Encarnación",
+      title: "Diálogo Antes del aterrizaje",
+      titleLine1: "Antes del aterrizaje",
+      titleLine2: "",
+      heroCtaSubtitle:
+        "Diálogo ficticio, entre la Astrología y tú, inspirado en tu carta natal.",
+      accessHeading: "Descubre tu Diálogo Antes del aterrizaje",
       description:
         "Genera un diálogo simbólico entre tu alma y el consejo cósmico antes de tu nacimiento.",
       firstName: "Nombre o apodo (opcional)",
@@ -908,12 +930,12 @@ export const translations = {
       birthPlace: "Lugar de nacimiento",
       apiKeyRequired:
         "Para generar el diálogo, configura tu clave API de Gemini en la página de Configuración.",
-      generating: "Tejiendo tu diálogo de pre‑encarnación...",
+      generating: "Tejiendo tu Diálogo Antes del aterrizaje...",
       generate: "Generar diálogo",
       resetForm: "Restablecer formulario",
       downloadingPdf: "Creando el PDF...",
       downloadPdf: "Descargar en PDF",
-      pdfSubtitle: "Diálogo de pre‑encarnación",
+      pdfSubtitle: "Diálogo Antes del aterrizaje",
       disclaimer:
         "La astrología aquí se ofrece como entretenimiento: una forma ligera de reflexionar, sin valor de verdad absoluta.",
       feedbackPrompt:
@@ -922,7 +944,7 @@ export const translations = {
       feedbackPromo:
         "Quienes completen la encuesta podrían recibir promociones en productos próximos.",
       feedbackCta:
-        "Pide ahora diálogos de pre‑encarnación para tus seres queridos y lecturas 2026.",
+        "Pide ahora diálogos Antes del aterrizaje para tus seres queridos y diálogos 2026.",
       rateLimitError:
         "Se alcanzó el límite de peticiones. Espera un momento e inténtalo de nuevo.",
       validationBirthDateTimeRequired: "Se requieren fecha y hora de nacimiento",
@@ -934,38 +956,42 @@ export const translations = {
       errorGenerating: "Error al generar el diálogo: {error}",
     },
     reading2026: {
-      title: "Lectura 2026",
+      title: "Revolución solar",
+      titleLine1: "Revolución solar",
+      titleLine2: "",
+      heroCtaSubtitle:
+        "Diálogo ficticio, entre la Astrología y tú, sobre los próximos 365 días.",
       description:
-        "Genera una lectura 2026 enfocada basada en tu carta natal y los próximos tránsitos.",
+        "Genera un diálogo centrado en las cuatro estaciones por venir, basado en tu carta natal y los tránsitos venideros.",
       firstName: "Nombre o apodo (opcional)",
-      firstNamePlaceholder: "¿Cómo debe dirigirse la lectura a ti?",
+      firstNamePlaceholder: "¿Cómo debe dirigirse el diálogo a ti?",
       email: "Correo electrónico",
       emailPlaceholder: "nombre@ejemplo.com",
       birthDate: "Fecha de nacimiento",
       birthTime: "Hora de nacimiento",
       birthPlace: "Lugar de nacimiento",
-      generating: "Generando tu lectura 2026...",
-      generate: "Generar lectura 2026",
-      generateAnother: "Generar una nueva lectura",
+      generating: "Generando tu Diálogo Cuatro estaciones por venir...",
+      generate: "Generar diálogo",
+      generateAnother: "Generar un nuevo diálogo",
       resetForm: "Restablecer formulario",
       downloadingPdf: "Creando PDF...",
       downloadPdf: "Descargar PDF",
       disclaimer:
-        "Esta lectura es simbólica: se ofrece para entretenimiento y reflexión, sin valor de verdad absoluta.",
+        "Este diálogo es simbólico: se ofrece para entretenimiento y reflexión, sin valor de verdad absoluta.",
       feedbackPrompt:
         "Tu opinión es importante para nosotros. Gracias por tomarte un momento para responder esta encuesta:",
       feedbackLinkLabel: "Encuesta de retroalimentación (OrbitalAstro)",
       feedbackPromo:
         "Quienes completen la encuesta podrían recibir promociones en productos próximos.",
       feedbackCta:
-        "Pide ahora diálogos de pre‑encarnación para tus seres queridos y lecturas 2026.",
+        "Pide ahora diálogos Antes del aterrizaje para tus seres queridos y diálogos Cuatro estaciones por venir.",
       validationBirthDateTimeRequired: "Se requieren fecha y hora de nacimiento",
       validationBirthPlaceRequired: "Se requiere lugar de nacimiento",
       validationEmailRequired: "Se requiere un correo válido",
       emailSending: "Enviando tu PDF por correo...",
       emailSent: "PDF enviado a {email}.",
       emailFailed: "No se pudo enviar el PDF por correo. Inténtalo de nuevo.",
-      errorGenerating: "Error al generar la lectura: {error}",
+      errorGenerating: "Error al generar el diálogo: {error}",
     },
     valentine: {
       title: "Sinastría San Valentín",

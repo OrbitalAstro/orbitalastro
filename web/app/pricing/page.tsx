@@ -130,14 +130,14 @@ export default function PricingPage() {
           </div>
         )}
 
-        {/* Code promo pour Lecture 2026 */}
+        {/* Code promo Quatre saisons */}
         <div className="max-w-2xl mx-auto mb-12 p-6 bg-deep-space/50 border border-cosmic-gold/30 rounded-xl">
           <div className="flex items-center gap-3 mb-4">
             <Gift className="h-6 w-6 text-cosmic-gold" />
             <h3 className="text-xl font-bold text-white">Vous avez un code promo ?</h3>
           </div>
           <p className="text-cosmic-silver mb-4 text-sm">
-            Si vous avez répondu à notre sondage, vous avez reçu un code promo unique pour la <strong>Lecture 2026</strong> (50% de rabais).
+            Si vous avez répondu à notre sondage, vous avez reçu un code promo unique pour le <strong>Dialogue Quatre saisons à venir</strong> (50% de rabais).
           </p>
           <div className="flex gap-3 mb-3">
             <input
@@ -156,7 +156,7 @@ export default function PricingPage() {
           </div>
           {appliedPromo && (
             <p className="text-green-400 text-sm">
-              ✓ Code promo appliqué : {appliedPromo} (50% de rabais sur la Lecture 2026)
+              ✓ Code promo appliqué : {appliedPromo} (50% de rabais sur le Dialogue Quatre saisons à venir)
             </p>
           )}
         </div>

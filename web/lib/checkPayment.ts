@@ -5,6 +5,21 @@
 export type ProductId = 'dialogue' | 'reading-2026' | 'valentine-2026' | 'monthly'
 
 /**
+ * Sur localhost en `next dev`, accès complet sans appeler Stripe (simulations / tests).
+ * Désactiver explicitement : NEXT_PUBLIC_DEV_SKIP_PAYMENT=false dans .env.local
+ * Forcer même hors dev : NEXT_PUBLIC_DEV_SKIP_PAYMENT=true (toujours limité à localhost / 127.0.0.1)
+ */
+export function shouldBypassPayment(): boolean {
+  if (typeof window === 'undefined') return false
+  const host = window.location.hostname
+  if (host !== 'localhost' && host !== '127.0.0.1') return false
+
+  if (process.env.NEXT_PUBLIC_DEV_SKIP_PAYMENT === 'false') return false
+  if (process.env.NEXT_PUBLIC_DEV_SKIP_PAYMENT === 'true') return true
+  return process.env.NODE_ENV === 'development'
+}
+
+/**
  * Résultat de la vérification d'accès avec les quantités
  */
 export interface AccessResult {
@@ -23,6 +38,16 @@ export async function checkProductAccess(
   email?: string | null,
   sessionId?: string | null
 ): Promise<AccessResult> {
+  if (shouldBypassPayment()) {
+    return {
+      hasAccess: true,
+      quantityPurchased: 999,
+      quantityUsed: 0,
+      quantityRemaining: 999,
+      sessionId: 'dev-localhost',
+    }
+  }
+
   // PRIORITÉ 1: Si une session_id est fournie, TOUJOURS vérifier avec Stripe
   if (sessionId) {
     try {
@@ -192,6 +217,10 @@ export async function recordGeneration(
   email: string,
   sessionId?: string | null
 ): Promise<void> {
+  if (shouldBypassPayment()) {
+    return
+  }
+
   try {
     // Récupérer la sessionId depuis localStorage si non fournie
     const storedSessionId = sessionId || localStorage.getItem(`session_${productId}`)

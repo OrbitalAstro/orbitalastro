@@ -139,21 +139,21 @@ function buildMessage(args: { kind: PdfKind; language: Language; firstName?: str
 
   const subjectFr =
     kind === 'dialogue'
-      ? 'Votre dialogue pré-incarnation (PDF)'
+      ? 'Votre Dialogue Avant l\'atterrissage (PDF)'
       : kind === 'reading-2026'
-        ? 'Votre lecture 2026 (PDF)'
+        ? 'Votre Dialogue Quatre saisons à venir (PDF)'
         : 'Votre synastrie Saint-Valentin (PDF)'
   const subjectEn =
     kind === 'dialogue'
-      ? 'Your pre-incarnation dialogue (PDF)'
+      ? 'Your Dialogue Before landing (PDF)'
       : kind === 'reading-2026'
-        ? 'Your 2026 reading (PDF)'
+        ? 'Your Dialogue Four seasons to come (PDF)'
         : 'Your Valentine synastry (PDF)'
   const subjectEs =
     kind === 'dialogue'
-      ? 'Tu diálogo de preencarnación (PDF)'
+      ? 'Tu Diálogo Antes del aterrizaje (PDF)'
       : kind === 'reading-2026'
-        ? 'Tu lectura 2026 (PDF)'
+        ? 'Tu Diálogo Cuatro estaciones por venir (PDF)'
         : 'Tu sinastría de San Valentín (PDF)'
 
   const subject = language === 'en' ? subjectEn : language === 'es' ? subjectEs : subjectFr
@@ -185,8 +185,8 @@ function buildMessage(args: { kind: PdfKind; language: Language; firstName?: str
 function buildFilename(kind: PdfKind, firstName?: string) {
   const safeName = (firstName || '').trim().replace(/[^\p{L}\p{N}\-_. ]/gu, '').trim()
   const suffix = safeName ? `-${safeName}` : ''
-  if (kind === 'dialogue') return `Dialogue-pre-incarnation${suffix}.pdf`
-  if (kind === 'reading-2026') return `Lecture-2026${suffix}.pdf`
+  if (kind === 'dialogue') return `Dialogue-Avant-atterrissage${suffix}.pdf`
+  if (kind === 'reading-2026') return `Dialogue-Quatre-saisons-a-venir${suffix}.pdf`
   return `Synastrie-Saint-Valentin${suffix}.pdf`
 }
 

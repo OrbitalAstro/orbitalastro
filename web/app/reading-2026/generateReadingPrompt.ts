@@ -1,9 +1,25 @@
 /**
- * Génération du prompt pour la Lecture 2026
- * Basé sur les directives fournies
+ * Génération du prompt pour le Dialogue Quatre saisons à venir
+ * Cadre temporel : du jour de la génération (commande) jusqu’à 365 jours plus tard.
  */
 
 import type { Language } from '@/lib/i18n'
+
+export interface ReadingPeriodOptions {
+  /** Début inclus : jour calendaire de la commande / génération (00:00 fuseau local du client) */
+  periodStart: Date
+  /** Fin : 365 jours après periodStart (même heure de référence, calendrier local) */
+  periodEnd: Date
+}
+
+function formatPeriodDate(d: Date, language: Language): string {
+  const locale = language === 'en' ? 'en-CA' : language === 'es' ? 'es-MX' : 'fr-CA'
+  return d.toLocaleDateString(locale, {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  })
+}
 
 interface BirthData {
   firstName: string
@@ -139,7 +155,7 @@ function getMainAspect(aspects: any[] | undefined, planetName: string): string |
   return `${aspectNames[aspect.aspect] || aspect.aspect} ${otherPlanet}`
 }
 
-function formatTransits(transits: Transit[], chart: ChartData): string {
+function formatTransits(transits: Transit[], chart: ChartData, transitsSectionTitle: string): string {
   const majorTransits: Transit[] = []
   const slowPlanets = ['saturn', 'uranus', 'neptune', 'pluto']
   
@@ -171,7 +187,7 @@ function formatTransits(transits: Transit[], chart: ChartData): string {
     return a.orb_deg - b.orb_deg // Plus proche = plus prioritaire
   })
   
-  let result = 'TRANSITS MAJEURS POUR 2026:\n\n'
+  let result = `${transitsSectionTitle}\n\n`
   for (const transit of majorTransits.slice(0, 12)) { // Limiter à 12 transits majeurs
     const transitingPlanet = transit.transiting_body
     const natalPlanet = transit.natal_body
@@ -212,8 +228,40 @@ export function generateReadingPrompt(
   birthData: BirthData,
   chart: ChartData,
   transits: Transit[],
-  language: Language = 'fr'
+  language: Language = 'fr',
+  period?: ReadingPeriodOptions
 ): { systemPrompt: string; userPrompt: string } {
+  const periodStart = period?.periodStart ?? (() => {
+    const x = new Date()
+    x.setHours(0, 0, 0, 0)
+    return x
+  })()
+  const periodEnd =
+    period?.periodEnd ??
+    (() => {
+      const x = new Date(periodStart)
+      x.setDate(x.getDate() + 365)
+      return x
+    })()
+
+  const periodStartStr = formatPeriodDate(periodStart, language)
+  const periodEndStr = formatPeriodDate(periodEnd, language)
+  const periodMid = new Date(periodStart)
+  periodMid.setDate(periodMid.getDate() + 182)
+  const periodMidStr = formatPeriodDate(periodMid, language)
+
+  const transitsSectionTitle =
+    language === 'en'
+      ? `MAJOR TRANSITS (astrological snapshot at ${periodMidStr}, indicative midpoint of ${periodStartStr} – ${periodEndStr}):`
+      : language === 'es'
+        ? `TRÁNSITOS PRINCIPALES (instantánea en ${periodMidStr}, punto medio entre ${periodStartStr} y ${periodEndStr}):`
+        : `TRANSITS MAJEURS (instantané astrologique au ${periodMidStr}, milieu indicatif de la période du ${periodStartStr} au ${periodEndStr}) :`
+
+  const cadreTemporel = `[CADRE TEMPOREL — OBLIGATOIRE — DIALOGUE QUATRE SAISONS À VENIR]
+Le dialogue commence le ${periodStartStr} et se termine le ${periodEndStr} (durée : 365 jours calendaires à compter du jour de la commande / génération).
+Toute l'interprétation, les missions, la séquence temporelle et les références aux « saisons » s'inscrivent dans cette fenêtre. Ne centre pas le récit sur une année civile fixe : parle de la période concernée.
+Les positions des planètes lentes « en signe » indiquées sous [TRANSITS] sont un instantané au ${periodMidStr} (milieu indicatif de la période) pour lire les dynamiques ; ancre le vécu du client sur toute la durée du ${periodStartStr} au ${periodEndStr}.
+`
   const sun = chart.planets?.sun
   const moon = chart.planets?.moon
   const venus = chart.planets?.venus
@@ -282,18 +330,20 @@ export function generateReadingPrompt(
         ? 'Longitud: 1600–1800 palabras. IMPORTANTE: Genera el texto COMPLETO para TODAS las secciones. No te detengas a mitad de frase o a mitad de sección. Continúa hasta haber escrito todo lo solicitado, incluyendo la frase final de cierre.'
         : 'Longueur : 1600 à 1800 mots. IMPORTANT : Génère le texte COMPLET pour TOUTES les sections. Ne t\'arrête pas au milieu d\'une phrase ou d\'une section. Continue jusqu\'à avoir écrit tout ce qui est demandé, y compris la phrase finale de clôture.'
 
-  const systemPrompt = `IMPORTANT : Les éléments entre crochets [TITRE], [RÔLE], [PRÉNOM], etc. et entre parenthèses (0 INTRODUCTION 2026), (nomme un levier simple), etc. sont des INSTRUCTIONS pour toi, PAS du texte à écrire. Ne les inclut JAMAIS dans ta réponse.
+  const systemPrompt = `IMPORTANT : Les éléments entre crochets [TITRE], [RÔLE], [PRÉNOM], etc. et entre parenthèses (0 INTRODUCTION), (nomme un levier simple), etc. sont des INSTRUCTIONS pour toi, PAS du texte à écrire. Ne les inclut JAMAIS dans ta réponse.
 
 Ne JAMAIS utiliser de symboles markdown comme ##, ###, **, etc. dans le texte final.
 
 TITRE À PRODUIRE :
-[PRÉNOM] - Plan de jeu astrologique 2026
+[PRÉNOM] - Plan de jeu astrologique — du ${periodStartStr} au ${periodEndStr} (fenêtre de 365 jours)
 (Remplace [PRÉNOM] par le prénom réel du client, sans les crochets)
 
 RÔLE :
 ${roleIntro}
 
 ${noPredictions}
+
+${cadreTemporel}
 
 [RÈGLES GRAND PUBLIC]
 - 80% vécu concret / 20% astrologie.
@@ -337,16 +387,16 @@ Un même thème ne doit jamais être formulé deux fois au même niveau.
 
 [STRUCTURE DU PLAN CLIENT]
 
-INTRODUCTION 2026
-(IMPORTANT : Ne JAMAIS écrire "(0 INTRODUCTION 2026)" dans le texte final. C'est une instruction, pas du texte à écrire.)
+INTRODUCTION — PÉRIODE DU ${periodStartStr} AU ${periodEndStr}
+(IMPORTANT : Ne JAMAIS écrire "(0 INTRODUCTION)" ni les dates brutes d'instruction dans le texte final si elles sonnent mécaniques — intègre-les avec naturel. C'est une instruction, pas du texte à recopier.)
 
-Commencer directement par : « [PRÉNOM], bienvenue en 2026. »
+Commencer directement par : « [PRÉNOM], bienvenue dans cette fenêtre de 365 jours, du ${periodStartStr} au ${periodEndStr}. »
 (Remplace [PRÉNOM] par le prénom réel, sans crochets)
 
 Personnifier l'Astrologie : elle s'installe à côté du client, observe les transits, sourit.
 
 Format dialogue OBLIGATOIRE (une ligne vide entre chaque dialogue) :
-Astrologie : [bref portrait de 2026] « … »
+Astrologie : [bref portrait de cette période] « … »
 
 [PRÉNOM] : [répond selon sa personnalité] « … »
 
@@ -358,7 +408,7 @@ Astrologie : «… »
 
 Astrologie : «… »
 
-1) Missions de l'année 2026
+1) Missions de la période (du ${periodStartStr} au ${periodEndStr})
 Dialogue Astrologie, Planète, Signe et prénom
 3 paragraphes/dialogue sur le cycle global et la tonalité.
 
@@ -366,7 +416,7 @@ Dialogue Astrologie, Planète, Signe et prénom
 Sous-section par transit lent majeur (Saturne, Uranus, Neptune, Pluton).
 
 IMPORTANT — Comprendre les transits :
-- La position de la planète en transit (ex: "Saturne en Poissons") est COLLECTIVE : tout le monde a Saturne en Poissons en 2026.
+- La position de la planète en transit (ex: "Saturne en Poissons") est COLLECTIVE : tout le monde partage ce placement à un instant donné ; ce qui compte ici, c'est comment cela dialogue avec la carte natale du client durant la période.
 - Mais l'aspect avec les points natals (ex: "Opposition MC/IC") est PERSONNEL : cela dépend de la carte natale de chaque personne.
 - MC = Milieu du Ciel (Maison 10 : vocation, carrière, réalisation publique)
 - IC = Fond du Ciel (Maison 4 : racines, foyer, famille, monde intérieur)
@@ -412,7 +462,7 @@ Poisson : « La qualité prime sur la quantité. »
 
 [PRÉNOM] : « … »
 
-Astrologie : L'orientation clé 2026… [ce que cette année rend plus vrai, plus simple ou plus stable].
+Astrologie : L'orientation clé de cette période… [ce que ces 365 jours rendent plus vrai, plus simple ou plus stable].
 
 (Remplace [PRÉNOM] par le prénom réel, sans crochets. Ne garde pas les instructions entre parenthèses comme "(Décrit un piège)" ou "(Nomme un levier simple)" dans le texte final.)
 
@@ -420,7 +470,7 @@ Astrologie : L'orientation clé 2026… [ce que cette année rend plus vrai, plu
 Personnalisable pour chaque client selon sa dynamique, ses priorités et son style de vie.
 
 Exemple orienté projet / innovation :
-- Est-ce que ça soutient ma direction 2026 et mes ambitions créatives ?
+- Est-ce que ça soutient ma direction pour cette période et mes ambitions créatives ?
 - Est-ce que ça respecte mon rythme, mon énergie et mes besoins réels ?
 - Est-ce que je me sens plus aligné·e et clair·e après cette décision ?
 
@@ -433,7 +483,7 @@ Règle : 2/3 = oui → petit pas. Sinon → renégocier ou décliner.
 
 3) Cycles intérieurs (Lune)
 Dialogue Lune, Signe de la maison ↔ client.
-- Décrire la sécurité émotionnelle, ce que 2026 soutient (repos, limites, créativité, légèreté…).
+- Décrire la sécurité émotionnelle, ce que cette période soutient (repos, limites, créativité, légèreté…).
 - Signes concrets de dérive émotionnelle : 2
 - Astuce 10 min (simple), Reset 30 min (réaliste) : 2
 - Signe concret d'alignement émotionnel : 1
@@ -442,11 +492,11 @@ Dialogue Lune, Signe de la maison ↔ client.
 4) Destinée (Nœud Nord + MC / axe vocation)
 Dialogue Astrologie ↔ client.
 - Décrire l'état des influences astrologiques sur la destinée
-- Occasions 2026 : [ce que cette année propose et facilite pour réaliser la destinée].
+- Occasions durant la période : [ce que cette fenêtre de 365 jours propose et facilite pour réaliser la destinée].
 - Astrologie : Décrire les talents à utiliser et les périodes porteuses de chance
 - 3 exemples concrets dans la vraie vie.
 
-4.5) Séquence temporelle 2026 – TABLEAU
+4.5) Séquence temporelle — TABLEAU (répartition sur le ${periodStartStr} au ${periodEndStr})
 Format tableau (IMPORTANT : ne pas inclure les symboles | ou |:--- dans le texte final) :
 Présente un tableau avec les colonnes suivantes :
 - Période / repère
@@ -456,30 +506,30 @@ Présente un tableau avec les colonnes suivantes :
 
 Le tableau doit être présenté de manière claire et lisible, sans symboles de formatage markdown. Les instructions entre parenthèses comme "(1 phrase)", "(2-3 éléments)" sont des indications pour toi, pas du texte à écrire.
 
-5) Image symbolique de 2026
+5) Image symbolique de la période
 Dialogue direct intégré.
-Décrire une image simple en lien avec la personnalité qui servira de rappel pour l'année.
+Décrire une image simple en lien avec la personnalité qui servira de rappel pour toute la fenêtre de 365 jours.
 
 6) En résumé
 Dialogue direct Astrologie ↔ client : invitations, axes d'évolution, soutien intérieur.
-Terminer avec question client : « Si j'ai besoin de clarifier des choses au courant de l'année, je te trouve comment ? »
+Terminer avec question client : « Si j'ai besoin de clarifier des choses au cours de la période, je te trouve comment ? »
 Astrologie : « Orbital Astro aura bientôt un pont de communication vivant à te proposer, reste à l'affût. »
 
-7) Conclusion — Clôture vivante 2026
-Objectif : Offrir une vraie fermeture émotionnelle et intégrative du plan 2026. La conclusion doit ancrer, apaiser et redonner l'autonomie au client.
+7) Conclusion — Clôture vivante
+Objectif : Offrir une vraie fermeture émotionnelle et intégrative du plan pour cette période. La conclusion doit ancrer, apaiser et redonner l'autonomie au client.
 
 Structure obligatoire :
 - Dialogue Astrologie ↔ [PRÉNOM]
-- Astrologie rappelle que 2026 demande plus de justesse que d'effort.
+- Astrologie rappelle que cette fenêtre demande plus de justesse que d'effort.
 - Le client exprime une hésitation ou une question simple.
 - Astrologie normalise l'incertitude et insiste sur l'ajustement en chemin.
 
 Ancrage intérieur :
-- Donner 2 à 3 repères simples auxquels le client peut revenir toute l'année (ressenti corporel, clarté, calme, justesse).
+- Donner 2 à 3 repères simples auxquels le client peut revenir tout au long de la période (ressenti corporel, clarté, calme, justesse).
 - Insister sur le fait que "un peu oui" est suffisant pour avancer.
 
-Invitation 2026 (3 lignes maximum) :
-- Formuler une posture annuelle claire, incarnée et non performative (ex. créer sans se justifier, s'engager sans se dissoudre, appartenir sans se trahir).
+Invitation pour cette période (3 lignes maximum) :
+- Formuler une posture claire sur l'ensemble des 365 jours, incarnée et non performative (ex. créer sans se justifier, s'engager sans se dissoudre, appartenir sans se trahir).
 
 Clôture finale :
 Terminer impérativement avec cette phrase (sans nommer l'ascendant) :
@@ -509,12 +559,12 @@ La seule exception : si c'est une incise/parenthèse avec deux virgules (ex. : �
 
 RÈGLE ABSOLUE : Jamais de virgule juste avant « et », « ou », « ni ». Si tu vois ce motif dans ton texte, supprime immédiatement la virgule avant la conjonction.
 
-Maintenant, écris le plan de jeu astrologique 2026 complet pour [PRÉNOM] en suivant exactement cette structure et en te basant sur les données natales et les transits fournis.`
+Maintenant, écris le plan de jeu astrologique complet pour [PRÉNOM] pour la période du ${periodStartStr} au ${periodEndStr} en suivant exactement cette structure et en te basant sur les données natales et les transits fournis.`
 
-  const transitsText = formatTransits(transits, chart)
-  
+  const transitsText = formatTransits(transits, chart, transitsSectionTitle)
+
   const userPrompt = `====================================================
-DONNÉES NATALES ET TRANSITS POUR LE PLAN DE JEU 2026
+DONNÉES NATALES ET TRANSITS — PLAN DE JEU (${periodStartStr} → ${periodEndStr}, 365 jours)
 ====================================================
 
 [PROFIL]
@@ -538,7 +588,7 @@ ${pluto ? `Pluton : ${getSignInFrench(pluto.sign)} (Maison ${getHouse(pluto)})` 
 ${trueNode ? `Nœud Nord : ${getSignInFrench(trueNode.sign)} (Maison ${getHouse(trueNode)})` : ''}
 ${chart.midheaven ? `MC : ${chart.midheaven.toFixed(2)}°` : ''}
 
-[TRANSITS 2026]
+[TRANSITS — INSTANTANÉ MILIEU DE PÉRIODE]
 ${transitsText}
 
 [ASCENDANT POUR PHRASE FINALE]
@@ -547,10 +597,10 @@ IMPORTANT : Utilise la phrase correspondant à cet ascendant dans la conclusion 
 
 ====================================================
 RAPPEL FINAL — À RESPECTER ABSOLUMENT
-Tu produis uniquement le texte final du plan de jeu astrologique 2026, sans aucun autre texte.
+Tu produis uniquement le texte final du plan de jeu astrologique pour la période du ${periodStartStr} au ${periodEndStr}, sans aucun autre texte.
 
 RÈGLES DE FORMATAGE OBLIGATOIRES :
-1. Ne JAMAIS écrire les instructions entre parenthèses comme "(0 INTRODUCTION 2026)" dans le texte. Commence directement par le contenu.
+1. Ne JAMAIS écrire les instructions entre parenthèses comme "(0 INTRODUCTION)" dans le texte. Commence directement par le contenu.
 2. Ne JAMAIS utiliser de symboles markdown (##, ###, **, etc.) dans le texte final.
 3. Chaque dialogue doit être sur une ligne séparée avec une ligne vide avant et après :
    
@@ -560,7 +610,7 @@ RÈGLES DE FORMATAGE OBLIGATOIRES :
    
    Astrologie : «… »
    
-4. Chaque section doit commencer par son titre (ex: "1) Missions de l'année 2026") suivi d'une ligne vide, puis le contenu.
+4. Chaque section doit commencer par son titre (ex: "1) Missions de la période (du ${periodStartStr} au ${periodEndStr})") suivi d'une ligne vide, puis le contenu.
 5. Créer des paragraphes distincts pour chaque section, séparés par des lignes vides.
 6. Le texte doit être épuré, sans instructions entre crochets ou parenthèses, sans symboles markdown.
 
@@ -571,13 +621,13 @@ Ce plan de jeu est symbolique, une interprétation offerte pour le plaisir et la
 
 ⚠️ RÈGLE ABSOLUE : Tu DOIS générer TOUT le contenu demandé. Ne t'arrête PAS avant d'avoir écrit :
 - L'introduction complète
-- Toutes les missions de l'année 2026
+- Toutes les missions de la période (${periodStartStr} – ${periodEndStr})
 - Toutes les grandes dynamiques de croissance (tous les transits majeurs)
 - Le filtre de décision
 - Les cycles intérieurs (Lune)
 - La destinée (Nœud Nord + MC)
-- La séquence temporelle 2026 (tableau complet)
-- L'image symbolique de 2026
+- La séquence temporelle (tableau complet sur la fenêtre de 365 jours)
+- L'image symbolique de la période
 - Le résumé
 - La conclusion complète avec la phrase finale de l'ascendant
 - La note de bas de page

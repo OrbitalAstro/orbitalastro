@@ -18,7 +18,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: 'OrbitalAstro - Your Cosmic Blueprint Awaits',
-  description: 'Professional-grade astrological calculations woven into mythopoetic narratives. Discover your natal chart, track transits, explore progressions, and hear the dialogue of your pre-incarnation.',
+  description: 'Professional-grade astrological calculations woven into mythopoetic narratives. Discover your natal chart, track transits, explore progressions, and hear your Dialogue Before landing.',
   keywords: 'astrology, natal chart, transits, progressions, solar return, birth chart, astrological calculations, cosmic blueprint',
   openGraph: {
     title: 'OrbitalAstro - Your Cosmic Blueprint',

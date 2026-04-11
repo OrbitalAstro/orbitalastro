@@ -6,9 +6,6 @@ export const dynamic = 'force-dynamic'
 
 import { useState, useEffect } from 'react'
 import { motion, useScroll, useTransform } from 'framer-motion'
-import {
-  ArrowRight, MessageSquare, Calendar
-} from 'lucide-react'
 import Link from 'next/link'
 import Logo from '@/components/Logo'
 import { useTranslation } from '@/lib/useTranslation'
@@ -64,43 +61,44 @@ export default function LandingPage() {
             transition={{ duration: 1 }}
           >
 
-            <p className="text-xl md:text-2xl lg:text-3xl text-cosmic-gold/90 mb-4 font-light">
+            <p className="text-xl md:text-2xl lg:text-3xl text-cosmic-gold/90 mb-12 font-light">
               {t.home.heroSubtitle}
             </p>
 
-            <p className="text-base md:text-lg text-cosmic-gold/85 mb-12 max-w-2xl mx-auto">{t.home.heroLead}</p>
-
-            {/* CTAs */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Link href="/dialogues">
+            {/* CTAs — deux cartes identiques : cadre, bandeau titre, zone sous-titre */}
+            <div className="flex flex-col sm:flex-row gap-5 sm:gap-6 justify-center items-stretch">
+              <Link
+                href="/dialogues"
+                className="group flex max-w-[min(100%,22rem)] w-full sm:w-auto flex-col overflow-hidden rounded-2xl border border-cosmic-gold/35 bg-cosmic-purple/50 backdrop-blur-md shadow-[0_12px_40px_rgba(0,0,0,0.35)] ring-1 ring-inset ring-white/[0.07] transition duration-300 hover:border-cosmic-gold/55 hover:shadow-[0_16px_48px_rgba(0,0,0,0.4)] hover:ring-white/10"
+              >
                 <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="px-10 py-4 bg-gradient-to-r from-cosmic-gold via-rose-gold to-cosmic-gold text-cosmic-purple rounded-xl font-semibold text-lg shadow-2xl hover:shadow-cosmic-gold/50 transition flex items-center group"
+                  whileHover={{ scale: 1.015 }}
+                  whileTap={{ scale: 0.985 }}
+                  className="w-full px-8 py-4 rounded-none rounded-t-2xl bg-gradient-to-br from-cosmic-gold via-rose-gold to-cosmic-gold text-cosmic-purple font-semibold text-lg shadow-[inset_0_1px_0_rgba(255,255,255,0.45)] flex flex-col items-center justify-center text-center leading-tight transition duration-300 group-hover:brightness-[1.04]"
                 >
-                  {t.dialogues.title}
-                  <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition" />
+                  <span>{t.dialogues.titleLine1}</span>
+                  {t.dialogues.titleLine2 ? <span>{t.dialogues.titleLine2}</span> : null}
                 </motion.button>
+                <p className="border-t border-cosmic-purple/15 bg-gradient-to-b from-rose-gold to-[#edd5c5] px-3.5 py-3.5 text-center text-sm sm:text-base font-body leading-relaxed text-cosmic-purple">
+                  {t.dialogues.heroCtaSubtitle}
+                </p>
               </Link>
 
-              <Link href="/reading-2026">
+              <Link
+                href="/reading-2026"
+                className="group flex max-w-[min(100%,22rem)] w-full sm:w-auto flex-col overflow-hidden rounded-2xl border border-cosmic-gold/35 bg-cosmic-purple/50 backdrop-blur-md shadow-[0_12px_40px_rgba(0,0,0,0.35)] ring-1 ring-inset ring-white/[0.07] transition duration-300 hover:border-cosmic-gold/55 hover:shadow-[0_16px_48px_rgba(0,0,0,0.4)] hover:ring-white/10"
+              >
                 <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="px-10 py-4 bg-cosmic-gold/20 backdrop-blur-sm text-cosmic-gold rounded-xl font-semibold text-lg border border-cosmic-gold/40 hover:bg-cosmic-gold/30 hover:border-cosmic-gold/60 transition"
+                  whileHover={{ scale: 1.015 }}
+                  whileTap={{ scale: 0.985 }}
+                  className="w-full px-8 py-4 rounded-none rounded-t-2xl bg-gradient-to-br from-cosmic-gold via-rose-gold to-cosmic-gold text-cosmic-purple font-semibold text-lg shadow-[inset_0_1px_0_rgba(255,255,255,0.45)] flex flex-col items-center justify-center text-center leading-tight transition duration-300 group-hover:brightness-[1.04]"
                 >
-                  {t.reading2026.title}
+                  <span>{t.reading2026.titleLine1}</span>
+                  {t.reading2026.titleLine2 ? <span>{t.reading2026.titleLine2}</span> : null}
                 </motion.button>
-              </Link>
-
-              <Link href="/pricing">
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="px-10 py-4 bg-gradient-to-r from-purple-600/20 to-pink-600/20 backdrop-blur-sm text-white rounded-xl font-semibold text-lg border border-purple-500/40 hover:bg-purple-600/30 hover:border-purple-500/60 transition"
-                >
-                  {t.nav.pricing}
-                </motion.button>
+                <p className="border-t border-cosmic-purple/15 bg-gradient-to-b from-rose-gold to-[#edd5c5] px-3.5 py-3.5 text-center text-sm sm:text-base font-body leading-relaxed text-cosmic-purple">
+                  {t.reading2026.heroCtaSubtitle}
+                </p>
               </Link>
             </div>
 
@@ -109,12 +107,7 @@ export default function LandingPage() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.5 }}
-              className="mt-8 text-center text-cosmic-gold/80"
-              style={{
-                fontFamily: "'Great Vibes', cursive",
-                fontSize: '1.5rem',
-                letterSpacing: '0.02em',
-              }}
+              className="mt-8 text-center text-cosmic-gold/80 font-body text-lg sm:text-xl tracking-normal max-w-xl mx-auto leading-relaxed"
             >
               Viens nous voir souvent pour découvrir nos nouveautés.
             </motion.p>
