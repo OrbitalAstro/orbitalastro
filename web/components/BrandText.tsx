@@ -11,8 +11,16 @@ export default function BrandText({ size = 'lg', className = '' }: BrandTextProp
   const sizeClasses = {
     sm: 'text-3xl',
     md: 'text-5xl',
-    lg: 'text-7xl',
+    /** Landing : moins massif sur mobile pour laisser place au hero (sous-titre + CTAs). */
+    lg: 'text-5xl sm:text-6xl md:text-7xl',
     xl: 'text-9xl',
+  }
+
+  const astroSizeClasses = {
+    sm: 'text-xl',
+    md: 'text-[2rem]',
+    lg: 'text-[1.2rem] sm:text-[1.45rem] md:text-[1.85rem] lg:text-[2.35rem]',
+    xl: 'text-[4rem]',
   }
 
   const getOpalescentStyle = () => ({
@@ -59,9 +67,8 @@ export default function BrandText({ size = 'lg', className = '' }: BrandTextProp
       
       {/* ASTRO in sans-serif - smaller than Orbital */}
       <motion.span 
-        className="font-heading font-bold tracking-wider leading-none"
+        className={`font-heading font-bold tracking-wider leading-none ${astroSizeClasses[size]}`}
         style={{
-          fontSize: size === 'sm' ? '1.2rem' : size === 'md' ? '2rem' : size === 'lg' ? '2.8rem' : '4rem',
           letterSpacing: '0.15em',
           ...getOpalescentStyle(),
         }}

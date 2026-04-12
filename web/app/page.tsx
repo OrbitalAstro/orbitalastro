@@ -5,6 +5,7 @@
 export const dynamic = 'force-dynamic'
 
 import { motion } from 'framer-motion'
+import { ChevronDown } from 'lucide-react'
 import Link from 'next/link'
 import Logo from '@/components/Logo'
 import { useTranslation } from '@/lib/useTranslation'
@@ -26,8 +27,8 @@ export default function LandingPage() {
         <LogoBackground opacity={0.3} />
         <Starfield />
 
-        <div className="relative z-10 flex flex-1 flex-col items-center justify-center px-4 pb-16 pt-6 w-full max-w-full">
-          <div className="w-full max-w-5xl flex justify-end lg:hidden mb-4">
+        <div className="relative z-10 flex min-h-0 flex-1 flex-col items-center justify-start py-6 pb-10 sm:pb-14 px-4 w-full max-w-full md:justify-center md:pb-16 md:pt-6">
+          <div className="w-full max-w-5xl flex justify-end lg:hidden mb-3 sm:mb-4">
             <Link href="/dialogues">
               <motion.button
                 type="button"
@@ -40,17 +41,18 @@ export default function LandingPage() {
             </Link>
           </div>
 
-          <div className="pointer-events-none flex justify-center w-full mb-6 sm:mb-8">
+          <div className="pointer-events-none flex shrink-0 justify-center w-full mb-4 sm:mb-6 md:mb-8">
             <BrandText size="lg" />
           </div>
 
+          {/* Contenu lisible sans attendre l’anim ; pas d’opacity initiale à 0 (évite bloc « invisible » si Framer échoue). */}
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 1, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1 }}
-            className="relative z-10 mx-auto max-w-5xl w-full text-center"
+            transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
+            className="relative z-10 mx-auto w-full max-w-5xl shrink-0 text-center"
           >
-            <p className="text-xl md:text-2xl lg:text-3xl text-cosmic-gold/90 mb-12 font-light">
+            <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl text-cosmic-gold/90 mb-6 sm:mb-10 md:mb-12 font-light">
               {t.home.heroSubtitle}
             </p>
 
@@ -131,14 +133,27 @@ export default function LandingPage() {
 
             {/* Note de nouveautés */}
             <motion.p
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 1, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.5 }}
-              className="mt-8 text-center text-cosmic-gold/80 font-body text-lg sm:text-xl tracking-normal max-w-xl mx-auto leading-relaxed"
+              transition={{ duration: 0.55, delay: 0.15 }}
+              className="mt-6 sm:mt-8 text-center text-cosmic-gold/80 font-body text-base sm:text-lg md:text-xl tracking-normal max-w-xl mx-auto leading-relaxed"
             >
               Viens nous voir souvent pour découvrir nos nouveautés.
             </motion.p>
           </motion.div>
+        </div>
+
+        {/* Indice visuel : sur mobile / courte fenêtre, le hero dépasse souvent le viewport */}
+        <div className="pointer-events-none absolute bottom-2 left-0 right-0 flex flex-col items-center gap-1 md:hidden">
+          <span className="sr-only">Faire défiler pour voir la suite du site</span>
+          <motion.span
+            aria-hidden
+            animate={{ y: [0, 5, 0] }}
+            transition={{ repeat: Infinity, duration: 1.6, ease: 'easeInOut' }}
+            className="text-cosmic-gold/55"
+          >
+            <ChevronDown className="h-6 w-6" strokeWidth={2} />
+          </motion.span>
         </div>
       </section>
 
