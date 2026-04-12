@@ -4,7 +4,7 @@ import os
 import logging
 import requests
 from pathlib import Path
-from typing import Optional
+from typing import List, Optional
 from dotenv import load_dotenv
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
@@ -18,11 +18,18 @@ logger = logging.getLogger("orbitalastro")
 
 router = APIRouter(prefix="/ai", tags=["ai"])
 
+class ConversationTurn(BaseModel):
+    """Un tour de conversation pour Gemini (rôle + texte)."""
+    role: str  # "user" ou "model" (assistant côté Gemini)
+    text: str
+
+
 class InterpretationRequest(BaseModel):
     prompt: str
     system_instruction: Optional[str] = None
     temperature: Optional[float] = 0.7
     max_output_tokens: Optional[int] = None
+    conversation_turns: Optional[List[ConversationTurn]] = None
 
 class InterpretationResponse(BaseModel):
     content: str
@@ -104,6 +111,7 @@ async def generate_interpretation(req: Request, request: InterpretationRequest):
                 referer=referer,
                 temperature=float(temperature),
                 max_output_tokens=max_output_tokens,
+                conversation_turns=request.conversation_turns,
             )
         except Exception as e:
             logger.warning(f"Failed to call Gemini model {model}: {str(e)}")
@@ -125,6 +133,7 @@ def _call_gemini_api(
     referer: Optional[str] = None,
     temperature: float = 0.7,
     max_output_tokens: int = 32768,
+    conversation_turns: Optional[List[ConversationTurn]] = None,
 ) -> InterpretationResponse:
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
     
@@ -135,14 +144,17 @@ def _call_gemini_api(
     if referer:
         headers["Referer"] = referer
     
+    contents: List[dict] = []
+    if conversation_turns:
+        for turn in conversation_turns:
+            gemini_role = turn.role.strip().lower()
+            if gemini_role not in ("user", "model"):
+                gemini_role = "user"
+            contents.append({"role": gemini_role, "parts": [{"text": turn.text}]})
+    contents.append({"role": "user", "parts": [{"text": prompt}]})
+
     payload = {
-        "contents": [
-            {
-                "parts": [
-                    {"text": prompt}
-                ]
-            }
-        ],
+        "contents": contents,
         "generationConfig": {
             "temperature": temperature,
             "maxOutputTokens": max_output_tokens,

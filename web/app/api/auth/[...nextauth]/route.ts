@@ -1,7 +1,9 @@
 import NextAuth, { NextAuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
+import { getSupabaseAdmin } from '@/lib/supabase'
+import { verifyPassword } from '@/lib/password'
 
-const authOptions: NextAuthOptions = {
+export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
       name: 'Email',
@@ -14,11 +16,21 @@ const authOptions: NextAuthOptions = {
           return null
         }
 
-        // Mode test : accepte n'importe quel email/password
+        const email = credentials.email.toLowerCase().trim()
+        const supabase = getSupabaseAdmin()
+        const { data: user, error } = await supabase
+          .from('auth_users')
+          .select('id, email, display_name, password_hash')
+          .eq('email', email)
+          .maybeSingle()
+
+        if (error || !user) return null
+        if (!verifyPassword(credentials.password, user.password_hash || '')) return null
+
         return {
-          id: '1',
-          email: credentials.email,
-          name: credentials.email.split('@')[0],
+          id: user.id,
+          email: user.email,
+          name: user.display_name || user.email.split('@')[0],
         }
       },
     }),

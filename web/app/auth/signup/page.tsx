@@ -33,7 +33,22 @@ export default function SignUpPage() {
     setLoading(true)
 
     try {
-      // Mode test : créer une session directement
+      const registerResponse = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email,
+          password,
+          name,
+        }),
+      })
+
+      const registerData = await registerResponse.json()
+      if (!registerResponse.ok) {
+        setError(registerData?.error || 'Erreur lors de la création du compte')
+        return
+      }
+
       const result = await signIn('credentials', {
         email,
         password,

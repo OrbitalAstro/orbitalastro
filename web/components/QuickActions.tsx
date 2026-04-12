@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Search, Home, Settings, BookOpen, Sparkles, Calendar, Command, TrendingUp, Zap, Wand2, MessageSquare, Users } from 'lucide-react'
+import { Search, Home, Settings, BookOpen, Sparkles, Calendar, Command, TrendingUp, Zap, Wand2, MessageSquare, Users, BookOpenText } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useKeyboardShortcuts } from '@/lib/keyboard'
 import { useTranslation } from '@/lib/useTranslation'
@@ -91,6 +91,16 @@ export default function QuickActions() {
         setIsOpen(false)
       },
       shortcut: 'G 2 6',
+    },
+    {
+      id: 'journal-pilot',
+      label: t.nav.journalPilot,
+      icon: BookOpenText,
+      action: () => {
+        router.push('/journal-pilot')
+        setIsOpen(false)
+      },
+      shortcut: 'G J',
     },
     {
       id: 'saint-valentin',
