@@ -54,7 +54,7 @@ export const translations = {
       heroTitle1: "Your Cosmic Blueprint",
       heroTitle2: "Awaits",
       heroSubtitle:
-        "Discover the astrological influences in your life journey.",
+        "Discover the astrological influences in your game of life.",
       heroDescription: "Discover your ",
       heroDescriptionLinkNatal: "natal chart",
       heroDescriptionLinkTransits: "transits",
@@ -114,7 +114,7 @@ export const translations = {
       titleLine1: "Before landing",
       titleLine2: "",
       heroCtaSubtitle:
-        "A fictional dialogue, between Astrology and you, inspired by your birth chart.",
+        "A discussion between Astrology and you, before your landing in the game of your life.",
       accessHeading: "Discover your Dialogue Before landing",
       description:
         "Generate a symbolic dialogue between your soul and the cosmic council before your birth.",
@@ -157,7 +157,7 @@ export const translations = {
       titleLine1: "Solar return",
       titleLine2: "",
       heroCtaSubtitle:
-        "A fictional dialogue, between Astrology and you, about the next 365 days.",
+        "A discussion between Astrology, its guild, and your astrological personality about the next 365 days",
       description:
         "Generate a focused dialogue for the four seasons to come, based on your natal chart and upcoming transits.",
       firstName: "First name or nickname (optional)",
@@ -560,7 +560,7 @@ export const translations = {
       titleLine1: "Avant l'atterrissage",
       titleLine2: "",
       heroCtaSubtitle:
-        "Dialogue fictif, entre l'Astrologie et toi, inspiré de ta carte du ciel.",
+        "Discussion entre l'Astrologie et toi, avant ton atterrissage dans le jeu de ta vie.",
       accessHeading: "Découvrez votre Dialogue Avant l'atterrissage",
       description:
         "Générez un dialogue symbolique entre votre âme et le conseil cosmique avant votre naissance.",
@@ -601,7 +601,7 @@ export const translations = {
       titleLine1: "Révolution solaire",
       titleLine2: "",
       heroCtaSubtitle:
-        "Dialogue fictif, entre l'Astrologie et toi, à propos des 365 prochains jours.",
+        "Discussion entre l'Astrologie, sa guilde et ta personnalité astrologique à propos des 365 prochains jours",
       description:
         "Générez un dialogue centré sur les quatre saisons à venir, à partir de votre thème natal et des transits.",
       firstName: "Prénom ou surnom (optionnel)",
@@ -982,7 +982,7 @@ export const translations = {
       titleLine1: "Antes del aterrizaje",
       titleLine2: "",
       heroCtaSubtitle:
-        "Diálogo ficticio, entre la Astrología y tú, inspirado en tu carta natal.",
+        "Una conversación entre la Astrología y tú, antes de tu aterrizaje en el juego de tu vida.",
       accessHeading: "Descubre tu Diálogo Antes del aterrizaje",
       description:
         "Genera un diálogo simbólico entre tu alma y el consejo cósmico antes de tu nacimiento.",
@@ -1026,7 +1026,7 @@ export const translations = {
       titleLine1: "Revolución solar",
       titleLine2: "",
       heroCtaSubtitle:
-        "Diálogo ficticio, entre la Astrología y tú, sobre los próximos 365 días.",
+        "Conversación entre la Astrología, su corte planetaria y tu personalidad astrológica sobre los próximos 365 días.",
       description:
         "Genera un diálogo centrado en las cuatro estaciones por venir, basado en tu carta natal y los tránsitos venideros.",
       firstName: "Nombre o apodo (opcional)",

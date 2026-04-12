@@ -8,7 +8,7 @@ export default function Toaster() {
   const toasts = useToastStore((state) => state.toasts)
 
   return (
-    <div className="fixed top-20 right-4 z-50 flex flex-col gap-2 pointer-events-none">
+    <div className="fixed top-20 right-4 z-50 flex flex-col gap-2 pointer-events-none sm:right-6">
       <AnimatePresence>
         {toasts.map((toast) => (
           <div key={toast.id} className="pointer-events-auto">
