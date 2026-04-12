@@ -3,43 +3,14 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 import { getSupabaseAdmin } from '@/lib/supabase'
 import { fetchJournalAstroContext } from '@/lib/journal-astro-context'
+import { buildJournalGuildSystemInstruction } from '@/lib/journal-guild-prompt'
 
 export const runtime = 'nodejs'
 
-const MAX_HISTORY_MESSAGES = 48
+const MAX_HISTORY_MESSAGES = 72
 
 function getApiBaseUrl() {
   return (process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000').replace(/\/+$/, '')
-}
-
-function buildSystemInstruction(params: {
-  displayName: string
-  natalSummary: string
-  majorTransitSummary: string
-  journalDate: string
-}): string {
-  return `Tu incarnes l'astrologue et la guilde planétaire en mode CLAVARDAGE (messagerie), pas en consultation écrite.
-
-Mémoire et continuité :
-- Tu lis tout l'historique de conversation fourni par l'API (tours précédents). Réponds de façon cohérente : reprends les fils ouverts, fais des liens avec ce qu'a dit la personne avant, remarque avec bienveillance les thèmes ou schémas qui reviennent dans ses propos.
-- Ne invente pas de faits biographiques qu'elle n'a pas mentionnés. Tu peux refléter des motifs dans ce qu'elle exprime (ton, besoins, tensions) sans étiqueter méchamment.
-- Ne répète pas mécaniquement tout le bloc astrologique ci-dessous à chaque réponse ; utilise-le quand c'est pertinent au message actuel.
-
-Interdictions :
-- Pas de "lecture" longue, rapport, dissertation, listes magistrales.
-- Jamais médical, jamais fataliste. Métaphores clairement symboliques.
-- N'invente aucune position, aspect ou transit absent des données fournies.
-
-Obligations :
-- Style messagerie : plusieurs lignes courtes qui se suivent.
-- Format STRICT : chaque ligne « Rôle : texte » (espace après les deux-points). Rôles : Astrologie, Lune, Soleil, Mercure, Vénus, Mars, Jupiter, Saturne, Uranus, Neptune, Pluton (planètes pertinentes seulement, souvent 1–3), plus Astrologie.
-
---- Contexte astrologique pour cette réponse (instant présent) ---
-Date : ${params.journalDate}
-Personne : ${params.displayName}
-Résumé natal : ${params.natalSummary}
-Transits majeurs du moment :
-- ${params.majorTransitSummary}`
 }
 
 export async function GET() {
@@ -165,31 +136,38 @@ export async function POST(request: NextRequest) {
 
     let astro
     try {
-      astro = await fetchJournalAstroContext({
-        birth_date: user.birth_date,
-        birth_time: user.birth_time,
-        birth_place: user.birth_place,
-        latitude: user.latitude,
-        longitude: user.longitude,
-        timezone: user.timezone,
-      })
+      astro = await fetchJournalAstroContext(
+        {
+          birth_date: user.birth_date,
+          birth_time: user.birth_time,
+          birth_place: user.birth_place,
+          latitude: user.latitude,
+          longitude: user.longitude,
+          timezone: user.timezone,
+        },
+        { userMessage: text, nextExactPolicy: 'always' },
+      )
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Erreur astro'
       return NextResponse.json({ error: msg }, { status: 502 })
     }
 
     const journalDate = new Date().toLocaleDateString('fr-CA')
-    const systemInstruction = buildSystemInstruction({
+    const systemInstruction = buildJournalGuildSystemInstruction({
       displayName: user.display_name || 'Client',
       natalSummary: astro.natalSummary,
-      majorTransitSummary: astro.majorTransitSummary,
+      astroTimingBlock: astro.astroTimingBlock,
       journalDate,
     })
 
     const prompt = `Son dernier message dans le fil :
 """${text}"""
 
-Réponds en 4 à 12 lignes au format « Rôle : … », style clavardage (pas d'introduction type "voici mon interprétation").`
+Considère tout l'historique déjà fourni dans la conversation (tours précédents) : enchaîne naturellement, fais des liens si utiles, et si tu repères un schéma récurrent, nomme-le avec douceur.
+
+Si la personne demande le **quand**, un **pic**, l’**énergie** ou le **timing** : cite d’abord les **dates/heures des « Prochains passages à l’orbe minimale »** quand elles sont dans le bloc, plus la **date-heure de référence**, les **phases** (exact / approche / séparation), **signes** et **noms de planètes** dans les lignes d’aspects. Tu **dois** inclure du concret chiffré tiré du bloc quand il y en a — ne te limite pas aux métaphores.
+
+Réponds en 6 à 14 lignes au format « Rôle : … », style clavardage. Les planètes parlent en **je** et **tutoyent** la personne. Pas d'introduction du type « voici mon interprétation ».`
 
     const apiBase = getApiBaseUrl()
     const aiResponse = await fetch(`${apiBase}/ai/interpret`, {
@@ -198,7 +176,7 @@ Réponds en 4 à 12 lignes au format « Rôle : … », style clavardage (pas d'
       body: JSON.stringify({
         prompt,
         system_instruction: systemInstruction,
-        temperature: 0.82,
+        temperature: 0.68,
         max_output_tokens: 4096,
         conversation_turns,
       }),

@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { BookOpenText, Loader2, Sparkles } from 'lucide-react'
+import { BookOpenText, CalendarClock, Loader2, Sparkles } from 'lucide-react'
 import BackButton from '@/components/BackButton'
 import LocationInput from '@/components/LocationInput'
 import Starfield from '@/components/Starfield'
@@ -71,6 +71,11 @@ export default function JournalPilotClient() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [entryInput, setEntryInput] = useState('')
+  const [nextExactLoading, setNextExactLoading] = useState(false)
+  const [nextExactLines, setNextExactLines] = useState<string[] | null>(null)
+  const [nextExactError, setNextExactError] = useState<string | null>(null)
+  /** Permet de rouvrir le formulaire sans avoir à tout ressaisir à chaque visite (données déjà sur le compte). */
+  const [editingNatal, setEditingNatal] = useState(false)
 
   const [profileForm, setProfileForm] = useState({
     display_name: '',
@@ -147,10 +152,30 @@ export default function JournalPilotClient() {
       const json = await res.json()
       if (!res.ok) throw new Error(json?.error || 'Impossible de sauvegarder le profil')
       setProfile(json.profile)
+      setEditingNatal(false)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur inconnue')
     } finally {
       setSavingProfile(false)
+    }
+  }
+
+  async function runNextExactTimes() {
+    setNextExactLoading(true)
+    setNextExactError(null)
+    try {
+      const res = await fetch('/api/journal/next-exact-times', { method: 'POST' })
+      const json = await res.json()
+      if (!res.ok) {
+        throw new Error(json?.error || 'Calcul impossible')
+      }
+      const lines: string[] = Array.isArray(json.linesFr) ? json.linesFr : []
+      setNextExactLines(lines)
+    } catch (err) {
+      setNextExactError(err instanceof Error ? err.message : 'Erreur')
+      setNextExactLines(null)
+    } finally {
+      setNextExactLoading(false)
     }
   }
 
@@ -168,7 +193,7 @@ export default function JournalPilotClient() {
       const json = await res.json()
       if (!res.ok) {
         if (json?.code === 'PROFILE_INCOMPLETE') {
-          throw new Error("Complète d'abord ton profil natal avant d'écrire dans le journal.")
+          throw new Error("Enregistre d'abord tes données de naissance (ci-dessus) pour activer le clavardage.")
         }
         throw new Error(json?.error || 'Erreur de génération')
       }
@@ -203,9 +228,11 @@ export default function JournalPilotClient() {
             Journal pilote Astrologie & Guilde
           </h1>
           <p className="text-cosmic-gold/85">
-            Clavardage continu : la guilde se souvient du fil pour relier tes idées et repérer des motifs dans ce que tu
-            partages. Chaque réponse s&apos;appuie aussi sur ton natal et les transits du moment. Divertissement
-            symbolique — pas de fatalisme ni d&apos;angle médical.
+            Ici tu ouvres une session de <strong className="text-cosmic-gold">clavardage</strong> : tu poses des questions,
+            tu lances des sujets, la guilde répond en s&apos;appuyant sur les <strong className="text-cosmic-gold">transits</strong> et le
+            contexte astrologique — pas sur un écran de « calcul de thème ». Le fil est <strong className="text-cosmic-gold">mémorisé</strong> pour
+            la continuité, les liens entre tes messages et les motifs qui reviennent. Divertissement symbolique — pas de
+            fatalisme ni d&apos;angle médical.
           </p>
         </div>
 
@@ -213,9 +240,25 @@ export default function JournalPilotClient() {
           <div className="mt-4 p-3 rounded-lg border border-red-400/40 bg-red-900/20 text-red-100">{error}</div>
         ) : null}
 
-        {!profileComplete ? (
+        {!profileComplete || editingNatal ? (
           <form onSubmit={saveProfile} className="mt-6 bg-cosmic-purple/40 backdrop-blur-md border border-cosmic-gold/30 rounded-xl p-6 space-y-4">
-            <h2 className="text-xl font-semibold">Complète ton profil natal</h2>
+            <h2 className="text-xl font-semibold">
+              {!profileComplete ? 'Tes données de naissance (une seule fois)' : 'Modifier tes données de naissance'}
+            </h2>
+            <p className="text-sm text-cosmic-gold/75 -mt-2">
+              {!profileComplete ? (
+                <>
+                  Elles sont <strong className="text-cosmic-gold">enregistrées sur ton compte</strong> : tu ne les saisis
+                  qu’ici une fois, puis le journal les réutilise automatiquement à chaque connexion (transits, contexte
+                  astro). On ne calcule pas ta carte sur cet écran : ces infos servent à enrichir le clavardage.
+                </>
+              ) : (
+                <>
+                  Les changements remplacent les données déjà liées à ton compte ; le clavardage utilisera la nouvelle
+                  base dès l’enregistrement.
+                </>
+              )}
+            </p>
             <div>
               <label className="block mb-1 text-sm">{t.dialogues.firstName}</label>
               <input
@@ -263,16 +306,62 @@ export default function JournalPilotClient() {
               variant="gold"
               required
             />
-            <button
-              type="submit"
-              disabled={savingProfile}
-              className="px-5 py-2 rounded-lg bg-cosmic-gold text-cosmic-purple font-semibold hover:bg-cosmic-gold/90 transition disabled:opacity-60"
-            >
-              {savingProfile ? 'Sauvegarde...' : 'Sauvegarder mon profil natal'}
-            </button>
+            <div className="flex flex-wrap gap-3">
+              {editingNatal ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingNatal(false)
+                    if (profile) {
+                      setProfileForm({
+                        display_name: profile.display_name || '',
+                        birth_date: profile.birth_date || '',
+                        birth_time: profile.birth_time || '12:00',
+                        birth_place: profile.birth_place || '',
+                        latitude: profile.latitude || 0,
+                        longitude: profile.longitude || 0,
+                        timezone: profile.timezone || 'UTC',
+                      })
+                    }
+                  }}
+                  className="px-5 py-2 rounded-lg border border-cosmic-gold/50 text-cosmic-gold font-medium hover:bg-cosmic-gold/10 transition"
+                >
+                  Annuler
+                </button>
+              ) : null}
+              <button
+                type="submit"
+                disabled={savingProfile}
+                className="px-5 py-2 rounded-lg bg-cosmic-gold text-cosmic-purple font-semibold hover:bg-cosmic-gold/90 transition disabled:opacity-60"
+              >
+                {savingProfile
+                  ? 'Sauvegarde...'
+                  : profileComplete
+                    ? 'Enregistrer les modifications'
+                    : 'Enregistrer sur mon compte et ouvrir le clavardage'}
+              </button>
+            </div>
           </form>
-        ) : (
+        ) : null}
+
+        {profileComplete && !editingNatal ? (
           <>
+            <div className="mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-xl border border-cosmic-gold/25 bg-cosmic-purple/30 px-4 py-3">
+              <p className="text-sm text-cosmic-gold/85">
+                <span className="font-medium text-cosmic-gold">Données de naissance</span> enregistrées sur ton compte
+                {profile?.birth_place ? ` (${profile.birth_place})` : ''}
+                {profile?.birth_date ? ` · ${profile.birth_date}` : ''}
+                . Tu n’as rien à ressaisir à chaque visite.
+              </p>
+              <button
+                type="button"
+                onClick={() => setEditingNatal(true)}
+                className="shrink-0 text-sm px-4 py-2 rounded-lg border border-cosmic-gold/45 text-cosmic-gold hover:bg-cosmic-gold/10 transition"
+              >
+                Modifier
+              </button>
+            </div>
+
             <form onSubmit={submitEntry} className="mt-6 bg-cosmic-purple/40 backdrop-blur-md border border-cosmic-gold/30 rounded-xl p-6">
               <h2 className="text-xl font-semibold mb-3 flex items-center gap-2">
                 <Sparkles className="h-5 w-5" />
@@ -296,6 +385,40 @@ export default function JournalPilotClient() {
                 </button>
               </div>
             </form>
+
+            <div className="mt-4 bg-cosmic-purple/30 border border-cosmic-gold/25 rounded-xl p-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div>
+                  <h3 className="text-sm font-semibold text-cosmic-gold flex items-center gap-2">
+                    <CalendarClock className="h-4 w-4" />
+                    Dates des prochains passages (calcul à part)
+                  </h3>
+                  <p className="text-xs text-cosmic-gold/70 mt-1">
+                    Recherche numérique sur l’éphemeride (plus lourd) — lance-la quand tu veux des dates chiffrées. Tu peux
+                    copier le résultat dans le clavardage pour que la guilde s’y réfère.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={runNextExactTimes}
+                  disabled={nextExactLoading}
+                  className="shrink-0 px-4 py-2 rounded-lg border border-cosmic-gold/50 text-cosmic-gold text-sm font-medium hover:bg-cosmic-gold/10 transition disabled:opacity-50"
+                >
+                  {nextExactLoading ? 'Calcul en cours…' : 'Lancer le calcul'}
+                </button>
+              </div>
+              {nextExactError ? (
+                <p className="mt-3 text-sm text-red-300">{nextExactError}</p>
+              ) : null}
+              {nextExactLines && nextExactLines.length > 0 ? (
+                <pre className="mt-3 text-xs text-cosmic-gold/90 whitespace-pre-wrap font-sans bg-black/20 rounded-lg p-3 border border-cosmic-gold/15 max-h-48 overflow-y-auto">
+                  {nextExactLines.join('\n')}
+                </pre>
+              ) : null}
+              {nextExactLines && nextExactLines.length === 0 && !nextExactLoading ? (
+                <p className="mt-3 text-sm text-cosmic-gold/70">Aucun passage trouvé dans l’horizon pour les aspects retenus.</p>
+              ) : null}
+            </div>
 
             <div className="mt-6 space-y-3">
               <h2 className="text-xl font-semibold">Fil de discussion</h2>
@@ -347,7 +470,7 @@ export default function JournalPilotClient() {
               </div>
             </div>
           </>
-        )}
+        ) : null}
       </div>
     </div>
   )

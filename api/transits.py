@@ -4,7 +4,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, List, Optional
 
 from fastapi import APIRouter, HTTPException
@@ -18,6 +18,7 @@ from astro.swisseph_positions import get_positions_from_swisseph
 from astro.julian import datetime_to_julian_day
 from astro.master_prompt_builder import build_natal_reading_prompt
 from astro.chart_utils import build_chart_payload_for_narrative
+from astro.transit_exact_search import find_next_exacts_for_hints
 from api.schemas import NarrativeConfig
 
 router = APIRouter(prefix="/api", tags=["transits"])
@@ -34,6 +35,33 @@ class TransitRequest(BaseModel):
     include_angles: Optional[bool] = Field(True, description="Include transits to angles")
     include_patterns: Optional[bool] = Field(False, description="Include aspect patterns")
     narrative: Optional[NarrativeConfig] = Field(None, description="Narrative configuration")
+
+
+class TransitExactHintModel(BaseModel):
+    transiting_body: str
+    natal_body: str
+    aspect: str
+
+
+class NextExactTimesRequest(BaseModel):
+    natal_positions: Dict[str, float] = Field(..., description="Longitudes thème (clé = nom de corps, ex. sun)")
+    natal_asc: Optional[float] = Field(None, description="Longitude ascendant natal")
+    natal_mc: Optional[float] = Field(None, description="Longitude milieu du ciel natal")
+    from_date: str = Field(..., description="Instant de départ, ISO 8601 (UTC)")
+    hints: List[TransitExactHintModel] = Field(..., description="Aspects transits à affiner dans le temps")
+    horizon_days: int = Field(540, ge=1, le=2500)
+
+
+class NextExactHit(BaseModel):
+    transiting_body: str
+    natal_body: str
+    aspect: str
+    exact_utc: str
+    min_orb_deg: float
+
+
+class NextExactTimesResponse(BaseModel):
+    exacts: List[NextExactHit]
 
 
 class TransitResponse(BaseModel):
@@ -161,4 +189,50 @@ async def calculate_transits(request: TransitRequest):
         patterns=patterns_dict,
         narrative_seed=narrative_seed,
     )
+
+
+def _parse_iso_utc(value: str) -> datetime:
+    s = value.strip()
+    if s.endswith("Z"):
+        s = s[:-1] + "+00:00"
+    dt = datetime.fromisoformat(s)
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(timezone.utc)
+
+
+@router.post("/transits/next-exact-times", response_model=NextExactTimesResponse)
+async def next_exact_times(request: NextExactTimesRequest):
+    """
+    Prochains passages où l'orbe d'un transit donné est minimale (proche de l'exact),
+    par recherche sur l'éphéméride Swiss Ephemeris.
+    """
+    try:
+        from_dt = _parse_iso_utc(request.from_date)
+    except (ValueError, TypeError):
+        raise HTTPException(status_code=400, detail="from_date invalide (ISO 8601 attendu)")
+
+    angle_longitudes: Optional[Dict[str, float]] = None
+    if request.natal_asc is not None:
+        a = float(request.natal_asc)
+        angle_longitudes = {
+            "asc": a,
+            "dsc": (a + 180.0) % 360.0,
+        }
+        if request.natal_mc is not None:
+            m = float(request.natal_mc)
+            angle_longitudes["mc"] = m
+            angle_longitudes["ic"] = (m + 180.0) % 360.0
+
+    hints_plain = [h.model_dump() for h in request.hints]
+    raw_exacts = find_next_exacts_for_hints(
+        hints_plain,
+        request.natal_positions,
+        angle_longitudes,
+        from_dt,
+        horizon_days=request.horizon_days,
+        config=AspectConfig(),
+    )
+    exacts = [NextExactHit(**x) for x in raw_exacts]
+    return NextExactTimesResponse(exacts=exacts)
 

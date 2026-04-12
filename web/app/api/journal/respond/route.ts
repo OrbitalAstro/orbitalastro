@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 import { getSupabaseAdmin } from '@/lib/supabase'
 import { fetchJournalAstroContext } from '@/lib/journal-astro-context'
+import { buildJournalGuildSystemInstruction } from '@/lib/journal-guild-prompt'
 
 export const runtime = 'nodejs'
 
@@ -46,45 +47,36 @@ export async function POST(request: NextRequest) {
 
     let astro
     try {
-      astro = await fetchJournalAstroContext({
-        birth_date: user.birth_date,
-        birth_time: user.birth_time,
-        birth_place: user.birth_place,
-        latitude: user.latitude,
-        longitude: user.longitude,
-        timezone: user.timezone,
-      })
+      astro = await fetchJournalAstroContext(
+        {
+          birth_date: user.birth_date,
+          birth_time: user.birth_time,
+          birth_place: user.birth_place,
+          latitude: user.latitude,
+          longitude: user.longitude,
+          timezone: user.timezone,
+        },
+        { userMessage: entryText, nextExactPolicy: 'always' },
+      )
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Erreur astro'
       return NextResponse.json({ error: msg }, { status: 502 })
     }
 
-    const { natalSummary, majorTransitSummary, majorTransits, targetDate } = astro
+    const { natalSummary, majorTransits, targetDate, astroTimingBlock } = astro
 
-    const systemInstruction = `Tu incarnes l'astrologue et la guilde planétaire en mode CLAVARDAGE (messagerie instantanée), pas en mode consultation écrite.
+    const journalDate = new Date().toLocaleDateString('fr-CA')
+    const systemInstruction = buildJournalGuildSystemInstruction({
+      displayName: user.display_name || 'Client',
+      natalSummary,
+      astroTimingBlock,
+      journalDate,
+    })
 
-Interdictions:
-- Aucune "lecture" longue, aucun ton de rapport, d'interprétation formelle ou de dissertation ("ton thème révèle", "au vu de votre carte", analyse structurée type cours).
-- Pas de listes à puces magistrales ni de résumé "en conclusion".
-
-Obligations:
-- Style messagerie : plusieurs petits messages qui se suivent, comme dans une discussion de groupe.
-- Chaque message est court (1 à 4 phrases max), naturel, chaleureux, en français, tutoiement si ça sonne bien.
-- Format STRICT : une ligne par message, toujours exactement « Rôle : texte » (espace après les deux-points). Rôles autorisés : Astrologie, Lune, Soleil, Mercure, Vénus, Mars, Jupiter, Saturne, Uranus, Neptune, Pluton — n'utilise que les planètes vraiment pertinentes (souvent 1 à 3), plus Astrologie.
-- Ne pas inventer de positions, aspects ou transits absents des données fournies.
-- Journal symbolique / divertissement : jamais médical, jamais fataliste. Métaphores clairement symboliques.`
-
-    const prompt = `Contexte (pour t'ancrer, ne pas le recopier comme un rapport au client):
-- Prénom ou nom: ${user.display_name || 'Client'}
-- Date du journal: ${new Date().toLocaleDateString('fr-CA')}
-- Résumé natal: ${natalSummary}
-- Transits majeurs du moment:
-- ${majorTransitSummary}
-
-Message qu'elle/il vient d'envoyer dans le fil de discussion:
+    const prompt = `Message qu'on vient d'envoyer dans le fil :
 """${entryText}"""
 
-Réponds en 4 à 10 lignes au format « Rôle : … », uniquement comme dans un clavardage (pas d'introduction du type "voici mon interprétation").`
+Si on demande le quand, un pic, l’énergie ou le timing : cite les **dates des prochains passages** du bloc quand elles y sont, la référence temporelle, les phases et les **noms de planètes** ; pas seulement des images. Réponds en 6 à 12 lignes « Rôle : … », style clavardage ; planètes en **je** qui **tutoyent**.`
 
     const apiBase = getApiBaseUrl()
     const aiResponse = await fetch(`${apiBase}/ai/interpret`, {
@@ -93,7 +85,7 @@ Réponds en 4 à 10 lignes au format « Rôle : … », uniquement comme dans un
       body: JSON.stringify({
         prompt,
         system_instruction: systemInstruction,
-        temperature: 0.82,
+        temperature: 0.68,
       }),
     })
 
