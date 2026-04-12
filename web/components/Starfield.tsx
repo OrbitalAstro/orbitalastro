@@ -34,7 +34,7 @@ export default function Starfield() {
   }, [])
 
   return (
-    <div className="fixed inset-0 pointer-events-none z-[1]">
+    <div className="pointer-events-none absolute inset-0 z-[1] overflow-hidden" aria-hidden>
       {stars.map((star) => (
         <motion.div
           key={star.id}

@@ -4,8 +4,7 @@
 
 export const dynamic = 'force-dynamic'
 
-import { useState, useEffect } from 'react'
-import { motion, useScroll, useTransform } from 'framer-motion'
+import { motion } from 'framer-motion'
 import Link from 'next/link'
 import Logo from '@/components/Logo'
 import { useTranslation } from '@/lib/useTranslation'
@@ -19,87 +18,114 @@ import Starfield from '@/components/Starfield'
 // -------------------------------------------------------------
 export default function LandingPage() {
   const t = useTranslation()
-  const { scrollY } = useScroll()
-  const y1 = useTransform(scrollY, [0, 300], [0, 200])
-  const y2 = useTransform(scrollY, [0, 300], [0, -100])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cosmic-purple via-magenta-purple to-cosmic-purple relative">
-      
-      {/* Logo Background */}
-      <LogoBackground opacity={0.12} />
-      
-      {/* Starfield */}
-      <Starfield />
+    <div className="min-h-screen bg-gradient-to-br from-cosmic-purple via-magenta-purple to-cosmic-purple relative flex flex-col">
+      {/* Hero : tout en flux dans la section (fonds en absolute local, pas de fixed plein viewport) */}
+      <section className="relative min-h-screen flex flex-col overflow-x-hidden">
+        <LogoBackground opacity={0.3} />
+        <Starfield />
 
-      {/* Hero CTA Button - Navigation is now in layout */}
-      <div className="fixed top-20 right-4 z-40 lg:hidden">
-        <Link href="/dialogues">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="px-6 py-2 bg-gradient-to-r from-cosmic-gold to-rose-gold rounded-lg font-semibold shadow-lg text-cosmic-purple"
-          >
-            {t.nav.beginJourney}
-          </motion.button>
-        </Link>
-      </div>
+        <div className="relative z-10 flex flex-1 flex-col items-center justify-center px-4 pb-16 pt-6 w-full max-w-full">
+          <div className="w-full max-w-5xl flex justify-end lg:hidden mb-4">
+            <Link href="/dialogues">
+              <motion.button
+                type="button"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="rounded-lg border border-white/35 bg-[linear-gradient(135deg,rgba(255,255,255,0.45)_0%,rgba(255,228,240,0.35)_35%,rgba(200,235,255,0.3)_70%,rgba(255,255,255,0.4)_100%)] px-6 py-2 font-semibold text-cosmic-purple shadow-[0_4px_24px_rgba(221,160,221,0.35),0_0_20px_rgba(175,238,238,0.2),inset_0_1px_0_rgba(255,255,255,0.65)] backdrop-blur-md"
+              >
+                {t.nav.beginJourney}
+              </motion.button>
+            </Link>
+          </div>
 
-      {/* HERO SECTION */}
-      <section className="relative min-h-screen flex items-center justify-center px-4 pt-16">
-        {/* Brand Text - Logo style */}
-        <div className="absolute top-24 md:top-32 left-1/2 transform -translate-x-1/2 z-20 overflow-visible w-full max-w-full">
-          <BrandText size="lg" />
-        </div>
-        
-        <motion.div
-          style={{ y: y1 }}
-          className="text-center max-w-5xl mx-auto z-10 relative mt-32 md:mt-40"
-        >
+          <div className="pointer-events-none flex justify-center w-full mb-6 sm:mb-8">
+            <BrandText size="lg" />
+          </div>
+
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1 }}
+            className="relative z-10 mx-auto max-w-5xl w-full text-center"
           >
-
             <p className="text-xl md:text-2xl lg:text-3xl text-cosmic-gold/90 mb-12 font-light">
               {t.home.heroSubtitle}
             </p>
 
-            {/* CTAs — deux cartes identiques : cadre, bandeau titre, zone sous-titre */}
-            <div className="flex flex-col sm:flex-row gap-5 sm:gap-6 justify-center items-stretch">
+            {/* CTAs — deux « planètes » harmonisées : même taille, forme circulaire, léger relief */}
+            <div className="flex flex-col sm:flex-row gap-6 sm:gap-10 justify-center items-center">
               <Link
                 href="/dialogues"
-                className="group flex max-w-[min(100%,22rem)] w-full sm:w-auto flex-col overflow-hidden rounded-2xl border border-cosmic-gold/35 bg-cosmic-purple/50 backdrop-blur-md shadow-[0_12px_40px_rgba(0,0,0,0.35)] ring-1 ring-inset ring-white/[0.07] transition duration-300 hover:border-cosmic-gold/55 hover:shadow-[0_16px_48px_rgba(0,0,0,0.4)] hover:ring-white/10"
+                className="focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-cosmic-purple rounded-full"
+                aria-label={t.dialogues.title}
               >
-                <motion.button
-                  whileHover={{ scale: 1.015 }}
-                  whileTap={{ scale: 0.985 }}
-                  className="w-full px-8 py-4 rounded-none rounded-t-2xl bg-gradient-to-br from-cosmic-gold via-rose-gold to-cosmic-gold text-cosmic-purple font-semibold text-lg shadow-[inset_0_1px_0_rgba(255,255,255,0.45)] flex flex-col items-center justify-center text-center leading-tight transition duration-300 group-hover:brightness-[1.04]"
+                <motion.div
+                  whileHover={{ scale: 1.045 }}
+                  whileTap={{ scale: 0.97 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 22 }}
+                  className={[
+                    'flex aspect-square w-full max-w-[14rem] sm:aspect-auto sm:h-56 sm:w-56',
+                    'flex-col items-center justify-center gap-1.5 rounded-full backdrop-blur-xl',
+                    'border border-white/40 ring-1 ring-white/25',
+                    // Opalescence alignée sur BrandText : corail / prune / turquoise / bleu poudre (tons doux, translucides)
+                    'bg-[radial-gradient(circle_at_30%_22%,rgba(255,255,255,0.7)_0%,rgba(255,255,255,0.12)_42%,transparent_55%),linear-gradient(135deg,rgba(255,127,80,0.22)_0%,rgba(221,160,221,0.28)_26%,rgba(175,238,238,0.26)_52%,rgba(176,224,230,0.32)_78%,rgba(255,127,80,0.18)_100%)]',
+                    'px-4 py-5 text-center',
+                    'shadow-[inset_0_2px_14px_rgba(255,255,255,0.5),inset_0_-8px_20px_rgba(107,45,125,0.08),0_8px_28px_rgba(0,0,0,0.28),0_0_36px_rgba(221,160,221,0.2),0_0_52px_rgba(175,238,238,0.12)]',
+                    'transition-[border-color,box-shadow,background-color] duration-300',
+                    'hover:border-white/55 hover:shadow-[inset_0_2px_16px_rgba(255,255,255,0.55),inset_0_-8px_20px_rgba(107,45,125,0.06),0_10px_32px_rgba(0,0,0,0.32),0_0_44px_rgba(221,160,221,0.28),0_0_64px_rgba(175,238,238,0.16)]',
+                  ].join(' ')}
                 >
-                  <span>{t.dialogues.titleLine1}</span>
-                  {t.dialogues.titleLine2 ? <span>{t.dialogues.titleLine2}</span> : null}
-                </motion.button>
-                <p className="border-t border-cosmic-purple/15 bg-gradient-to-b from-rose-gold to-[#edd5c5] px-3.5 py-3.5 text-center text-sm sm:text-base font-body leading-relaxed text-cosmic-purple">
-                  {t.dialogues.heroCtaSubtitle}
-                </p>
+                  <span className="font-semibold text-cosmic-purple text-[0.82rem] sm:text-sm leading-tight">
+                    {t.dialogues.titleLine1}
+                    {t.dialogues.titleLine2 ? (
+                      <>
+                        <br />
+                        <span>{t.dialogues.titleLine2}</span>
+                      </>
+                    ) : null}
+                  </span>
+                  <p className="font-body text-cosmic-purple/92 text-[0.65rem] sm:text-[0.7rem] leading-snug max-h-[min(44%,5.75rem)] overflow-y-auto overscroll-contain [scrollbar-width:thin]">
+                    {t.dialogues.heroCtaSubtitle}
+                  </p>
+                </motion.div>
               </Link>
 
               <Link
                 href="/reading-2026"
-                className="group flex max-w-[min(100%,22rem)] w-full sm:w-auto flex-col overflow-hidden rounded-2xl border border-cosmic-gold/35 bg-cosmic-purple/50 backdrop-blur-md shadow-[0_12px_40px_rgba(0,0,0,0.35)] ring-1 ring-inset ring-white/[0.07] transition duration-300 hover:border-cosmic-gold/55 hover:shadow-[0_16px_48px_rgba(0,0,0,0.4)] hover:ring-white/10"
+                className="focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-cosmic-purple rounded-full"
+                aria-label={t.reading2026.title}
               >
-                <motion.button
-                  whileHover={{ scale: 1.015 }}
-                  whileTap={{ scale: 0.985 }}
-                  className="w-full px-8 py-4 rounded-none rounded-t-2xl bg-gradient-to-br from-cosmic-gold via-rose-gold to-cosmic-gold text-cosmic-purple font-semibold text-lg shadow-[inset_0_1px_0_rgba(255,255,255,0.45)] flex flex-col items-center justify-center text-center leading-tight transition duration-300 group-hover:brightness-[1.04]"
+                <motion.div
+                  whileHover={{ scale: 1.045 }}
+                  whileTap={{ scale: 0.97 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 22 }}
+                  className={[
+                    'flex aspect-square w-full max-w-[14rem] sm:aspect-auto sm:h-56 sm:w-56',
+                    'flex-col items-center justify-center gap-1.5 rounded-full backdrop-blur-xl',
+                    'border border-white/40 ring-1 ring-white/25',
+                    // Variante : même palette opalescente, angle inversé (reflet nacré décalé)
+                    'bg-[radial-gradient(circle_at_72%_26%,rgba(255,255,255,0.62)_0%,rgba(255,255,255,0.1)_44%,transparent_54%),linear-gradient(215deg,rgba(176,224,230,0.3)_0%,rgba(175,238,238,0.26)_30%,rgba(221,160,221,0.28)_56%,rgba(255,127,80,0.2)_88%,rgba(176,224,230,0.24)_100%)]',
+                    'px-4 py-5 text-center',
+                    'shadow-[inset_0_2px_14px_rgba(255,255,255,0.48),inset_0_-8px_20px_rgba(107,45,125,0.08),0_8px_28px_rgba(0,0,0,0.28),0_0_36px_rgba(175,238,238,0.18),0_0_52px_rgba(221,160,221,0.16)]',
+                    'transition-[border-color,box-shadow,background-color] duration-300',
+                    'hover:border-white/55 hover:shadow-[inset_0_2px_16px_rgba(255,255,255,0.55),inset_0_-8px_20px_rgba(107,45,125,0.06),0_10px_32px_rgba(0,0,0,0.32),0_0_44px_rgba(175,238,238,0.22),0_0_64px_rgba(221,160,221,0.22)]',
+                  ].join(' ')}
                 >
-                  <span>{t.reading2026.titleLine1}</span>
-                  {t.reading2026.titleLine2 ? <span>{t.reading2026.titleLine2}</span> : null}
-                </motion.button>
-                <p className="border-t border-cosmic-purple/15 bg-gradient-to-b from-rose-gold to-[#edd5c5] px-3.5 py-3.5 text-center text-sm sm:text-base font-body leading-relaxed text-cosmic-purple">
-                  {t.reading2026.heroCtaSubtitle}
-                </p>
+                  <span className="font-semibold text-cosmic-purple text-[0.82rem] sm:text-sm leading-tight">
+                    {t.reading2026.titleLine1}
+                    {t.reading2026.titleLine2 ? (
+                      <>
+                        <br />
+                        <span>{t.reading2026.titleLine2}</span>
+                      </>
+                    ) : null}
+                  </span>
+                  <p className="font-body text-cosmic-purple/92 text-[0.65rem] sm:text-[0.7rem] leading-snug max-h-[min(44%,5.75rem)] overflow-y-auto overscroll-contain [scrollbar-width:thin]">
+                    {t.reading2026.heroCtaSubtitle}
+                  </p>
+                </motion.div>
               </Link>
             </div>
 
@@ -113,8 +139,7 @@ export default function LandingPage() {
               Viens nous voir souvent pour découvrir nos nouveautés.
             </motion.p>
           </motion.div>
-        </motion.div>
-
+        </div>
       </section>
 
       {/* FOOTER */}
