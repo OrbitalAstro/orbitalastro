@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
     const prompt = `Message qu'on vient d'envoyer dans le fil :
 """${entryText}"""
 
-Si on demande le quand, un pic, l’énergie ou le timing : cite les **dates des prochains passages** du bloc quand elles y sont, la référence temporelle, les phases et les **noms de planètes** ; pas seulement des images. Réponds en 6 à 12 lignes « Rôle : … », style clavardage ; planètes en **je** qui **tutoyent**.`
+Si on demande le quand, un pic, l’énergie ou le timing : cite les **dates des prochains passages** du bloc quand elles y sont, la référence temporelle, les phases et les **noms de planètes** ; pas seulement des images. Réponds en 6 à 12 lignes « Rôle : … », style clavardage ; planètes en **je** qui **tutoyent**, **sans** se nommer après « je » (l’étiquette du rôle suffit).`
 
     const apiBase = getApiBaseUrl()
     const aiResponse = await fetch(`${apiBase}/ai/interpret`, {

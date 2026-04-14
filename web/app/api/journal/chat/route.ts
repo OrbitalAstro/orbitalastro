@@ -167,7 +167,7 @@ Considère tout l'historique déjà fourni dans la conversation (tours précéde
 
 Si la personne demande le **quand**, un **pic**, l’**énergie** ou le **timing** : cite d’abord les **dates/heures des « Prochains passages à l’orbe minimale »** quand elles sont dans le bloc, plus la **date-heure de référence**, les **phases** (exact / approche / séparation), **signes** et **noms de planètes** dans les lignes d’aspects. Tu **dois** inclure du concret chiffré tiré du bloc quand il y en a — ne te limite pas aux métaphores.
 
-Réponds en 6 à 14 lignes au format « Rôle : … », style clavardage. Les planètes parlent en **je** et **tutoyent** la personne. Pas d'introduction du type « voici mon interprétation ».`
+Réponds en 6 à 14 lignes au format « Rôle : … », style clavardage. Les planètes parlent en **je** et **tutoyent** la personne — **sans** « je, [nom de la planète] » : l’étiquette du rôle suffit. Pas d'introduction du type « voici mon interprétation ».`
 
     const apiBase = getApiBaseUrl()
     const aiResponse = await fetch(`${apiBase}/ai/interpret`, {
