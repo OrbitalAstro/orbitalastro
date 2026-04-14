@@ -1,11 +1,17 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { Mail, Lock, Loader2, ArrowRight } from 'lucide-react'
 import Logo from '@/components/Logo'
 import Starfield from '@/components/Starfield'
+
+/** Évite les redirections ouvertes (callbackUrl externe). */
+function safeCallbackPath(raw: string | null): string {
+  if (!raw || !raw.startsWith('/') || raw.startsWith('//')) return '/dashboard'
+  return raw
+}
 
 export default function SignInPage() {
   const router = useRouter()
@@ -13,6 +19,12 @@ export default function SignInPage() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [afterLoginPath, setAfterLoginPath] = useState('/dashboard')
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    setAfterLoginPath(safeCallbackPath(params.get('callbackUrl')))
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -29,7 +41,7 @@ export default function SignInPage() {
       if (result?.error) {
         setError('Email ou mot de passe incorrect')
       } else {
-        router.push('/dashboard')
+        router.push(afterLoginPath)
         router.refresh()
       }
     } catch (err) {
