@@ -10,8 +10,8 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
+/lib/
+/lib64/
 parts/
 sdist/
 var/
@@ -57,12 +57,19 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 .next/
+.next-dev/
 out/
 build/
 dist/
 *.tsbuildinfo
 .cache/
 .turbo/
+.deploy_web/
+.deploy_web.zip
+
+# Generated PDFs
+dialogues_pdf/
+dialogues_pdf_test/
 
 # Vercel
 .vercel
@@ -73,3 +80,7 @@ dist/
 .vercel
 
 .vercel
+.env*.local
+
+# Local test outputs
+dialogues_pdf_test/

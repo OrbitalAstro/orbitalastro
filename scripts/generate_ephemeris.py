@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Generate per-year Swiss Ephemeris JSON caches."""
 
 from __future__ import annotations

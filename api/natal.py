@@ -1,14 +1,17 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """FastAPI endpoints that expose the pure-Python natal engine."""
 
 from __future__ import annotations
 
 import logging
+import os
 import time
 from datetime import date, datetime, time as dtime, timedelta, timezone
 from math import pi
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, field_validator
@@ -16,9 +19,9 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from astro.aspects import AspectConfig, detect_patterns, find_aspects
 from astro.ephemeris_catalog import catalog
-from astro.ephemeris_loader import BODY_ORDER, EphemerisRepository
+from astro.ephemeris_loader import BODY_ORDER
+from astro.swisseph_positions import get_positions_from_swisseph
 from astro.geodata import list_supported_cities, lookup_city
-from astro.houses import compute_asc_mc
 from astro.houses_multi import compute_houses
 from astro.julian import datetime_to_julian_day
 from astro.objects_extra import compute_arabic_parts
@@ -138,30 +141,52 @@ app = FastAPI(
     version="2.0.0",
 )
 
+def _cors_allow_origins() -> List[str]:
+    raw = (os.environ.get("CORS_ALLOW_ORIGINS") or "").strip()
+    if raw:
+        return [origin.strip().rstrip("/") for origin in raw.split(",") if origin.strip()]
+
+    # Safe defaults for local dev + Fly default hostname + custom domain.
+    return [
+        "https://www.orbitalastro.ca",
+        "https://orbitalastro.ca",
+        "https://orbitalastro-web.fly.dev",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ]
+
+
+CORS_ALLOW_ORIGINS = _cors_allow_origins()
+
+# CORS configuration (direct browser calls from the Next.js frontend)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://localhost:3001",
-        "http://127.0.0.1:3000",
-        "http://127.0.0.1:3001",
-    ],
-    allow_credentials=True,
+    allow_origins=CORS_ALLOW_ORIGINS,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # Exception handler to ensure CORS headers are added to all error responses
+# Note: FastAPI's CORSMiddleware may not attach CORS headers on unhandled exceptions.
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     logger.exception("Unhandled exception", exc_info=exc)
+    origin = (request.headers.get("origin") or "").rstrip("/")
+    cors_headers = {}
+
+    if origin and origin in CORS_ALLOW_ORIGINS:
+        cors_headers = {
+            "Access-Control-Allow-Origin": origin,
+            "Access-Control-Allow-Methods": "*",
+            "Access-Control-Allow-Headers": "*",
+            "Vary": "Origin",
+        }
+    
     return JSONResponse(
         status_code=500,
         content={"detail": str(exc)},
-        headers={
-            "Access-Control-Allow-Origin": "http://localhost:3000",
-            "Access-Control-Allow-Credentials": "true",
-        }
+        headers=cors_headers,
     )
 
 
@@ -239,10 +264,16 @@ def _determine_timezone(request: NatalRequest, city_data: Optional[Dict]) -> tim
     if tz_key:
         if tz_key in {"UTC", "Etc/UTC"}:
             return timezone.utc
+        # Map invalid timezone names to valid ones
+        timezone_map = {
+            "America/Montreal": "America/Toronto",  # Montreal uses Toronto timezone
+        }
+        if tz_key in timezone_map:
+            tz_key = timezone_map[tz_key]
         try:
             return ZoneInfo(tz_key)
         except ZoneInfoNotFoundError:
-            raise HTTPException(status_code=400, detail="Unknown timezone name")
+            raise HTTPException(status_code=400, detail=f"Unknown timezone name: {tz_key}")
     if city_data and city_data.get("timezone"):
         try:
             return ZoneInfo(city_data["timezone"])
@@ -267,15 +298,39 @@ def _ensure_latlon(request: NatalRequest, city_data: Optional[Dict]) -> Dict[str
 
 
 def _house_number_for_longitude(longitude: float, cusps: List[float]) -> int:
+    # Defensive: ensure we have exactly 12 cusps
+    if len(cusps) != 12:
+        logger.error(f"Invalid cusp list length: {len(cusps)}, expected 12. Cusps: {cusps}")
+        raise ValueError(f"Invalid cusp list: expected 12 cusps, got {len(cusps)}")
+    
+    # Normalize longitude to [0, 360)
+    lon_norm = longitude % 360.0
+    
+    # Normalize all cusps to [0, 360)
+    cusps_norm = [c % 360.0 for c in cusps]
+    
+    # Find which house contains this longitude by checking each house interval
+    # Houses are defined by the interval from cusp[i] to cusp[i+1]
     for index in range(12):
-        start = cusps[index]
-        end = cusps[(index + 1) % 12]
+        start = cusps_norm[index]
+        end = cusps_norm[(index + 1) % 12]
+        
+        # Check if longitude is in this interval
         if start <= end:
-            if start <= longitude < end:
+            # Normal case: no wrap-around (e.g., 100° to 150°)
+            if start <= lon_norm < end:
                 return index + 1
         else:
-            if longitude >= start or longitude < end:
+            # Wrap-around case: start > end (e.g., 350° to 10°)
+            if lon_norm >= start or lon_norm < end:
                 return index + 1
+    
+    # Fallback: if we somehow didn't find a match, check if exactly on a cusp
+    for index in range(12):
+        if abs(lon_norm - cusps_norm[index]) < 0.0001:
+            return index + 1
+    
+    # Last resort: return house 12 (should never reach here)
     return 12
 
 
@@ -289,12 +344,20 @@ def _build_chart_components(
     utc_dt = local_dt.astimezone(timezone.utc)
     jd = datetime_to_julian_day(utc_dt)
 
-    positions = EphemerisRepository.get_positions(utc_dt)
+    # Calculate positions directly using Swiss Ephemeris
+    positions = get_positions_from_swisseph(utc_dt, jd)
     if use_topocentric_moon and "moon" in positions:
         positions["moon"] = get_moon_with_parallax(utc_dt, latitude, longitude, True)
 
-    asc, mc = compute_asc_mc(jd, latitude, longitude)
-    cusps = compute_houses(house_system, jd, latitude, longitude, asc, mc)
+    # compute_houses now returns (cusps, ascendant, midheaven)
+    # All values are calculated by Swiss Ephemeris exclusively
+    cusps_tuple = compute_houses(house_system, jd, latitude, longitude, None, None)
+    if isinstance(cusps_tuple, tuple) and len(cusps_tuple) == 3:
+        cusps, asc, mc = cusps_tuple
+    else:
+        raise ValueError(f"Invalid return format from compute_houses: expected tuple of 3, got {type(cusps_tuple)}")
+    if not isinstance(cusps, list) or len(cusps) != 12:
+        raise ValueError(f"Invalid cusp list for house system '{house_system}': {type(cusps).__name__} len={getattr(cusps, '__len__', lambda: 'n/a')()}")
     gmst_hours = gmst_from_jd(jd)
     lst_rad = lst_from_jd_and_longitude(jd, longitude)
     lst_hours = (lst_rad * 12.0) / pi
@@ -317,6 +380,7 @@ def _build_chart_components(
 
 @app.post("/natal", response_model=NatalResponse)
 async def natal_chart(request: NatalRequest):
+    logger.info(f"Received natal chart request: birth_date={request.birth_date}, birth_time={request.birth_time}, latitude={request.latitude}, longitude={request.longitude}, timezone={request.timezone}")
     city_data = _resolve_city(request)
     location = _ensure_latlon(request, city_data)
     tz = _determine_timezone(request, city_data)
@@ -333,7 +397,11 @@ async def natal_chart(request: NatalRequest):
             request.use_topocentric_moon,
         )
     except FileNotFoundError as exc:
+        logger.error(f"FileNotFoundError in natal chart calculation: {exc}")
         raise HTTPException(status_code=400, detail=str(exc))
+    except Exception as exc:
+        logger.exception(f"Error in natal chart calculation: {exc}")
+        raise HTTPException(status_code=500, detail=f"Error calculating chart: {str(exc)}")
 
     ephemeris = chart["positions"]
     asc_deg = chart["ascendant"]
@@ -385,6 +453,9 @@ async def natal_chart(request: NatalRequest):
             ramc_rad=lst_rad,
             obliquity_rad=mean_eps,
             latitude_deg=location["latitude"],
+            jd_ut=jd,
+            longitude_deg=location["longitude"],
+            house_system=house_system,
         )
 
     response = NatalResponse(
@@ -419,3 +490,122 @@ async def natal_chart(request: NatalRequest):
         extra_objects=extra_objects_dict,
     )
     return response
+
+# --- Legacy Endpoints for GPT Compatibility ---
+
+@app.get("/houses")
+async def get_houses(
+    date: str,
+    time: str = "12:00:00",
+    latitude: float = Query(..., description="Latitude in degrees"),
+    longitude: float = Query(..., description="Longitude in degrees"),
+    system: str = "P",
+):
+    """Legacy endpoint for GPT: Get 12 house cusps."""
+    try:
+        birth_date = datetime.strptime(date, "%Y-%m-%d").date()
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD")
+
+    # Map legacy system codes to full names
+    system_map = {
+        "P": "placidus",
+        "W": "whole_sign",
+        "E": "equal",
+        "K": "koch",
+        "R": "regiomontanus",
+        "C": "campanus",
+        "M": "meridian",
+        "T": "topocentric"
+    }
+    house_system = system_map.get(system, "placidus")
+
+    # Build request for core logic
+    # Defaulting to UTC if no timezone info provided, which is standard for simple ephemeris
+    local_dt = datetime.combine(birth_date, _parse_local_time(time)).replace(tzinfo=timezone.utc)
+    
+    chart = _build_chart_components(
+        local_dt,
+        latitude,
+        longitude,
+        house_system,
+    )
+    
+    # Format for legacy response (list of objects)
+    houses_list = []
+    cusps = chart["cusps"]
+    for i, cusp in enumerate(cusps):
+        houses_list.append({
+            "house_number": i + 1,
+            "longitude": round(cusp, 4)
+        })
+        
+    return houses_list
+
+@app.get("/planets")
+async def get_planets(
+    date: str,
+    time: str = "12:00:00",
+    planets: Optional[str] = None
+):
+    """Legacy endpoint for GPT: Get planetary positions."""
+    try:
+        birth_date = datetime.strptime(date, "%Y-%m-%d").date()
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD")
+    
+    # Default to UTC
+    local_dt = datetime.combine(birth_date, _parse_local_time(time)).replace(tzinfo=timezone.utc)
+    utc_dt = local_dt  # Assuming input is UTC for simple calc
+    
+    simple_jd = datetime_to_julian_day(utc_dt)
+    ephemeris = get_positions_from_swisseph(utc_dt, simple_jd)
+    
+    target_bodies = BODY_ORDER
+    if planets:
+        requested = [p.strip().lower() for p in planets.split(",")]
+        target_bodies = [b for b in requested if b in ephemeris]
+        
+    results = []
+    for body in target_bodies:
+        if body in ephemeris:
+            # We don't have speed/lat in cached ephemeris currently, only longitude
+            # For GPT legacy, we return what we have
+            results.append({
+                "planet": body.capitalize(),
+                "longitude": round(ephemeris[body], 4),
+                "latitude": 0.0, # Placeholder
+                "distance": 1.0, # Placeholder
+                "speed_longitude": 0.0 # Placeholder
+            })
+            
+    return results
+
+@app.get("/all")
+async def get_all_data(
+    date: str,
+    time: str = "12:00:00",
+    latitude: Optional[float] = None,
+    longitude: Optional[float] = None,
+    system: str = "P",
+    orb_tolerance: float = 1.0
+):
+    """Legacy endpoint for GPT: Get all data."""
+    # This is a wrapper around the components
+    houses_data = []
+    if latitude is not None and longitude is not None:
+        houses_data = await get_houses(date, time, latitude, longitude, system)
+        
+    planets_data = await get_planets(date, time)
+    
+    # Simplified aspects for legacy
+    aspects_data = []
+    
+    return {
+        "date": date,
+        "time": time,
+        "julian_day": 0.0, # Placeholder
+        "planets": planets_data,
+        "houses": houses_data,
+        "aspects": aspects_data
+    }

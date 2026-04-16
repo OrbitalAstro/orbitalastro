@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Birth-time rectification helpers and scoring."""
 
 from __future__ import annotations
@@ -8,8 +10,8 @@ from typing import Any, Dict, List
 
 from zoneinfo import ZoneInfo
 
-from astro.ephemeris_loader import EphemerisRepository
-from astro.houses import compute_asc_mc
+from astro.swisseph_positions import get_positions_from_swisseph
+from astro.houses_multi import compute_houses
 from astro.julian import datetime_to_julian_day
 
 ASPECT_ANGLES = {
@@ -69,8 +71,15 @@ def _sign_from_degree(degree: float) -> str:
 
 
 def _compute_positions(dt: datetime, latitude: float, longitude: float) -> Dict[str, float]:
-    positions = EphemerisRepository.get_positions(dt)
-    asc, mc = compute_asc_mc(datetime_to_julian_day(dt), latitude, longitude)
+    # Use Swiss Ephemeris directly for all calculations
+    jd = datetime_to_julian_day(dt)
+    positions = get_positions_from_swisseph(dt, jd)
+    # Get ascendant and midheaven from compute_houses (which uses Swiss Ephemeris)
+    cusps_tuple = compute_houses("placidus", jd, latitude, longitude, None, None)
+    if isinstance(cusps_tuple, tuple) and len(cusps_tuple) == 3:
+        _, asc, mc = cusps_tuple
+    else:
+        raise ValueError(f"Invalid return format from compute_houses")
     positions["asc"] = asc
     positions["mc"] = mc
     return positions

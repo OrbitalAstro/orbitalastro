@@ -1,14 +1,18 @@
 'use client'
 
+export const dynamic = 'force-dynamic'
+
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { TrendingUp, Calendar, MapPin } from 'lucide-react'
+import { TrendingUp, Calendar } from 'lucide-react'
 import { useSettingsStore, useChartHistory } from '@/lib/store'
 import { apiClient } from '@/lib/api'
 import { useToast } from '@/lib/toast'
 import BackButton from '@/components/BackButton'
 import LocationInput from '@/components/LocationInput'
 import ReactMarkdown from 'react-markdown'
+import { formatBirthDateInput } from '@/lib/sanitizeBirthDateYear'
+import Starfield from '@/components/Starfield'
 
 export default function ProgressionsPage() {
   const settings = useSettingsStore()
@@ -32,7 +36,7 @@ export default function ProgressionsPage() {
     timezone: settings.defaultTimezone || latestChart?.birthData?.timezone || 'UTC',
   })
 
-  const lang = settings.language || 'en'
+  const lang = settings.language || 'fr'
   const translations = {
     en: {
       title: 'Progressions',
@@ -117,8 +121,9 @@ export default function ProgressionsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative">
+      <Starfield />
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
         <BackButton href="/" />
         
         <motion.div
@@ -151,11 +156,21 @@ export default function ProgressionsPage() {
                 {t.birthDate}
               </label>
               <input
-                type="date"
+                type="text"
+                inputMode="numeric"
+                pattern="\\d{4}-\\d{2}-\\d{2}"
                 value={birthDate}
-                onChange={(e) => setBirthDate(e.target.value)}
-                className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                onChange={(e) => setBirthDate(formatBirthDateInput(e.target.value))}
+                placeholder={lang === 'fr' ? 'AAAA-MM-JJ' : 'YYYY-MM-DD'}
+                className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
+              <p className="mt-1 text-xs text-white/60">
+                {lang === 'fr'
+                  ? 'Format : AAAA-MM-JJ (ex : 1976-10-26)'
+                  : lang === 'es'
+                    ? 'Formato: AAAA-MM-DD (ej.: 1976-10-26)'
+                    : 'Format: YYYY-MM-DD (e.g., 1976-10-26)'}
+              </p>
             </div>
             <div>
               <label className="block text-sm font-medium text-white/80 mb-2">
@@ -248,4 +263,3 @@ export default function ProgressionsPage() {
     </div>
   )
 }
-

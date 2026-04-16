@@ -3,19 +3,22 @@
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { 
-  Home, 
-  Sparkles, 
-  Zap, 
-  TrendingUp, 
-  Wand2, 
-  BookOpen, 
   MessageSquare, 
+  Calendar,
+  BookOpenText,
+  Users,
+  CreditCard,
+  Orbit,
   Settings, 
   Info,
+  Mail,
+  HelpCircle,
+  FileText,
+  Shield,
   Menu,
   X
 } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Logo from './Logo'
 import { useTranslation } from '@/lib/useTranslation'
@@ -23,30 +26,21 @@ import { useTranslation } from '@/lib/useTranslation'
 export default function Navigation() {
   const pathname = usePathname()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [mounted, setMounted] = useState(false)
   const t = useTranslation()
 
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  // Use default English labels until mounted to prevent hydration mismatch
-  const menuItems = mounted ? [
-    { href: '/dashboard', label: t.nav.dashboard || 'Dashboard', icon: Home },
-    { href: '/transits', label: t.nav.transits || 'Transits', icon: Zap },
-    { href: '/progressions', label: t.nav.progressions || 'Progressions', icon: TrendingUp },
-    { href: '/rectification', label: t.nav.rectification || 'Rectification', icon: Wand2 },
-    { href: '/stories', label: t.nav.stories || 'Stories', icon: BookOpen },
-    { href: '/dialogues', label: t.nav.dialogues || 'Dialogues', icon: MessageSquare },
-    { href: '/chat', label: t.nav.chat || 'Chat', icon: MessageSquare },
-  ] : [
-    { href: '/dashboard', label: 'Dashboard', icon: Home },
-    { href: '/transits', label: 'Transits', icon: Zap },
-    { href: '/progressions', label: 'Progressions', icon: TrendingUp },
-    { href: '/rectification', label: 'Rectification', icon: Wand2 },
-    { href: '/stories', label: 'Stories', icon: BookOpen },
-    { href: '/dialogues', label: 'Dialogues', icon: MessageSquare },
-    { href: '/chat', label: 'Chat', icon: MessageSquare },
+  const menuItems: Array<{
+    href: string
+    label: string
+    icon: any
+    disabled?: boolean
+  }> = [
+    { href: '/about', label: t.nav.about, icon: Info },
+    { href: '/univers', label: t.nav.univers, icon: Orbit },
+    { href: '/dialogues', label: t.nav.dialogues, icon: MessageSquare },
+    { href: '/reading-2026', label: t.nav.reading2026, icon: Calendar },
+    { href: '/journal-pilot', label: t.nav.journalPilot, icon: BookOpenText },
+    { href: '/saint-valentin', label: t.nav.valentine, icon: Users },
+    { href: '/pricing', label: t.nav.pricing, icon: CreditCard },
   ]
 
   const isActive = (href: string) => {
@@ -58,7 +52,7 @@ export default function Navigation() {
 
   return (
     <>
-      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/10 backdrop-blur-md bg-black/80">
+      <nav className="sticky top-0 z-50 w-full border-b border-white/10 backdrop-blur-md bg-black/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
@@ -67,26 +61,88 @@ export default function Navigation() {
             </Link>
 
             {/* Desktop Menu */}
-            <div className="hidden lg:flex items-center space-x-1">
-              {menuItems.map((item) => (
+            <div className="hidden lg:flex items-center space-x-1 flex-nowrap">
+              {menuItems.map((item) => {
+                if (item.disabled) {
+                  return (
+                    <div
+                      key={item.href}
+                      className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white/40 cursor-not-allowed opacity-50"
+                      title={t.locale === 'fr' ? 'Disponible très bientôt' : t.locale === 'es' ? 'Disponible muy pronto' : 'Coming very soon'}
+                    >
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.label}</span>
+                    </div>
+                  )
+                }
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`
+                      flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex-shrink-0
+                      ${isActive(item.href)
+                        ? 'bg-gradient-to-r from-purple-600/20 to-pink-600/20 text-white border border-purple-500/30'
+                        : 'text-white/70 hover:text-white hover:bg-white/10'
+                      }
+                    `}
+                  >
+                    <item.icon className="h-4 w-4 flex-shrink-0" />
+                    <span className="whitespace-nowrap">{item.label}</span>
+                  </Link>
+                )
+              })}
+              
+              {/* FAQ, Terms, Privacy, Contact and Settings */}
+              <div className="flex items-center gap-2 ml-2 pl-2 border-l border-white/10 flex-nowrap">
                 <Link
-                  key={item.href}
-                  href={item.href}
+                  href="/faq"
                   className={`
-                    flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all
-                    ${isActive(item.href)
-                      ? 'bg-gradient-to-r from-purple-600/20 to-pink-600/20 text-white border border-purple-500/30'
+                    px-3 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex-shrink-0
+                    ${isActive('/faq')
+                      ? 'bg-white/10 text-white'
                       : 'text-white/70 hover:text-white hover:bg-white/10'
                     }
                   `}
                 >
-                  <item.icon className="h-4 w-4" />
-                  <span>{item.label}</span>
+                  {t.nav.faq}
                 </Link>
-              ))}
-              
-              {/* Settings and About */}
-              <div className="flex items-center gap-2 ml-2 pl-2 border-l border-white/10">
+                <Link
+                  href="/terms"
+                  className={`
+                    px-3 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex-shrink-0
+                    ${isActive('/terms')
+                      ? 'bg-white/10 text-white'
+                      : 'text-white/70 hover:text-white hover:bg-white/10'
+                    }
+                  `}
+                >
+                  {t.nav.terms}
+                </Link>
+                <Link
+                  href="/privacy"
+                  className={`
+                    px-3 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex-shrink-0
+                    ${isActive('/privacy')
+                      ? 'bg-white/10 text-white'
+                      : 'text-white/70 hover:text-white hover:bg-white/10'
+                    }
+                  `}
+                >
+                  {t.nav.privacy}
+                </Link>
+                <Link
+                  href="/contact"
+                  className={`
+                    px-3 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex-shrink-0
+                    ${isActive('/contact')
+                      ? 'bg-white/10 text-white'
+                      : 'text-white/70 hover:text-white hover:bg-white/10'
+                    }
+                  `}
+                >
+                  {t.nav.contact}
+                </Link>
                 <Link
                   href="/settings"
                   className={`
@@ -96,21 +152,9 @@ export default function Navigation() {
                       : 'text-white/70 hover:text-white hover:bg-white/10'
                     }
                   `}
-                  title={mounted ? (t.nav.settings || 'Settings') : 'Settings'}
+                  title={t.nav.settings}
                 >
                   <Settings className="h-5 w-5" />
-                </Link>
-                <Link
-                  href="/about"
-                  className={`
-                    px-3 py-2 rounded-lg text-sm font-medium transition-all
-                    ${isActive('/about')
-                      ? 'bg-white/10 text-white'
-                      : 'text-white/70 hover:text-white hover:bg-white/10'
-                    }
-                  `}
-                >
-                  {mounted ? (t.nav.about || 'About') : 'About'}
                 </Link>
               </div>
             </div>
@@ -119,7 +163,7 @@ export default function Navigation() {
             <button
               onClick={() => setMobileMenuOpen(true)}
               className="lg:hidden p-2 text-white hover:bg-white/10 rounded-lg transition"
-              aria-label="Open menu"
+              aria-label={t.common.openMenu}
             >
               <Menu className="h-6 w-6" />
             </button>
@@ -151,32 +195,102 @@ export default function Navigation() {
                   <button
                     onClick={() => setMobileMenuOpen(false)}
                     className="p-2 hover:bg-white/10 rounded-lg transition"
-                    aria-label="Close menu"
+                    aria-label={t.common.closeMenu}
                   >
                     <X className="h-6 w-6 text-white" />
                   </button>
                 </div>
 
                 <nav className="space-y-2">
-                  {menuItems.map((item) => (
+                  {menuItems.map((item) => {
+                    if (item.disabled) {
+                      return (
+                        <div
+                          key={item.href}
+                          className="flex items-center gap-3 p-3 rounded-lg text-white/40 cursor-not-allowed opacity-50"
+                          title={t.locale === 'fr' ? 'Disponible très bientôt' : t.locale === 'es' ? 'Disponible muy pronto' : 'Coming very soon'}
+                        >
+                          <item.icon className="h-5 w-5 text-cosmic-gold/40" />
+                          <span className="font-medium">{item.label}</span>
+                        </div>
+                      )
+                    }
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className={`
+                          flex items-center gap-3 p-3 rounded-lg transition text-white
+                          ${isActive(item.href)
+                            ? 'bg-gradient-to-r from-purple-600/20 to-pink-600/20 border border-purple-500/30'
+                            : 'hover:bg-white/10'
+                          }
+                        `}
+                      >
+                        <item.icon className="h-5 w-5 text-cosmic-gold" />
+                        <span className="font-medium">{item.label}</span>
+                      </Link>
+                    )
+                  })}
+                  
+                  <div className="pt-4 mt-4 border-t border-white/10 space-y-2">
                     <Link
-                      key={item.href}
-                      href={item.href}
+                      href="/faq"
                       onClick={() => setMobileMenuOpen(false)}
                       className={`
                         flex items-center gap-3 p-3 rounded-lg transition text-white
-                        ${isActive(item.href)
-                          ? 'bg-gradient-to-r from-purple-600/20 to-pink-600/20 border border-purple-500/30'
+                        ${isActive('/faq')
+                          ? 'bg-white/10'
                           : 'hover:bg-white/10'
                         }
                       `}
                     >
-                      <item.icon className="h-5 w-5 text-cosmic-gold" />
-                      <span className="font-medium">{item.label}</span>
+                      <HelpCircle className="h-5 w-5 text-cosmic-gold" />
+                      <span className="font-medium">{t.nav.faq}</span>
                     </Link>
-                  ))}
-                  
-                  <div className="pt-4 mt-4 border-t border-white/10 space-y-2">
+                    <Link
+                      href="/terms"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={`
+                        flex items-center gap-3 p-3 rounded-lg transition text-white
+                        ${isActive('/terms')
+                          ? 'bg-white/10'
+                          : 'hover:bg-white/10'
+                        }
+                      `}
+                    >
+                      <FileText className="h-5 w-5 text-cosmic-gold" />
+                      <span className="font-medium">{t.nav.terms}</span>
+                    </Link>
+                    <Link
+                      href="/privacy"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={`
+                        flex items-center gap-3 p-3 rounded-lg transition text-white
+                        ${isActive('/privacy')
+                          ? 'bg-white/10'
+                          : 'hover:bg-white/10'
+                        }
+                      `}
+                    >
+                      <Shield className="h-5 w-5 text-cosmic-gold" />
+                      <span className="font-medium">{t.nav.privacy}</span>
+                    </Link>
+                    <Link
+                      href="/contact"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={`
+                        flex items-center gap-3 p-3 rounded-lg transition text-white
+                        ${isActive('/contact')
+                          ? 'bg-white/10'
+                          : 'hover:bg-white/10'
+                        }
+                      `}
+                    >
+                      <Mail className="h-5 w-5 text-cosmic-gold" />
+                      <span className="font-medium">{t.nav.contact}</span>
+                    </Link>
                     <Link
                       href="/settings"
                       onClick={() => setMobileMenuOpen(false)}
@@ -189,21 +303,7 @@ export default function Navigation() {
                       `}
                     >
                       <Settings className="h-5 w-5 text-cosmic-gold" />
-                      <span className="font-medium">{mounted ? (t.nav.settings || 'Settings') : 'Settings'}</span>
-                    </Link>
-                    <Link
-                      href="/about"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className={`
-                        flex items-center gap-3 p-3 rounded-lg transition text-white
-                        ${isActive('/about')
-                          ? 'bg-white/10'
-                          : 'hover:bg-white/10'
-                        }
-                      `}
-                    >
-                      <Info className="h-5 w-5 text-cosmic-gold" />
-                      <span className="font-medium">{mounted ? (t.nav.about || 'About') : 'About'}</span>
+                      <span className="font-medium">{t.nav.settings}</span>
                     </Link>
                   </div>
                 </nav>
@@ -215,6 +315,3 @@ export default function Navigation() {
     </>
   )
 }
-
-
-

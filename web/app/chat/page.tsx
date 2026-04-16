@@ -1,5 +1,7 @@
 'use client'
 
+export const dynamic = 'force-dynamic'
+
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { MessageSquare, Send, Sparkles, User, Bot, Key, Settings } from 'lucide-react'
@@ -8,7 +10,8 @@ import { apiClient } from '@/lib/api'
 import { useToast } from '@/lib/toast'
 import BackButton from '@/components/BackButton'
 import Link from 'next/link'
-import { generateAstrologicalResponse } from '@/lib/gemini'
+import Starfield from '@/components/Starfield'
+// Removed generateAstrologicalResponse import
 
 interface Message {
   id: string
@@ -83,9 +86,9 @@ export default function ChatPage() {
     },
   }
 
-  const lang = settings.language
-  const t = translations[lang]
-  const hasApiKey = !!settings.geminiApiKey?.trim()
+  const lang = settings.language || 'fr'
+  const t = translations[lang as keyof typeof translations] || translations.en
+  const hasApiKey = true // API key is now managed in backend
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -107,11 +110,7 @@ export default function ChatPage() {
               : lang === 'es'
               ? '¡Hola! Soy tu asistente astrológico. Puedo responder preguntas sobre tu carta natal, tránsitos actuales y lo que el futuro podría deparar. ¡Hazme una pregunta!'
               : "Hello! I'm your astrological assistant. I can answer questions about your natal chart, current transits, and what the future might hold. Ask me anything!")
-          : (lang === 'fr'
-              ? "Bonjour! Pour utiliser le chat astrologique, veuillez d'abord configurer votre clé API Gemini dans les paramètres."
-              : lang === 'es'
-              ? '¡Hola! Para usar el chat astrológico, por favor configura tu clave API de Gemini en la configuración primero.'
-              : 'Hello! To use the astrological chat, please configure your Gemini API key in settings first.'),
+          : t.apiKeyRequired,
         timestamp: new Date(),
       }
       setMessages([welcomeMessage])
@@ -120,17 +119,6 @@ export default function ChatPage() {
 
   const handleSend = async () => {
     if (!input.trim() || loading) return
-
-    if (!hasApiKey) {
-      toast.error(
-        lang === 'fr'
-          ? 'Veuillez configurer votre clé API Gemini dans les paramètres'
-          : lang === 'es'
-          ? 'Por favor configura tu clave API de Gemini en la configuración'
-          : 'Please configure your Gemini API key in settings'
-      )
-      return
-    }
 
     if (!latestChart) {
       toast.error(t.noChart)
@@ -159,8 +147,9 @@ export default function ChatPage() {
 
     try {
       // Check if question is about another person
-      const chartToUse = await getChartForQuestion(input.trim(), latestChart?.chart)
-      const response = await generateResponse(input.trim(), chartToUse, latestChart?.chart)
+      const latestChartData = latestChart as { chart?: unknown } | null
+      const chartToUse = await getChartForQuestion(input.trim(), latestChartData?.chart)
+      const response = await generateResponse(input.trim(), chartToUse, latestChartData?.chart)
       
       // Remove thinking message and add response
       setMessages((prev) => {
@@ -284,7 +273,7 @@ export default function ChatPage() {
 
   const generateResponse = async (question: string, chart: any, defaultChart?: any): Promise<string> => {
     const lowerQuestion = question.toLowerCase()
-    const lang = settings.language || 'en'
+    const lang = settings.language || 'fr'
 
     // Check if question is about current situation or transits
     if (
@@ -338,41 +327,25 @@ export default function ChatPage() {
     // Use Gemini AI for interpretation requests and all general questions
     if (isInterpretationRequest || !isSpecificPlanetQuestion) {
       try {
-        if (!settings.geminiApiKey?.trim()) {
-          return lang === 'fr'
-            ? 'Veuillez configurer votre clé API Gemini dans les paramètres pour utiliser le chat.'
-            : lang === 'es'
-            ? 'Por favor configura tu clave API de Gemini en la configuración para usar el chat.'
-            : 'Please configure your Gemini API key in settings to use the chat.'
+        const systemInstruction = `You are an expert astrological interpreter. Provide detailed, insightful astrological interpretations. Write in ${lang === 'fr' ? 'French' : lang === 'es' ? 'Spanish' : 'English'}.`
+        
+        // Include chart context in the prompt if needed, or rely on previous conversation context (if we were sending it)
+        // For now, we'll append minimal chart context if it's the first question about this chart
+        const chartContext = chart && !question.includes('chart') ? `\n\nContext: Analyzing a natal chart with Sun in ${chart.planets?.sun?.sign}, Moon in ${chart.planets?.moon?.sign}, Ascendant in ${chart.ascendant_sign || 'unknown'}.` : ''
+        
+        const response = await apiClient.ai.interpret(
+          question + chartContext,
+          systemInstruction
+        )
+
+        if (response.error) {
+          throw new Error(response.error)
         }
 
-        return await generateAstrologicalResponse(
-          settings.geminiApiKey,
-          question,
-          chart,
-          lang as 'en' | 'fr' | 'es',
-          {
-            houseSystem: settings.houseSystem,
-            narrativeTone: settings.narrativeTone,
-            narrativeDepth: settings.narrativeDepth,
-            narrativeFocus: settings.narrativeFocus,
-            includeExtraObjects: settings.includeExtraObjects,
-            useTopocentricMoon: settings.useTopocentricMoon,
-            includeAspects: settings.includeAspects,
-          }
-        )
+        return response.data?.content || ''
       } catch (error: any) {
         console.error('Gemini API error:', error)
         const errorMessage = error?.message || ''
-        
-        // More helpful error messages
-        if (errorMessage.includes('API key') || errorMessage.includes('401') || errorMessage.includes('403')) {
-          return lang === 'fr'
-            ? 'Erreur: Clé API Gemini invalide ou manquante. Veuillez vérifier vos paramètres.'
-            : lang === 'es'
-            ? 'Error: Clave API de Gemini inválida o faltante. Por favor verifica tu configuración.'
-            : 'Error: Invalid or missing Gemini API key. Please check your settings.'
-        }
         
         return lang === 'fr'
           ? `Désolé, une erreur s'est produite: ${errorMessage}. Veuillez réessayer.`
@@ -408,8 +381,9 @@ export default function ChatPage() {
         include_angles: true,
       })
 
-      const transits = transitResponse.data.transits || []
-      const transitsToAngles = transitResponse.data.transits_to_angles || []
+      const transitData = transitResponse.data || {}
+      const transits = transitData.transits || []
+      const transitsToAngles = transitData.transits_to_angles || []
 
       if (transits.length === 0 && transitsToAngles.length === 0) {
         return lang === 'fr'
@@ -479,7 +453,8 @@ export default function ChatPage() {
         include_angles: true,
       })
 
-      const transits = transitResponse.data.transits || []
+      const transitData = transitResponse.data || {}
+      const transits = transitData.transits || []
 
       if (transits.length === 0) {
         return lang === 'fr'
@@ -587,8 +562,9 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative">
+      <Starfield />
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
         <BackButton href="/" />
         
         <motion.div
@@ -624,7 +600,7 @@ export default function ChatPage() {
                     </p>
                     <div className="flex flex-wrap gap-3">
                       <a
-                        href="https://makersuite.google.com/app/apikey"
+                        href="https://aistudio.google.com/app/apikey"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-2 text-xs text-yellow-400 hover:text-yellow-300 transition underline"
@@ -751,4 +727,3 @@ export default function ChatPage() {
     </div>
   )
 }
-

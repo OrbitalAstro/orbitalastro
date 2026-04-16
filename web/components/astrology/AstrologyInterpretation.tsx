@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { useSettingsStore } from '@/lib/store'
-import { callGemini } from '@/lib/gemini'
-import { signFromLongitude, translateSign } from './signTranslations'
+import { apiClient } from '@/lib/api'
+import { translateSign } from './signTranslations'
 import { useTranslation } from '@/lib/useTranslation'
 
 interface AstrologyInterpretationProps {
@@ -27,15 +27,12 @@ export default function AstrologyInterpretation({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const language = (settings.language || 'en') as 'en' | 'fr' | 'es'
+  const language = (settings.language || 'fr') as 'en' | 'fr' | 'es'
 
   useEffect(() => {
     const generateInterpretation = async () => {
-      if (!settings.geminiApiKey?.trim()) {
-        setError(t.interpretation.apiKeyRequired)
-        return
-      }
-
+      // API key is now handled by backend
+      
       setLoading(true)
       setError(null)
 
@@ -45,7 +42,27 @@ export default function AstrologyInterpretation({
         const moonSignTranslated = translateSign(moonSign, language)
         const ascSignTranslated = translateSign(ascendant, language)
 
-        // Build chart summary
+        // Build chart summary organized by house for better analysis
+        const planetsByHouse: Record<number, Array<{name: string, sign: string}>> = {}
+        Object.entries(planets).forEach(([name, data]) => {
+          const house = data.house
+          if (!planetsByHouse[house]) {
+            planetsByHouse[house] = []
+          }
+          const signTranslated = translateSign(data.sign, language)
+          planetsByHouse[house].push({ name, sign: signTranslated })
+        })
+
+        // Format planets by house
+        const planetsByHouseSummary = Object.entries(planetsByHouse)
+          .sort(([a], [b]) => parseInt(a) - parseInt(b))
+          .map(([house, planetList]) => {
+            const planetNames = planetList.map(p => `${p.name} (${p.sign})`).join(', ')
+            return `${language === 'fr' ? 'Maison' : language === 'es' ? 'Casa' : 'House'} ${house}: ${planetNames}`
+          })
+          .join('\n')
+
+        // Also keep the simple list for reference
         const planetsSummary = Object.entries(planets)
           .map(([name, data]) => {
             const signTranslated = translateSign(data.sign, language)
@@ -61,13 +78,66 @@ export default function AstrologyInterpretation({
           )
           .join('\n')
 
-        const systemInstructions = settings.interpretationPrompt || "Tu es un interprète astrologique expert. Génère une interprétation narrative complète et fluide d'un thème natal. Utilise une approche symbolique et psychologique - pas de prédictions. Écris dans un style fluide et accessible aux débutants. Structure ta réponse en 6 sections : 1) Portrait général (Soleil/Ascendant/Lune), 2) Forces générales, 3) Défis potentiels, 4) Dynamique émotionnelle, 5) Relations (sans romantisme explicite), 6) Synthèse finale. Utilise des titres de section clairs avec ##."
+        // Always analyze all 12 houses (1..12), even if some are empty.
+        // This avoids over-focusing on the (often crowded) 1st house and gives a balanced reading.
+        const houses = Array.from({ length: 12 }, (_, i) => i + 1)
+        const housesList = houses.join(', ')
+
+        // Create explicit house-by-house analysis template for all houses (including empty ones)
+        const houseAnalysisTemplate = houses.map(house => {
+          const planetsInHouse = planetsByHouse[house] || []
+          const planetNames = planetsInHouse.length
+            ? planetsInHouse.map(p => `${p.name} (${p.sign})`).join(', ')
+            : 'Aucune planète'
+          return `### Maison ${house}\nPlanètes: ${planetNames}\n[Écris 4-5 phrases complètes. Si la maison est vide, explique ce que cela implique (domaine moins accentué / vécu autrement), SANS inventer le signe de cuspide.]`
+        }).join('\n\n')
+
+        const systemInstructions = settings.interpretationPrompt || `Tu es un interprète astrologique expert. Génère une interprétation narrative complète et fluide d'un thème natal. Utilise une approche symbolique et psychologique - pas de prédictions. Écris dans un style fluide et accessible aux débutants. 
+
+STRUCTURE OBLIGATOIRE de ta réponse en 7 sections :
+1) Portrait général (Soleil/Ascendant/Lune) - maximum 2-3 paragraphes, NE PAS détailler les maisons ici
+2) Analyse des maisons astrologiques - C'EST LA SECTION LA PLUS IMPORTANTE. Tu DOIS analyser les 12 maisons (${housesList}) même si certaines sont vides. Tu DOIS suivre EXACTEMENT ce format :
+
+${houseAnalysisTemplate}
+
+Pour chaque maison, écris un paragraphe complet de 4-5 phrases minimum expliquant : quelles planètes s'y trouvent (ou "Aucune planète"), la signification de ce domaine de vie, et comment cela influence la personne. Analyse les maisons dans l'ordre numérique. Donne une attention STRICTEMENT ÉGALE à toutes les maisons. Si une maison est vide, tu dois quand même écrire 4-5 phrases (domaine moins accentué / vécu via d'autres facteurs), SANS inventer le signe de cuspide ou des placements absents.
+
+3) Forces générales - aspects harmonieux et configurations positives
+4) Défis potentiels - aspects difficiles et tensions
+5) Dynamique émotionnelle - Lune et monde émotionnel
+6) Relations - Maison 7 et Vénus principalement
+7) Synthèse finale
+
+RÈGLE ABSOLUE: Dans la section "Analyse des maisons astrologiques", tu DOIS écrire un paragraphe de 4-5 phrases pour CHAQUE maison (${housesList}), dans l'ordre numérique, avec un sous-titre ### Maison X. Ne saute aucune maison. Ne te limite pas aux maisons occupées.`
 
         const languageInstruction = language === 'fr' 
           ? 'Écris en français.' 
           : language === 'es' 
             ? 'Escribe en español.' 
             : 'Write in English.'
+
+        // Build detailed house analysis request for all houses (including empty ones)
+        const houseAnalysisRequest = houses.map(house => {
+          const planetsInHouse = planetsByHouse[house] || []
+          const planetNames = planetsInHouse.length
+            ? planetsInHouse.map(p => `${p.name} (${p.sign})`).join(', ')
+            : 'Aucune planète'
+          const houseMeanings: Record<number, string> = {
+            1: 'identité, personnalité, apparence',
+            2: 'ressources, valeurs, possessions matérielles',
+            3: 'communication, apprentissage, frères et sœurs',
+            4: 'foyer, famille, racines, fondations',
+            5: 'créativité, enfants, plaisir, expression personnelle',
+            6: 'travail quotidien, santé, service, routines',
+            7: 'partenariats, mariage, relations proches',
+            8: 'transformation, sexualité, ressources partagées, mystères',
+            9: 'philosophie, spiritualité, voyages lointains, enseignement supérieur',
+            10: 'carrière, réputation publique, statut social, ambitions',
+            11: 'amitiés, groupes, espoirs, idéaux collectifs',
+            12: 'subconscient, karma, secrets, isolement, spiritualité cachée'
+          }
+          return `Maison ${house} (${houseMeanings[house] || 'domaine de vie'}): Planètes: ${planetNames}`
+        }).join('\n')
 
         const prompt = `Génère une interprétation astrologique complète et narrative pour ce thème natal :
 
@@ -76,22 +146,38 @@ export default function AstrologyInterpretation({
 - Lune : ${moonSignTranslated}
 - Ascendant : ${ascSignTranslated}
 
-**Planètes et maisons :**
+**ANALYSE DÉTAILLÉE PAR MAISON (OBLIGATOIRE - analyse CHAQUE maison) :**
+${houseAnalysisRequest}
+
+**Liste complète des planètes :**
 ${planetsSummary}
 
 **Aspects principaux :**
 ${aspectsSummary || 'Aucun aspect majeur'}
 
-Génère une interprétation narrative fluide et accessible, structurée en 6 sections comme demandé. Utilise un ton symbolique et psychologique, sans prédictions. ${languageInstruction}`
+        INSTRUCTIONS CRITIQUES POUR LA SECTION "ANALYSE DES MAISONS" :
+        1. Tu DOIS créer une section "Analyse des maisons astrologiques" qui couvre les 12 maisons (${housesList})
+        2. Pour CHAQUE maison (même vide), écris un paragraphe complet (minimum 4-5 phrases) avec un sous-titre ### Maison X
+        3. Analyse les maisons dans l'ordre numérique (1, 2, 3, 4, etc.)
+        4. Donne une attention ÉGALE à toutes les maisons
+        5. Pour chaque maison, explique : quelles planètes s'y trouvent (ou "Aucune planète"), la signification de ce domaine de vie, et comment cela influence la personne
+        6. Ne saute AUCUNE maison - toutes doivent être analysées avec la même profondeur
+        7. Si une maison est vide, n'invente pas le signe de cuspide ni des placements; reste général et psychologique
+        8. Structure ta réponse selon les 7 sections demandées dans les instructions système
 
-        const interpretationText = await callGemini(
-          settings.geminiApiKey,
-          prompt,
-          systemInstructions,
-          language,
-        )
+Génère une interprétation narrative fluide et accessible. Utilise un ton symbolique et psychologique, sans prédictions. ${languageInstruction}`
 
-        setInterpretation(interpretationText)
+        const response = await apiClient.ai.interpret(prompt, systemInstructions)
+
+        if (response.error) {
+          throw new Error(response.error)
+        }
+
+        if (response.data?.content) {
+          setInterpretation(response.data.content)
+        } else {
+          throw new Error('No content received from AI')
+        }
       } catch (err: any) {
         console.error('Error generating interpretation:', err)
         setError(err.message || t.interpretation.errorGeneric)
@@ -101,7 +187,7 @@ Génère une interprétation narrative fluide et accessible, structurée en 6 se
     }
 
     generateInterpretation()
-  }, [planets, aspects, ascendant, sunSign, moonSign, settings.geminiApiKey, settings.interpretationPrompt, language])
+  }, [planets, aspects, ascendant, sunSign, moonSign, settings.interpretationPrompt, language])
 
   if (error) {
     return (
@@ -114,7 +200,7 @@ Génère une interprétation narrative fluide et accessible, structurée en 6 se
   if (loading) {
     return (
       <div className="prose prose-neutral max-w-full leading-relaxed text-white/80">
-        <p>{t.interpretation.generating}</p>
+        <p>Generating interpretation...</p>
       </div>
     )
   }
@@ -127,7 +213,7 @@ Génère une interprétation narrative fluide et accessible, structurée en 6 se
   const convertMarkdownToHTML = (text: string): string => {
     if (!text) return ''
     
-    let html = text
+    const html = text
     // Split by double newlines first to preserve paragraph structure
     const paragraphs = html.split(/\n\n+/)
     
@@ -174,4 +260,3 @@ Génère une interprétation narrative fluide et accessible, structurée en 6 se
     </div>
   )
 }
-

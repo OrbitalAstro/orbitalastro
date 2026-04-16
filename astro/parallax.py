@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Topocentric Moon parallax correction for high-precision lunar positioning."""
 
 from __future__ import annotations
@@ -5,9 +7,10 @@ from __future__ import annotations
 from math import asin, atan2, cos, radians, sin, sqrt, tan, degrees
 from typing import Tuple
 
-from astro.ephemeris_loader import EphemerisRepository
+from astro.swisseph_positions import get_positions_from_swisseph
 from astro.obliquity import mean_obliquity
 from astro.utils import normalize_angle_deg
+from astro.julian import datetime_to_julian_day
 
 
 # Constants
@@ -113,9 +116,8 @@ def get_moon_with_parallax(
     Returns:
         Moon longitude in degrees (topocentric if use_parallax=True)
     """
-    from astro.julian import datetime_to_julian_day
-
-    positions = EphemerisRepository.get_positions(target_datetime)
+    jd = datetime_to_julian_day(target_datetime)
+    positions = get_positions_from_swisseph(target_datetime, jd)
     moon_long = positions.get("moon", 0.0)
 
     if not use_parallax:
@@ -124,9 +126,8 @@ def get_moon_with_parallax(
     # For parallax correction, we need Moon's distance
     # Since we don't store distance in ephemeris, we'll use mean distance
     # In a full implementation, we'd compute distance from ephemeris
-    JD = datetime_to_julian_day(target_datetime)
     topo_long, _ = correct_moon_for_parallax(
-        moon_long, 0.0, observer_lat_deg, observer_lon_deg, JD
+        moon_long, 0.0, observer_lat_deg, observer_lon_deg, jd
     )
 
     return topo_long

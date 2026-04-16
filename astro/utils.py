@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Utility helpers for astronomical angles."""
 
 from math import tau

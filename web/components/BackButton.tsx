@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { useTranslation } from '@/lib/useTranslation'
 
 interface BackButtonProps {
   href?: string
@@ -10,8 +11,10 @@ interface BackButtonProps {
   className?: string
 }
 
-export default function BackButton({ href, label = 'Back', className = '' }: BackButtonProps) {
+export default function BackButton({ href, label, className = '' }: BackButtonProps) {
   const router = useRouter()
+  const t = useTranslation()
+  const resolvedLabel = label ?? t.common.back
 
   const handleClick = () => {
     if (href) {
@@ -30,7 +33,7 @@ export default function BackButton({ href, label = 'Back', className = '' }: Bac
       animate={{ opacity: 1, x: 0 }}
     >
       <ArrowLeft className="h-5 w-5" />
-      <span>{label}</span>
+      <span>{resolvedLabel}</span>
     </motion.button>
   )
 }

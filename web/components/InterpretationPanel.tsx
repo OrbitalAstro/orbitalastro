@@ -77,7 +77,7 @@ export default function InterpretationPanel({ chart }: InterpretationPanelProps)
                 <div className="flex justify-between items-center">
                   <span className="font-semibold capitalize">{name}</span>
                   <span className="text-sm">
-                    {planet.sign} • {getHouseName(planet.house, settings.language || 'en')}
+                    {planet.sign} • {getHouseName(planet.house, settings.language || 'fr')}
                   </span>
                 </div>
                 <div className="text-sm text-white/60 mt-1">
@@ -103,7 +103,7 @@ export default function InterpretationPanel({ chart }: InterpretationPanelProps)
             <div className="grid grid-cols-2 gap-2">
               {Object.entries(chart.houses || {}).map(([num, cusp]: [string, any]) => (
                 <div key={num} className="bg-white/5 rounded-lg p-2 text-sm">
-                  <span className="font-semibold">{getHouseName(num, settings.language || 'en')}</span>
+                  <span className="font-semibold">{getHouseName(num, settings.language || 'fr')}</span>
                   <div className="text-white/60">{cusp.toFixed(2)}°</div>
                 </div>
               ))}

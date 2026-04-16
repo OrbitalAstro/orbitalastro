@@ -102,7 +102,7 @@ Si vous rencontrez des erreurs :
 1. **npm non trouvé** : Redémarrez complètement PowerShell
 2. **Erreur de build** : Vérifiez les logs dans le Dashboard Vercel
 3. **Timeout** : Vérifiez que les calculs ne prennent pas trop de temps
-4. **Erreur pyswisseph** : Vérifiez que les dépendances sont dans `requirements.txt`
+4. **Erreur d'import** : Vérifiez que les dépendances sont dans `requirements.txt` (notamment `flatlib`)
 
 
 

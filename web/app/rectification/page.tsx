@@ -1,8 +1,10 @@
 'use client'
 
+export const dynamic = 'force-dynamic'
+
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Wand2, Calendar, MapPin, Plus, X } from 'lucide-react'
+import { Wand2, Calendar, Plus, X } from 'lucide-react'
 import { useSettingsStore, useChartHistory } from '@/lib/store'
 import { apiClient } from '@/lib/api'
 import { useToast } from '@/lib/toast'
@@ -10,6 +12,8 @@ import BackButton from '@/components/BackButton'
 import LocationInput from '@/components/LocationInput'
 import ReactMarkdown from 'react-markdown'
 import { useTranslation } from '@/lib/useTranslation'
+import { formatBirthDateInput } from '@/lib/sanitizeBirthDateYear'
+import Starfield from '@/components/Starfield'
 
 interface RectificationEvent {
   type: string
@@ -107,8 +111,9 @@ export default function RectificationPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative">
+      <Starfield />
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
         <BackButton href="/" />
         
         <motion.div
@@ -129,11 +134,21 @@ export default function RectificationPage() {
                 {t.rectification.birthDate}
               </label>
               <input
-                type="date"
+                type="text"
+                inputMode="numeric"
+                pattern="\\d{4}-\\d{2}-\\d{2}"
                 value={birthDate}
-                onChange={(e) => setBirthDate(e.target.value)}
-                className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                onChange={(e) => setBirthDate(formatBirthDateInput(e.target.value))}
+                placeholder={t.locale === 'fr' ? 'AAAA-MM-JJ' : 'YYYY-MM-DD'}
+                className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
+              <p className="mt-1 text-xs text-white/60">
+                {t.locale === 'fr'
+                  ? 'Format : AAAA-MM-JJ (ex : 1976-10-26)'
+                  : t.locale === 'es'
+                    ? 'Formato: AAAA-MM-DD (ej.: 1976-10-26)'
+                    : 'Format: YYYY-MM-DD (e.g., 1976-10-26)'}
+              </p>
             </div>
             <div>
               <label className="block text-sm font-medium text-white/80 mb-2">
@@ -302,4 +317,3 @@ export default function RectificationPage() {
     </div>
   )
 }
-

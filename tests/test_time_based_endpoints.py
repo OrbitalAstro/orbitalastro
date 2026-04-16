@@ -1,11 +1,12 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Integration tests for time-based astrology endpoints."""
 
 from __future__ import annotations
 
 from datetime import datetime
 
-from astro.ephemeris_loader import EphemerisRepository
-from astro.houses import compute_asc_mc
+from astro.swisseph_positions import get_positions_from_swisseph
 from astro.houses_multi import compute_houses
 from astro.julian import datetime_to_julian_day
 from astro.progressions import compute_progressed_chart
@@ -23,9 +24,9 @@ PLANET_TOLERANCE = 0.3
 def test_transits_endpoint_returns_chart_and_narrative():
     """Ensure transits endpoint returns structured chart data and narrative seeds."""
     natal_datetime = datetime(1990, 1, 1, 12, 0, 0)
-    natal_positions = EphemerisRepository.get_positions(natal_datetime)
     natal_jd = datetime_to_julian_day(natal_datetime)
-    natal_asc, natal_mc = compute_asc_mc(natal_jd, LATITUDE, LONGITUDE)
+    natal_positions = get_positions_from_swisseph(natal_datetime, natal_jd)
+    _, natal_asc, natal_mc = compute_houses("placidus", natal_jd, LATITUDE, LONGITUDE, None, None)
 
     target_datetime = datetime(2024, 12, 25, 12, 0, 0)
     payload = {
@@ -50,16 +51,15 @@ def test_transits_endpoint_returns_chart_and_narrative():
     assert response.status_code == 200
     data = response.json()
 
-    expected_positions = EphemerisRepository.get_positions(target_datetime)
     target_jd = datetime_to_julian_day(target_datetime)
-    expected_asc, expected_mc = compute_asc_mc(target_jd, LATITUDE, LONGITUDE)
-    expected_cusps = compute_houses(
+    expected_positions = get_positions_from_swisseph(target_datetime, target_jd)
+    expected_cusps, expected_asc, expected_mc = compute_houses(
         "placidus",
         target_jd,
         LATITUDE,
         LONGITUDE,
-        expected_asc,
-        expected_mc,
+        None,
+        None,
     )
 
     assert abs(data["planets"]["sun"] - expected_positions["sun"]) < PLANET_TOLERANCE
@@ -103,9 +103,13 @@ def test_progressions_endpoint_matches_computed_chart():
 
 def test_solar_return_endpoint_delivers_expected_chart():
     """Solar return endpoint should mirror find_solar_return output."""
+    birth_datetime = datetime(1990, 1, 1, 12, 0, 0)
+    birth_jd = datetime_to_julian_day(birth_datetime)
+    birth_positions = get_positions_from_swisseph(birth_datetime, birth_jd)
+    
     payload = {
         "birth_date": "1990-01-01",
-        "natal_sun_longitude": EphemerisRepository.get_positions(datetime(1990, 1, 1, 12, 0, 0))["sun"],
+        "natal_sun_longitude": birth_positions["sun"],
         "target_year": 2024,
         "latitude": LATITUDE,
         "longitude": LONGITUDE,

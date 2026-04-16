@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Chiron interpretation module."""
 
 from typing import Dict

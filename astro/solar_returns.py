@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Solar return chart finder and calculator."""
 
 from __future__ import annotations
@@ -5,8 +7,8 @@ from __future__ import annotations
 from datetime import datetime, timedelta
 from typing import Dict, Optional, Tuple
 
-from astro.ephemeris_loader import EphemerisRepository
-from astro.houses import compute_asc_mc
+from astro.swisseph_positions import get_positions_from_swisseph
+from astro.julian import datetime_to_julian_day
 from astro.houses_multi import compute_houses
 from astro.julian import datetime_to_julian_day
 from astro.utils import normalize_angle_deg
@@ -47,7 +49,8 @@ def find_solar_return(
     # Binary search for exact return
     for _ in range(20):  # Max 20 iterations
         test_datetime = search_start + (search_end - search_start) / 2
-        test_positions = EphemerisRepository.get_positions(test_datetime)
+        test_jd = datetime_to_julian_day(test_datetime)
+        test_positions = get_positions_from_swisseph(test_datetime, test_jd)
         test_sun_long = test_positions.get("sun", 0.0)
 
         diff = abs(test_sun_long - natal_sun_longitude) % 360.0
@@ -64,7 +67,8 @@ def find_solar_return(
         # Determine search direction
         # Check if we need to go forward or backward
         future_datetime = test_datetime + timedelta(hours=1)
-        future_positions = EphemerisRepository.get_positions(future_datetime)
+        future_jd = datetime_to_julian_day(future_datetime)
+        future_positions = get_positions_from_swisseph(future_datetime, future_jd)
         future_sun_long = future_positions.get("sun", 0.0)
 
         # Check if Sun is moving toward or away from natal position
@@ -112,7 +116,7 @@ def compute_solar_return_chart(
         Dictionary containing solar return chart data
     """
     return_jd = datetime_to_julian_day(return_datetime)
-    return_positions = EphemerisRepository.get_positions(return_datetime)
+    return_positions = get_positions_from_swisseph(return_datetime, return_jd)
 
     # Verify Sun is at natal longitude (within tolerance)
     return_sun_long = return_positions.get("sun", 0.0)
@@ -121,8 +125,13 @@ def compute_solar_return_chart(
         diff = 360.0 - diff
 
     # Compute angles and houses
-    return_asc, return_mc = compute_asc_mc(return_jd, latitude_deg, longitude_deg)
-    return_cusps = compute_houses(house_system, return_jd, latitude_deg, longitude_deg, return_asc, return_mc)
+    # compute_houses now returns (cusps, ascendant, midheaven)
+    # All values are calculated by Swiss Ephemeris exclusively
+    cusps_tuple = compute_houses(house_system, return_jd, latitude_deg, longitude_deg, None, None)
+    if isinstance(cusps_tuple, tuple) and len(cusps_tuple) == 3:
+        return_cusps, return_asc, return_mc = cusps_tuple
+    else:
+        raise ValueError(f"Invalid return format from compute_houses: expected tuple of 3, got {type(cusps_tuple)}")
 
     return {
         "return_datetime_utc": return_datetime.isoformat(),

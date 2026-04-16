@@ -1,8 +1,10 @@
 'use client'
 
+export const dynamic = 'force-dynamic'
+
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Calendar, MapPin, Clock, TrendingUp, BookOpen } from 'lucide-react'
+import { Calendar, Clock, TrendingUp, BookOpen } from 'lucide-react'
 import { useSettingsStore } from '@/lib/store'
 import { apiClient } from '@/lib/api'
 import { useQuery } from '@tanstack/react-query'
@@ -17,6 +19,8 @@ import LocationInput from '@/components/LocationInput'
 import BackButton from '@/components/BackButton'
 import { signFromLongitude } from '@/components/astrology/signTranslations'
 import { useTranslation } from '@/lib/useTranslation'
+import { formatBirthDateInput } from '@/lib/sanitizeBirthDateYear'
+import Starfield from '@/components/Starfield'
 
 export default function Dashboard() {
   const settings = useSettingsStore()
@@ -36,7 +40,7 @@ export default function Dashboard() {
     queryKey: ['natal', birthData],
     queryFn: async () => {
       try {
-        const response = await apiClient.natal.calculate({
+        const requestBody = {
           ...birthData,
           birth_city: birthData.birth_place || undefined,
           house_system: settings.houseSystem,
@@ -48,16 +52,36 @@ export default function Dashboard() {
             depth: settings.narrativeDepth as "short" | "standard" | "long" | "comprehensive" | undefined,
             focus: settings.narrativeFocus as ("career" | "relationships" | "family" | "spirituality" | "creativity" | "healing")[] | undefined,
           },
-        })
-        const chartData = response.data
+        };
+        console.log('[Dashboard] Sending request:', requestBody);
+        const response = await apiClient.natal.calculate(requestBody);
+        console.log('[Dashboard] Received response:', response);
+        
+        if (response.error) {
+          const errorMsg = response.error.includes('fetch') || response.error.includes('Failed to fetch')
+            ? 'Cannot connect to backend API. Make sure the backend is running on http://localhost:8000'
+            : response.error;
+          throw new Error(errorMsg);
+        }
+        
+        if (!response.data) {
+          throw new Error(t.dashboard.errorMessage)
+        }
+        
         toast.success(t.dashboard.success)
-        return chartData
+        return response.data
       } catch (err: any) {
-        toast.error(t.dashboard.error, err?.response?.data?.detail || t.dashboard.errorMessage)
-        throw err
+        console.error('[Dashboard] Error calculating chart:', err);
+        throw err;
       }
     },
     enabled: false,
+    retry: false,
+    onError: (err: Error) => {
+      console.error('[Dashboard] Query error:', err);
+      const errorMessage = err.message || t.dashboard.errorMessage;
+      toast.error(t.dashboard.error, errorMessage);
+    },
   })
 
   const validateForm = () => {
@@ -107,8 +131,9 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" aria-labelledby="main-heading">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative">
+      <Starfield />
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10" aria-labelledby="main-heading">
         <BackButton href="/" />
         <h1 className="text-4xl font-heading font-bold text-white mb-8" id="main-heading">Astrological Dashboard</h1>
 
@@ -119,23 +144,36 @@ export default function Dashboard() {
           className="bg-white/10 backdrop-blur-sm rounded-xl p-6 mb-8 border border-white/20"
         >
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <FormField
-              label={t.dashboard.birthDate}
-              name="birth_date"
-              value={birthData.birth_date}
-              onChange={(value) => {
-                setBirthData({ ...birthData, birth_date: value })
-                if (errors.birth_date) {
-                  setErrors({ ...errors, birth_date: '' })
-                }
-              }}
-              type="date"
-              required
-              error={errors.birth_date}
-              success={!!birthData.birth_date && !errors.birth_date}
-              icon={Calendar}
-              tooltip={t.tooltips.birthDate}
-            />
+            <div>
+              <FormField
+                label={t.dashboard.birthDate}
+                name="birth_date"
+                value={birthData.birth_date}
+                onChange={(value) => {
+                  const sanitized = formatBirthDateInput(value)
+                  setBirthData({ ...birthData, birth_date: sanitized })
+                  if (errors.birth_date) {
+                    setErrors({ ...errors, birth_date: '' })
+                  }
+                }}
+                type="text"
+                inputMode="numeric"
+                pattern="\\d{4}-\\d{2}-\\d{2}"
+                placeholder={t.locale === 'fr' ? 'AAAA-MM-JJ' : 'YYYY-MM-DD'}
+                required
+                error={errors.birth_date}
+                success={!!birthData.birth_date && !errors.birth_date}
+                icon={Calendar}
+                tooltip={t.tooltips.birthDate}
+              />
+              <p className="mt-1 text-xs text-white/60">
+                {t.locale === 'fr'
+                  ? 'Format : AAAA-MM-JJ (ex : 1976-10-26)'
+                  : t.locale === 'es'
+                    ? 'Formato: AAAA-MM-DD (ej.: 1976-10-26)'
+                    : 'Format: YYYY-MM-DD (e.g., 1976-10-26)'}
+              </p>
+            </div>
             <FormField
               label={t.dashboard.birthTime}
               name="birth_time"
@@ -288,4 +326,3 @@ export default function Dashboard() {
     </div>
   )
 }
-

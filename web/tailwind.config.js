@@ -8,11 +8,13 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // OrbitalAstro Cosmic Palette
-        'cosmic-gold': '#F6C94C',
-        'cosmic-pink': '#E056FD',
-        'cosmic-purple': '#3D1F71',
-        'cosmic-black': '#000000',
+        // OrbitalAstro Cosmic Palette - Design Logo (Rose Gold)
+        'cosmic-gold': '#E4B5A0',
+        'rose-gold': '#F5D4C1',
+        'cosmic-pink': '#9B59B6',
+        'cosmic-purple': '#2D1A4F',
+        'magenta-purple': '#6B2D7D',
+        'cosmic-black': '#1A0D2E',
         'cosmic-white': '#FFFFFF',
         'aurora-teal': '#3EF4C5',
         'eclipse-red': '#C44747',
@@ -39,15 +41,15 @@ module.exports = {
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
         'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
-        'cosmic': 'linear-gradient(135deg, #3D1F71 0%, #E056FD 50%, #F6C94C 100%)',
-        'cosmic-reverse': 'linear-gradient(135deg, #F6C94C 0%, #E056FD 50%, #3D1F71 100%)',
-        'nebula': 'linear-gradient(135deg, #3D1F71 0%, #E056FD 100%)',
+        'cosmic': 'linear-gradient(135deg, #2D1A4F 0%, #6B2D7D 50%, #E4B5A0 100%)',
+        'cosmic-reverse': 'linear-gradient(135deg, #E4B5A0 0%, #6B2D7D 50%, #2D1A4F 100%)',
+        'nebula': 'linear-gradient(135deg, #2D1A4F 0%, #6B2D7D 100%)',
         'aurora': 'linear-gradient(135deg, #3EF4C5 0%, #8BA8FF 100%)',
       },
       boxShadow: {
-        'cosmic': '0 0 20px rgba(246, 201, 76, 0.3)',
-        'nebula': '0 0 30px rgba(224, 86, 253, 0.4)',
-        'glow': '0 0 40px rgba(246, 201, 76, 0.2), 0 0 80px rgba(224, 86, 253, 0.1)',
+        'cosmic': '0 0 20px rgba(228, 181, 160, 0.4)',
+        'nebula': '0 0 30px rgba(155, 89, 182, 0.4)',
+        'glow': '0 0 40px rgba(228, 181, 160, 0.3), 0 0 80px rgba(245, 212, 193, 0.2)',
       },
       animation: {
         'float': 'float 6s ease-in-out infinite',

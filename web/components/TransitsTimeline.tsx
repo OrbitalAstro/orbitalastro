@@ -1,10 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { Calendar, TrendingUp } from 'lucide-react'
+import { Calendar } from 'lucide-react'
 import { apiClient } from '@/lib/api'
 import { useQuery } from '@tanstack/react-query'
-import { format, addDays } from 'date-fns'
 
 interface TransitsTimelineProps {
   natalChart: any

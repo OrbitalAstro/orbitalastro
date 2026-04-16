@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """SVG chart rendering engine - Traditional birth chart wheel."""
 
 from __future__ import annotations

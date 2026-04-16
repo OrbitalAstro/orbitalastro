@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Helpers for assembling chart data for narratives and responses."""
 
 from typing import Dict, List, Optional

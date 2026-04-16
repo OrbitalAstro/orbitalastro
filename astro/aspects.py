@@ -1,12 +1,16 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Aspect detection and pattern recognition engine."""
 
 from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime, timedelta
+from itertools import combinations
 from typing import Dict, List, Optional, Tuple
 
-from astro.ephemeris_loader import EphemerisRepository
+from astro.swisseph_positions import get_positions_from_swisseph
+from astro.julian import datetime_to_julian_day
 from astro.utils import normalize_angle_deg
 
 
@@ -72,15 +76,19 @@ def _get_orb(body: str, config: AspectConfig) -> float:
 def _compute_velocity(
     body: str, position: float, target_datetime: datetime, delta_hours: float = 1.0
 ) -> float:
-    """Compute the velocity of a body in degrees per hour."""
+    """Compute the velocity of a body in degrees per hour using Swiss Ephemeris."""
     future_time = target_datetime + timedelta(hours=delta_hours)
     try:
-        future_pos = EphemerisRepository.get_positions(future_time)[body]
+        future_jd = datetime_to_julian_day(future_time)
+        future_positions = get_positions_from_swisseph(future_time, future_jd)
+        if body not in future_positions:
+            return 0.0
+        future_pos = future_positions[body]
         delta_pos = (future_pos - position) % 360.0
         if delta_pos > 180.0:
             delta_pos -= 360.0
         return delta_pos / delta_hours
-    except (FileNotFoundError, KeyError):
+    except (KeyError, Exception):
         return 0.0
 
 
@@ -313,27 +321,31 @@ def detect_patterns(aspects: List[Aspect], positions: Optional[Dict[str, float]]
                         )
 
     # Grand Cross: four squares/oppositions forming a cross
-    # This is a simplified detection - looks for two oppositions that are square to each other
-    oppositions = [a for a in aspects if a.aspect == "opposition"]
-    for i, opp1 in enumerate(oppositions):
-        for opp2 in oppositions[i + 1 :]:
-            # Check if the four bodies form squares
-            bodies_set = {opp1.body1, opp1.body2, opp2.body1, opp2.body2}
-            if len(bodies_set) == 4:
-                bodies_list = list(bodies_set)
-                square_count = 0
-                for j, b1 in enumerate(bodies_list):
-                    for b2 in bodies_list[j + 1 :]:
-                        sq_key = tuple(sorted([b1, b2]))
-                        if sq_key in aspect_map and aspect_map[sq_key].aspect == "square":
-                            square_count += 1
-                if square_count >= 4:
-                    patterns["grand_crosses"].append(
-                        {
-                            "bodies": bodies_list,
-                            "oppositions": [[opp1.body1, opp1.body2], [opp2.body1, opp2.body2]],
-                        }
-                    )
+    # Iterating through all groups of 4 bodies to find full Grand Cross configurations
+    if len(bodies) >= 4:
+        for group in combinations(bodies, 4):
+            square_count = 0
+            opposition_count = 0
+            found_oppositions = []
+
+            # Check all pairs within the group
+            for b1, b2 in combinations(group, 2):
+                key = tuple(sorted([b1, b2]))
+                if key in aspect_map:
+                    if aspect_map[key].aspect == "square":
+                        square_count += 1
+                    elif aspect_map[key].aspect == "opposition":
+                        opposition_count += 1
+                        found_oppositions.append([b1, b2])
+
+            # A Grand Cross requires 4 squares and 2 oppositions
+            if square_count >= 4 and opposition_count >= 2:
+                patterns["grand_crosses"].append(
+                    {
+                        "bodies": list(group),
+                        "oppositions": found_oppositions,
+                    }
+                )
 
     return patterns
 

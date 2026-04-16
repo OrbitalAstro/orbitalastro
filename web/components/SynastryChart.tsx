@@ -1,12 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { motion } from 'framer-motion'
-import { Users, Sparkles } from 'lucide-react'
-import { apiClient } from '@/lib/api'
-import { useQuery } from '@tanstack/react-query'
+import { Users } from 'lucide-react'
 import ChartVisualization from './ChartVisualization'
-import { useToast } from '@/lib/toast'
 
 interface SynastryChartProps {
   chart1: any
@@ -14,7 +10,6 @@ interface SynastryChartProps {
 }
 
 export default function SynastryChart({ chart1, chart2 }: SynastryChartProps) {
-  const toast = useToast()
   const [showAspects, setShowAspects] = useState(true)
 
   // Calculate synastry aspects between the two charts

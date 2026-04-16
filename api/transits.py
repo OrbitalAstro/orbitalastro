@@ -1,8 +1,10 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """FastAPI endpoints for transit calculations."""
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, List, Optional
 
 from fastapi import APIRouter, HTTPException
@@ -10,12 +12,13 @@ from pydantic import BaseModel, Field
 
 from astro.aspects import AspectConfig, Aspect, find_aspects, detect_patterns
 from astro.transits import compute_transits, compute_transits_to_angles
-from astro.houses import compute_asc_mc
 from astro.houses_multi import compute_houses
 from astro.julian import datetime_to_julian_day
-from astro.ephemeris_loader import EphemerisRepository
+from astro.swisseph_positions import get_positions_from_swisseph
+from astro.julian import datetime_to_julian_day
 from astro.master_prompt_builder import build_natal_reading_prompt
 from astro.chart_utils import build_chart_payload_for_narrative
+from astro.transit_exact_search import find_next_exacts_for_hints
 from api.schemas import NarrativeConfig
 
 router = APIRouter(prefix="/api", tags=["transits"])
@@ -32,6 +35,33 @@ class TransitRequest(BaseModel):
     include_angles: Optional[bool] = Field(True, description="Include transits to angles")
     include_patterns: Optional[bool] = Field(False, description="Include aspect patterns")
     narrative: Optional[NarrativeConfig] = Field(None, description="Narrative configuration")
+
+
+class TransitExactHintModel(BaseModel):
+    transiting_body: str
+    natal_body: str
+    aspect: str
+
+
+class NextExactTimesRequest(BaseModel):
+    natal_positions: Dict[str, float] = Field(..., description="Longitudes thème (clé = nom de corps, ex. sun)")
+    natal_asc: Optional[float] = Field(None, description="Longitude ascendant natal")
+    natal_mc: Optional[float] = Field(None, description="Longitude milieu du ciel natal")
+    from_date: str = Field(..., description="Instant de départ, ISO 8601 (UTC)")
+    hints: List[TransitExactHintModel] = Field(..., description="Aspects transits à affiner dans le temps")
+    horizon_days: int = Field(540, ge=1, le=2500)
+
+
+class NextExactHit(BaseModel):
+    transiting_body: str
+    natal_body: str
+    aspect: str
+    exact_utc: str
+    min_orb_deg: float
+
+
+class NextExactTimesResponse(BaseModel):
+    exacts: List[NextExactHit]
 
 
 class TransitResponse(BaseModel):
@@ -79,23 +109,28 @@ async def calculate_transits(request: TransitRequest):
         )
 
     # Get transit chart data if latitude/longitude provided
-    transit_planets = EphemerisRepository.get_positions(target_datetime)
     transit_jd = datetime_to_julian_day(target_datetime)
+    transit_planets = get_positions_from_swisseph(target_datetime, transit_jd)
     transit_asc = None
     transit_mc = None
     transit_cusps = None
     transit_houses = None
     house_system = request.house_system or "placidus"
     if request.latitude is not None and request.longitude is not None:
-        transit_asc, transit_mc = compute_asc_mc(transit_jd, request.latitude, request.longitude)
-        transit_cusps = compute_houses(
+        # compute_houses now returns (cusps, ascendant, midheaven)
+        # All values are calculated by Swiss Ephemeris exclusively
+        cusps_tuple = compute_houses(
             house_system,
             transit_jd,
             request.latitude,
             request.longitude,
-            transit_asc,
-            transit_mc,
+            None,
+            None,
         )
+        if isinstance(cusps_tuple, tuple) and len(cusps_tuple) == 3:
+            transit_cusps, transit_asc, transit_mc = cusps_tuple
+        else:
+            raise ValueError(f"Invalid return format from compute_houses: expected tuple of 3, got {type(cusps_tuple)}")
         transit_houses = {str(i + 1): cusp for i, cusp in enumerate(transit_cusps)}
     else:
         transit_houses = {}
@@ -154,4 +189,50 @@ async def calculate_transits(request: TransitRequest):
         patterns=patterns_dict,
         narrative_seed=narrative_seed,
     )
+
+
+def _parse_iso_utc(value: str) -> datetime:
+    s = value.strip()
+    if s.endswith("Z"):
+        s = s[:-1] + "+00:00"
+    dt = datetime.fromisoformat(s)
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(timezone.utc)
+
+
+@router.post("/transits/next-exact-times", response_model=NextExactTimesResponse)
+async def next_exact_times(request: NextExactTimesRequest):
+    """
+    Prochains passages où l'orbe d'un transit donné est minimale (proche de l'exact),
+    par recherche sur l'éphéméride Swiss Ephemeris.
+    """
+    try:
+        from_dt = _parse_iso_utc(request.from_date)
+    except (ValueError, TypeError):
+        raise HTTPException(status_code=400, detail="from_date invalide (ISO 8601 attendu)")
+
+    angle_longitudes: Optional[Dict[str, float]] = None
+    if request.natal_asc is not None:
+        a = float(request.natal_asc)
+        angle_longitudes = {
+            "asc": a,
+            "dsc": (a + 180.0) % 360.0,
+        }
+        if request.natal_mc is not None:
+            m = float(request.natal_mc)
+            angle_longitudes["mc"] = m
+            angle_longitudes["ic"] = (m + 180.0) % 360.0
+
+    hints_plain = [h.model_dump() for h in request.hints]
+    raw_exacts = find_next_exacts_for_hints(
+        hints_plain,
+        request.natal_positions,
+        angle_longitudes,
+        from_dt,
+        horizon_days=request.horizon_days,
+        config=AspectConfig(),
+    )
+    exacts = [NextExactHit(**x) for x in raw_exacts]
+    return NextExactTimesResponse(exacts=exacts)
 

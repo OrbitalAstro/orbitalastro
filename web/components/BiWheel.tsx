@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { RotateCcw, Maximize2 } from 'lucide-react'
+import { RotateCcw } from 'lucide-react'
 import ChartVisualization from './ChartVisualization'
 
 interface BiWheelProps {

@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Search, Home, Settings, BookOpen, Sparkles, Calendar, Command, TrendingUp, Zap, Wand2, MessageSquare } from 'lucide-react'
-import Link from 'next/link'
+import { Search, Home, Settings, BookOpen, Sparkles, Calendar, Command, TrendingUp, Zap, Wand2, MessageSquare, Users, BookOpenText } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useKeyboardShortcuts } from '@/lib/keyboard'
 import { useTranslation } from '@/lib/useTranslation'
@@ -25,7 +24,7 @@ export default function QuickActions() {
   const actions: QuickAction[] = [
     {
       id: 'dashboard',
-      label: 'Go to Dashboard',
+      label: t.nav.dashboard,
       icon: Home,
       action: () => {
         router.push('/dashboard')
@@ -34,18 +33,8 @@ export default function QuickActions() {
       shortcut: 'G D',
     },
     {
-      id: 'chart',
-      label: 'View Chart',
-      icon: Sparkles,
-      action: () => {
-        router.push('/chart')
-        setIsOpen(false)
-      },
-      shortcut: 'G C',
-    },
-    {
       id: 'transits',
-      label: 'Transits',
+      label: t.nav.transits,
       icon: Zap,
       action: () => {
         router.push('/transits')
@@ -55,7 +44,7 @@ export default function QuickActions() {
     },
     {
       id: 'progressions',
-      label: 'Progressions',
+      label: t.nav.progressions,
       icon: TrendingUp,
       action: () => {
         router.push('/progressions')
@@ -65,7 +54,7 @@ export default function QuickActions() {
     },
     {
       id: 'rectification',
-      label: 'Rectification',
+      label: t.nav.rectification,
       icon: Wand2,
       action: () => {
         router.push('/rectification')
@@ -75,7 +64,7 @@ export default function QuickActions() {
     },
     {
       id: 'stories',
-      label: 'Read Stories',
+      label: t.nav.stories,
       icon: BookOpen,
       action: () => {
         router.push('/stories')
@@ -84,8 +73,48 @@ export default function QuickActions() {
       shortcut: 'G S',
     },
     {
+      id: 'dialogues',
+      label: t.nav.dialogues,
+      icon: Sparkles,
+      action: () => {
+        router.push('/dialogues')
+        setIsOpen(false)
+      },
+      shortcut: 'G D G',
+    },
+    {
+      id: 'reading-2026',
+      label: t.nav.reading2026,
+      icon: Calendar,
+      action: () => {
+        router.push('/reading-2026')
+        setIsOpen(false)
+      },
+      shortcut: 'G 2 6',
+    },
+    {
+      id: 'journal-pilot',
+      label: t.nav.journalPilot,
+      icon: BookOpenText,
+      action: () => {
+        router.push('/journal-pilot')
+        setIsOpen(false)
+      },
+      shortcut: 'G J',
+    },
+    {
+      id: 'saint-valentin',
+      label: t.nav.valentine,
+      icon: Users,
+      action: () => {
+        router.push('/saint-valentin')
+        setIsOpen(false)
+      },
+      shortcut: 'G V',
+    },
+    {
       id: 'chat',
-      label: 'AI Chat',
+      label: t.nav.chat,
       icon: MessageSquare,
       action: () => {
         router.push('/chat')
@@ -95,7 +124,7 @@ export default function QuickActions() {
     },
     {
       id: 'settings',
-      label: 'Settings',
+      label: t.nav.settings,
       icon: Settings,
       action: () => {
         router.push('/settings')
@@ -105,7 +134,7 @@ export default function QuickActions() {
     },
     {
       id: 'about',
-      label: 'About',
+      label: t.nav.about,
       icon: Calendar,
       action: () => {
         router.push('/about')
@@ -174,7 +203,7 @@ export default function QuickActions() {
               <div className="max-h-96 overflow-y-auto">
                 {filteredActions.length === 0 ? (
                   <div className="p-8 text-center text-white/60">
-                    No actions found
+                    {t.quickActions.noResults}
                   </div>
                 ) : (
                   <div className="p-2">
@@ -206,4 +235,3 @@ export default function QuickActions() {
     </AnimatePresence>
   )
 }
-

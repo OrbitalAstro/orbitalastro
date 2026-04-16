@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { History, X, Clock, Trash2 } from 'lucide-react'
 import { useChartHistory } from '@/lib/store'

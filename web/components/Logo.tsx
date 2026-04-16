@@ -95,12 +95,12 @@ export default function Logo({
         opacity="0.4"
       />
       
-      {/* Gradient definitions */}
+      {/* Gradient definitions - Mauve prune foncé */}
       <defs>
         <linearGradient id="cosmic-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#F6C94C" />
-          <stop offset="50%" stopColor="#E056FD" />
-          <stop offset="100%" stopColor="#3D1F71" />
+          <stop offset="0%" stopColor="#6B4C7A" />
+          <stop offset="50%" stopColor="#5A3C6A" />
+          <stop offset="100%" stopColor="#4A2C5A" />
         </linearGradient>
       </defs>
     </motion.svg>

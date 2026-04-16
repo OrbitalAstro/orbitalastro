@@ -1,8 +1,10 @@
 'use client'
 
+export const dynamic = 'force-dynamic'
+
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { BookOpen, Sparkles, Calendar } from 'lucide-react'
+import { BookOpen, Calendar } from 'lucide-react'
 import { useSettingsStore } from '@/lib/store'
 import { apiClient } from '@/lib/api'
 import { useQuery } from '@tanstack/react-query'
@@ -11,6 +13,8 @@ import LocationInput from '@/components/LocationInput'
 import { useToast } from '@/lib/toast'
 import BackButton from '@/components/BackButton'
 import { useTranslation } from '@/lib/useTranslation'
+import { formatBirthDateInput } from '@/lib/sanitizeBirthDateYear'
+import Starfield from '@/components/Starfield'
 
 export default function Stories() {
   const settings = useSettingsStore()
@@ -25,7 +29,7 @@ export default function Stories() {
     timezone: settings.defaultTimezone || 'UTC',
   })
 
-  const { data: natalChart } = useQuery({
+  const { data: _natalChart } = useQuery({
     queryKey: ['natal-for-story', birthData],
     queryFn: async () => {
       const response = await apiClient.natal.calculate({
@@ -99,7 +103,7 @@ export default function Stories() {
         },
       }
 
-      const lang = settings.language || 'en'
+      const lang = settings.language || 'fr'
       const t = translations[lang]
       const signs = signTranslations[lang]
 
@@ -140,8 +144,9 @@ ${t.journeyText(ascSign)}
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative">
+      <Starfield />
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
         <BackButton href="/" />
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -165,11 +170,24 @@ ${t.journeyText(ascSign)}
                  : 'Birth Date'}
               </label>
               <input
-                type="date"
+                type="text"
+                inputMode="numeric"
+                pattern="\\d{4}-\\d{2}-\\d{2}"
                 value={birthData.birth_date}
-                onChange={(e) => setBirthData({ ...birthData, birth_date: e.target.value })}
+                onChange={(e) => {
+                  const value = formatBirthDateInput(e.target.value)
+                  setBirthData({ ...birthData, birth_date: value })
+                }}
+                placeholder={t.locale === 'fr' ? 'AAAA-MM-JJ' : 'YYYY-MM-DD'}
                 className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
+              <p className="mt-1 text-xs text-white/60">
+                {t.locale === 'fr'
+                  ? 'Format : AAAA-MM-JJ (ex : 1976-10-26)'
+                  : t.locale === 'es'
+                    ? 'Formato: AAAA-MM-DD (ej.: 1976-10-26)'
+                    : 'Format: YYYY-MM-DD (e.g., 1976-10-26)'}
+              </p>
             </div>
             <div>
               <label className="block text-sm font-medium text-white/80 mb-2">
@@ -269,4 +287,3 @@ ${t.journeyText(ascSign)}
     </div>
   )
 }
-

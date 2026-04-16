@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+
 def build_preincarnation_prompt(data: dict, narrative_config: dict = None) -> str:
     """Return a complete prompt for the mythopoetic dialogue generator."""
     

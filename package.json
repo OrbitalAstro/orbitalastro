@@ -1,5 +1,35 @@
 {
   "dependencies": {
     "next": "^16.1.0-canary.16"
+  },
+  "name": "orbitalastro",
+  "version": "1.0.0",
+  "description": "**Where astronomy meets storytelling.**",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "build": "cd web && npm install && npm run build",
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:headed": "playwright test --headed",
+    "test:api": "playwright test e2e/api.spec.js",
+    "test:web": "playwright test e2e/web.spec.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OrbitalAstro/orbitalastro.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "AGPL-3.0",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/OrbitalAstro/orbitalastro/issues"
+  },
+  "homepage": "https://github.com/OrbitalAstro/orbitalastro#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.57.0"
   }
 }

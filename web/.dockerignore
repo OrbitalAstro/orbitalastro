@@ -1,0 +1,8 @@
+node_modules
+.next
+.vercel
+npm-debug.log
+yarn-error.log
+*.log
+.env*
+.DS_Store

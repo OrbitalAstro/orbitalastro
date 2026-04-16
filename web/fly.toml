@@ -1,0 +1,32 @@
+# Configuration Fly.io pour OrbitalAstro Web (Next.js)
+# Déployer depuis le dossier `web/` avec: fly deploy
+
+app = "orbitalastro-web"
+primary_region = "yyz"
+
+[build]
+  dockerfile = "Dockerfile"
+
+  [build.args]
+    # Important: les variables `NEXT_PUBLIC_*` sont intégrées au build (pas au runtime).
+    # Si votre app API Fly a un autre nom, remplacez l’URL.
+    NEXT_PUBLIC_API_URL = "https://api.orbitalastro.ca"
+
+[env]
+  PORT = "8080"
+  NODE_ENV = "production"
+  NEXT_TELEMETRY_DISABLED = "1"
+  FEEDBACK_SURVEY_URL = "https://forms.gle/eyPRR4Bicf32dCGg6"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ["app"]
+
+[[vm]]
+  memory = "512mb"
+  cpu_kind = "shared"
+  cpus = 1

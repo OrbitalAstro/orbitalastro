@@ -1,0 +1,32 @@
+# Configuration Fly.io pour OrbitalAstro API
+# Ce fichier sera généré/modifié par `flyctl launch`
+
+app = "orbitalastro-api"
+primary_region = "yyz"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "8080"
+  # Frontend origins allowed to call the API directly (CORS).
+  # Comma-separated list (no spaces required). Add/remove as needed.
+  CORS_ALLOW_ORIGINS = "https://www.orbitalastro.ca,https://orbitalastro.ca,https://orbitalastro-web.fly.dev,http://localhost:3000,http://127.0.0.1:3000"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ["app"]
+
+[[vm]]
+  memory = "512mb"
+  cpu_kind = "shared"
+  cpus = 1
+
+
+
+
+

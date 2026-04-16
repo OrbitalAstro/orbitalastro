@@ -34,6 +34,7 @@ interface LocationInputProps {
   success?: boolean
   required?: boolean
   tooltip?: string
+  variant?: 'default' | 'gold'
 }
 
 export default function LocationInput({
@@ -46,10 +47,12 @@ export default function LocationInput({
   success,
   required = false,
   tooltip,
+  variant = 'default',
 }: LocationInputProps) {
   const t = useTranslation()
   const defaultLabel = label || t.dashboard.birthPlace
   const defaultPlaceholder = placeholder || t.tooltips.locationSearch
+  const isGold = variant === 'gold'
   const [cities, setCities] = useState<City[]>([])
   const [filteredCities, setFilteredCities] = useState<City[]>([])
   const [geocodedPlaces, setGeocodedPlaces] = useState<GeocodedPlace[]>([])
@@ -91,6 +94,13 @@ export default function LocationInput({
     loadCities()
   }, [])
 
+  const normalizeForSearch = (input: string) =>
+    (input || '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim()
+
   // Geocode place using Nominatim (OpenStreetMap)
   const geocodePlace = useCallback(async (query: string) => {
     if (!query || query.trim().length < 3) {
@@ -116,46 +126,36 @@ export default function LocationInput({
     
     try {
       console.log('[LocationInput] Geocoding query:', query)
-      // Use Nominatim API (free, no API key required)
-      // Note: Nominatim requires a User-Agent header and has rate limits (1 req/sec)
-      const url = `https://nominatim.openstreetmap.org/search?` +
+
+      const fetchPlaces = async (url: string, init?: RequestInit) => {
+        const response = await fetch(url, { ...init, signal: abortController.signal })
+        if (!response.ok) return null
+        const data = await response.json().catch(() => null)
+        return Array.isArray(data) ? data : null
+      }
+
+      const proxyUrl = `/api/geocode?q=${encodeURIComponent(query)}&limit=5`
+      const nominatimUrl =
+        `https://nominatim.openstreetmap.org/search?` +
         `q=${encodeURIComponent(query)}&` +
         `format=json&` +
         `limit=5&` +
         `addressdetails=1&` +
         `extratags=1`
-      
-      console.log('[LocationInput] Geocoding URL:', url)
-      
-      const response = await fetch(url, {
-        headers: {
-          'User-Agent': 'OrbitalAstro/1.0 (https://orbitalastro.com)',
-          'Accept': 'application/json',
-        },
-        signal: abortController.signal,
-      })
-      
-      clearTimeout(timeoutId)
-      
-      if (!response.ok) {
-        const errorText = await response.text().catch(() => 'Unknown error')
-        console.error('[LocationInput] Geocoding failed:', response.status, response.statusText, errorText)
-        
-        // Handle rate limiting (429)
-        if (response.status === 429) {
-          console.warn('[LocationInput] Rate limited by Nominatim, will retry later')
-          setGeocodedPlaces([])
-          return
-        }
-        
-        throw new Error(`Geocoding failed: ${response.status} ${response.statusText}`)
+
+      console.log('[LocationInput] Geocoding URL (proxy):', proxyUrl)
+      let data = await fetchPlaces(proxyUrl)
+
+      if (!data) {
+        console.log('[LocationInput] Geocoding URL (direct):', nominatimUrl)
+        data = await fetchPlaces(nominatimUrl, { headers: { Accept: 'application/json' } })
       }
-      
-      const data = await response.json()
-      console.log('[LocationInput] Geocoding results:', data.length, 'places found', data)
-      
-      if (!Array.isArray(data)) {
-        console.error('[LocationInput] Invalid response format:', data)
+
+      clearTimeout(timeoutId)
+
+      console.log('[LocationInput] Geocoding results:', data?.length || 0, 'places found')
+
+      if (!data) {
         setGeocodedPlaces([])
         return
       }
@@ -199,13 +199,13 @@ export default function LocationInput({
       return
     }
 
-    const searchTerm = value.toLowerCase().trim()
+    const searchTerm = normalizeForSearch(value)
     
     // Filter cities
     const filtered = cities.filter((city) => {
-      const nameMatch = city.name.toLowerCase().includes(searchTerm)
+      const nameMatch = normalizeForSearch(city.name).includes(searchTerm)
       const aliasMatch = city.aliases?.some((alias) =>
-        alias.toLowerCase().includes(searchTerm)
+        normalizeForSearch(alias).includes(searchTerm)
       )
       return nameMatch || aliasMatch
     })
@@ -255,8 +255,15 @@ export default function LocationInput({
 
   // Update isOpen when filtered cities or geocoded places change
   useEffect(() => {
+    const showNoResults =
+      !!value &&
+      value.trim().length > 0 &&
+      !isGeocoding &&
+      filteredCities.length === 0 &&
+      geocodedPlaces.length === 0
+
     if (value && value.trim().length > 0) {
-      setIsOpen(filteredCities.length > 0 || geocodedPlaces.length > 0 || isGeocoding)
+      setIsOpen(filteredCities.length > 0 || geocodedPlaces.length > 0 || isGeocoding || showNoResults)
     } else {
       setIsOpen(false)
     }
@@ -339,20 +346,28 @@ export default function LocationInput({
   }, [])
 
   return (
-    <div className="relative">
+    <div className="relative z-20">
       {defaultLabel && (
-        <label className="block text-sm font-medium text-white/80 mb-2 flex items-center gap-2">
+        <label
+          className={`block text-sm font-medium mb-2 flex items-center gap-2 ${
+            isGold ? 'text-cosmic-gold' : 'text-white/80'
+          }`}
+        >
           {defaultLabel}
           {required && <span className="text-eclipse-red">*</span>}
           {tooltip && (
-            <span className="ml-1 text-cosmic-gold cursor-help" title={tooltip}>
+            <span className={`ml-1 cursor-help ${isGold ? 'text-cosmic-gold' : 'text-cosmic-gold'}`} title={tooltip}>
               ?
             </span>
           )}
         </label>
       )}
       <div className="relative">
-        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-white/50">
+        <div
+          className={`absolute left-3 top-1/2 -translate-y-1/2 ${
+            isGold ? 'text-cosmic-gold/60' : 'text-white/50'
+          }`}
+        >
           <Search className="h-5 w-5" />
         </div>
         <input
@@ -368,15 +383,19 @@ export default function LocationInput({
           placeholder={defaultPlaceholder}
           required={required}
           suppressHydrationWarning
-          className={`
-            w-full pl-10 pr-10 py-2 rounded-lg bg-white/10 border text-white placeholder-white/50
-            focus:outline-none focus:ring-2 transition
-            ${error
-              ? 'border-eclipse-red focus:ring-eclipse-red'
-              : success
-              ? 'border-aurora-teal focus:ring-aurora-teal'
-              : 'border-white/20 focus:ring-cosmic-pink'
+          className={` 
+            w-full pl-10 pr-10 py-2 rounded-lg bg-white/15 border
+            focus:outline-none focus:ring-2 transition relative z-20
+            ${
+              error
+                ? 'border-eclipse-red focus:ring-eclipse-red'
+                : success
+                ? 'border-aurora-teal focus:ring-aurora-teal'
+                : isGold
+                ? 'border-cosmic-gold/20 focus:ring-cosmic-gold/50'
+                : 'border-white/20 focus:ring-cosmic-pink/40'
             }
+            ${isGold ? 'text-cosmic-gold placeholder-cosmic-gold/60' : 'text-white placeholder-white/60'}
           `}
           aria-invalid={error ? 'true' : 'false'}
           aria-describedby={error ? `${defaultLabel}-error` : undefined}
@@ -385,8 +404,10 @@ export default function LocationInput({
           <button
             type="button"
             onClick={handleClear}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white transition"
-            aria-label="Clear location"
+            className={`absolute right-3 top-1/2 -translate-y-1/2 transition ${
+              isGold ? 'text-cosmic-gold/60 hover:text-cosmic-gold' : 'text-white/50 hover:text-white'
+            }`}
+            aria-label={t.common.clearLocation}
           >
             <X className="h-5 w-5" />
           </button>
@@ -395,13 +416,13 @@ export default function LocationInput({
 
       {/* Dropdown */}
       <AnimatePresence>
-        {isOpen && (filteredCities.length > 0 || geocodedPlaces.length > 0 || isGeocoding) && (
+        {isOpen && (
           <motion.div
             ref={dropdownRef}
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="absolute z-50 w-full mt-1 bg-white/95 backdrop-blur-sm rounded-lg border border-white/20 shadow-xl max-h-80 overflow-y-auto"
+            className="absolute z-50 w-full mt-1 bg-white text-black rounded-lg border border-black/10 shadow-2xl max-h-80 overflow-y-auto"
           >
             {/* Cities Section */}
             {filteredCities.length > 0 && (
@@ -461,6 +482,12 @@ export default function LocationInput({
                 ))}
               </>
             )}
+
+            {!isGeocoding && filteredCities.length === 0 && geocodedPlaces.length === 0 && (
+              <div className="px-4 py-3 text-center text-black/60 text-sm">
+                {t.tooltips.noPlacesFound}
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
@@ -483,7 +510,7 @@ export default function LocationInput({
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="mt-1 text-xs text-white/60 flex items-center gap-1"
+          className={`mt-1 text-xs flex items-center gap-1 ${isGold ? "text-cosmic-gold/70" : "text-white/60"}`}
         >
           <MapPin className="h-3 w-3" />
           {selectedLocation.latitude.toFixed(6)}, {selectedLocation.longitude.toFixed(6)}
@@ -495,4 +522,3 @@ export default function LocationInput({
     </div>
   )
 }
-

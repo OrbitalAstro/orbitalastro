@@ -61,13 +61,13 @@ Après le déploiement, votre API sera disponible à :
 - **Taille du package** : 50 MB maximum
 - **Mémoire** : 1024 MB
 
-### Compatibilité avec pyswisseph
+### Compatibilité avec Flatlib
 
-`pyswisseph` nécessite des outils de compilation C++. Vercel devrait les gérer automatiquement lors du build, mais :
+`flatlib` ne nécessite pas de compilation native. Si un build échoue quand même :
 
-1. Si vous rencontrez des erreurs de build, vérifiez les logs Vercel
-2. Assurez-vous que toutes les dépendances sont dans `requirements.txt`
-3. Les fichiers d'éphémérides ne sont pas inclus par défaut - l'API utilisera les calculs internes de Swiss Ephemeris
+1. Vérifiez les logs Vercel pour confirmer que la bonne branche est déployée
+2. Assurez-vous que `requirements.txt` contient bien `flatlib`
+3. Relancez un déploiement depuis le dernier commit pour invalider tout cache
 
 ## 🔄 Mise à jour du schéma OpenAPI
 

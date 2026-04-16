@@ -2,13 +2,13 @@
   "openapi": "3.1.0",
   "info": {
     "title": "OrbitalAstro API",
-    "description": "API pour accéder aux données astrologiques via Swiss Ephemeris. Cette API permet d'obtenir les positions planétaires, les maisons astrologiques et les aspects entre les planètes.",
-    "version": "1.0.1"
+    "description": "API pour accéder aux données astrologiques via Flatlib. Cette API permet d'obtenir les positions planétaires, les maisons astrologiques et les aspects entre les planètes.",
+    "version": "2.0.0"
   },
   "servers": [
     {
-      "url": "https://orbitalastro-606wd6ee6-jo-divers-projects.vercel.app",
-      "description": "Serveur Vercel de production - OrbitalAstro API"
+      "url": "https://orbitalastro-13h9f0qfx-jo-divers-projects.vercel.app",
+      "description": "Serveur Vercel de production - OrbitalAstro API (Flatlib)"
     }
   ],
   "paths": {
@@ -104,7 +104,7 @@
             "description": "Heure au format HH:MM:SS",
             "schema": {
               "type": "string",
-              "default": "12:00:00",
+              "default": "12:00",
               "example": "14:30:00"
             }
           },
@@ -188,7 +188,7 @@
             "description": "Heure au format HH:MM:SS",
             "schema": {
               "type": "string",
-              "default": "12:00:00",
+              "default": "12:00",
               "example": "14:30:00"
             }
           },
@@ -298,7 +298,7 @@
             "description": "Heure au format HH:MM:SS",
             "schema": {
               "type": "string",
-              "default": "12:00:00",
+              "default": "12:00",
               "example": "14:30:00"
             }
           },
@@ -309,9 +309,9 @@
             "description": "Tolérance d'orbe (multiplicateur des orbes par défaut)",
             "schema": {
               "type": "number",
-              "default": 1.0,
+              "default": 6.0,
               "minimum": 0.1,
-              "maximum": 5.0,
+              "maximum": 10.0,
               "example": 1.5
             }
           }
@@ -385,7 +385,7 @@
             "description": "Heure au format HH:MM:SS",
             "schema": {
               "type": "string",
-              "default": "12:00:00",
+              "default": "12:00",
               "example": "14:30:00"
             }
           },
@@ -431,9 +431,9 @@
             "description": "Tolérance d'orbe pour les aspects",
             "schema": {
               "type": "number",
-              "default": 1.0,
+              "default": 6.0,
               "minimum": 0.1,
-              "maximum": 5.0,
+              "maximum": 10.0,
               "example": 1.0
             }
           }
