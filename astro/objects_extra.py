@@ -134,22 +134,26 @@ def part_of_karma(sun_long: float, moon_long: float, asc_long: float, is_day_cha
     return normalize_angle_deg(pok)
 
 
-# Fixed star positions (approximate, for key stars)
+# Constants for precession calculation
+J2000_JD = 2451545.0
+PRECESSION_RATE_DEG_PER_YEAR = 50.3 / 3600.0  # ~0.013972 degrees/year
+
+# Fixed star positions (J2000.0 ecliptic longitude)
 FIXED_STARS = {
-    "regulus": 150.0,  # Approximate position (would need proper precession calculation)
-    "aldebaran": 69.0,
-    "antares": 249.0,
-    "fomalhaut": 339.0,
+    "regulus": 149.829,  # ~29°50' Leo
+    "aldebaran": 69.788,  # ~09°47' Gemini
+    "antares": 249.761,  # ~09°46' Sagittarius
+    "fomalhaut": 333.860,  # ~03°52' Pisces
 }
 
 
 def get_fixed_star_position(star_name: str, epoch_jd: Optional[float] = None) -> Optional[float]:
     """
-    Get fixed star position (simplified - would need proper precession for accuracy).
+    Get fixed star position with precession correction.
 
     Args:
         star_name: Name of fixed star (regulus, aldebaran, antares, fomalhaut)
-        epoch_jd: Optional Julian day for precession calculation
+        epoch_jd: Optional Julian day for precession calculation. If None, J2000 position is returned.
 
     Returns:
         Star longitude in degrees, or None if star not found
@@ -157,8 +161,14 @@ def get_fixed_star_position(star_name: str, epoch_jd: Optional[float] = None) ->
     star_lower = star_name.lower()
     if star_lower in FIXED_STARS:
         base_long = FIXED_STARS[star_lower]
-        # In a full implementation, we'd apply precession correction based on epoch_jd
-        # For now, return approximate position
+
+        if epoch_jd is not None:
+            # Apply precession correction
+            # Formula: correction = (years from J2000) * precession_rate
+            years_from_j2000 = (epoch_jd - J2000_JD) / 365.25
+            correction = years_from_j2000 * PRECESSION_RATE_DEG_PER_YEAR
+            return normalize_angle_deg(base_long + correction)
+
         return normalize_angle_deg(base_long)
     return None
 
