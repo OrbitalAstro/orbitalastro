@@ -1,6 +1,6 @@
 """Extra astrological objects computation (Arabic Parts, Vertex, etc.)."""
 
-from math import cos, radians, sin
+from math import atan2, cos, degrees, radians, sin, tan
 from typing import Dict, Optional
 
 from astro.utils import normalize_angle_deg
@@ -29,29 +29,37 @@ def part_of_fortune(sun_long: float, moon_long: float, asc_long: float, is_day_c
     return normalize_angle_deg(pof)
 
 
-def vertex(asc_long: float, mc_long: float, latitude_deg: float) -> float:
+def vertex(ramc_rad: float, obliquity_rad: float, latitude_deg: float) -> float:
     """
-    Compute Vertex (intersection of prime vertical and ecliptic).
+    Compute the Western Vertex (prime vertical / ecliptic intersection, western limb).
+
+    Uses spherical trigonometry (RAMC = local sidereal angle in radians):
+
+        tan(V) = sin(RAMC) / (cos(RAMC)*cos(ε) - sin(ε)/tan(φ))
+
+    Quadrants follow ``atan2``. At the equator (φ = 0) the denominator is undefined;
+    the limit uses only the meridian / obliquity term.
 
     Args:
-        asc_long: Ascendant longitude in degrees
-        mc_long: Midheaven longitude in degrees
-        latitude_deg: Latitude in degrees
+        ramc_rad: Local sidereal angle in radians (same convention as ``lst_from_jd_and_longitude``).
+        obliquity_rad: Mean obliquity of the ecliptic ε in radians.
+        latitude_deg: Geographic latitude in degrees (positive north).
 
     Returns:
-        Vertex longitude in degrees
+        Vertex ecliptic longitude in degrees [0, 360).
     """
-    # Vertex is approximately 90° from ASC in the direction of the MC
-    # More precisely, it's the intersection of prime vertical and ecliptic
-    # Simplified calculation: Vertex ≈ ASC + 90° (adjusted for latitude)
-    vertex_long = normalize_angle_deg(asc_long + 90.0)
-    
-    # Adjust for latitude (simplified)
-    lat_factor = cos(radians(latitude_deg))
-    adjustment = (1.0 - lat_factor) * 5.0  # Small adjustment
-    vertex_long = normalize_angle_deg(vertex_long + adjustment)
-    
-    return vertex_long
+    phi = radians(latitude_deg)
+    cos_eps = cos(obliquity_rad)
+    sin_eps = sin(obliquity_rad)
+
+    if abs(phi) < 1e-12:
+        lam = atan2(sin(ramc_rad), cos(ramc_rad) * cos_eps)
+    else:
+        tan_phi = tan(phi)
+        denom = cos(ramc_rad) * cos_eps - sin_eps / tan_phi
+        lam = atan2(sin(ramc_rad), denom)
+
+    return normalize_angle_deg(degrees(lam))
 
 
 def part_of_spirit(sun_long: float, moon_long: float, asc_long: float, is_day_chart: bool) -> float:
@@ -130,6 +138,9 @@ def compute_arabic_parts(
     mc_long: float,
     is_day_chart: bool,
     include_vertex: bool = True,
+    ramc_rad: Optional[float] = None,
+    obliquity_rad: Optional[float] = None,
+    latitude_deg: Optional[float] = None,
 ) -> Dict[str, float]:
     """
     Compute common Arabic Parts and sensitive points.
@@ -141,6 +152,9 @@ def compute_arabic_parts(
         mc_long: Midheaven longitude in degrees
         is_day_chart: True if Sun is above horizon
         include_vertex: Whether to include Vertex calculation
+        ramc_rad: Local sidereal angle in radians (required with obliquity and latitude for Vertex)
+        obliquity_rad: Mean obliquity ε in radians
+        latitude_deg: Geographic latitude in degrees (north positive)
 
     Returns:
         Dictionary mapping part names to longitudes in degrees
@@ -150,12 +164,17 @@ def compute_arabic_parts(
         "part_of_spirit": part_of_spirit(sun_long, moon_long, asc_long, is_day_chart),
         "part_of_karma": part_of_karma(sun_long, moon_long, asc_long, is_day_chart),
     }
-    
+
     if include_vertex:
-        # Would need latitude for accurate Vertex, using simplified version
-        parts["vertex"] = normalize_angle_deg(asc_long + 90.0)
-    
+        if ramc_rad is not None and obliquity_rad is not None and latitude_deg is not None:
+            parts["vertex"] = vertex(ramc_rad, obliquity_rad, latitude_deg)
+        else:
+            parts["vertex"] = normalize_angle_deg(asc_long + 90.0)
+
     return parts
+
+
+
 
 
 

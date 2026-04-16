@@ -66,3 +66,6 @@ export function translateSign(sign: string, language: 'en' | 'fr' | 'es'): strin
 
 
 
+
+
+
