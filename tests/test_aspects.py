@@ -83,3 +83,29 @@ def test_aspect_config_custom_orbs():
     test_dt = datetime(2000, 1, 1, 12, 0, 0)
     aspects = find_aspects(positions, config, test_dt)
     assert len(aspects) > 0
+
+
+def test_detect_patterns_grand_cross_explicit():
+    """Test detecting Grand Cross pattern with explicit positions."""
+    # Grand Cross Setup:
+    # Sun: 0
+    # Mars: 90 (Square Sun)
+    # Moon: 180 (Opposition Sun, Square Mars)
+    # Pluto: 270 (Square Sun, Opposition Mars, Square Moon)
+    positions = {
+        "sun": 0.0,
+        "mars": 90.0,
+        "moon": 180.0,
+        "pluto": 270.0,
+    }
+    test_dt = datetime(2000, 1, 1, 12, 0, 0)
+    aspects = find_aspects(positions, AspectConfig(), test_dt)
+
+    patterns = detect_patterns(aspects)
+
+    assert "grand_crosses" in patterns
+    assert len(patterns["grand_crosses"]) == 1
+    gc = patterns["grand_crosses"][0]
+
+    bodies = set(gc["bodies"])
+    assert bodies == {"sun", "mars", "moon", "pluto"}
