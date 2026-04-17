@@ -220,7 +220,8 @@ def detect_patterns(aspects: List[Aspect], positions: Optional[Dict[str, float]]
     # Build aspect graph
     aspect_map: Dict[Tuple[str, str], Aspect] = {}
     for aspect in aspects:
-        key = tuple(sorted([aspect.body1, aspect.body2]))
+        b1, b2 = aspect.body1, aspect.body2
+        key = (b1, b2) if b1 < b2 else (b2, b1)
         aspect_map[key] = aspect
 
     bodies = set()
@@ -232,14 +233,14 @@ def detect_patterns(aspects: List[Aspect], positions: Optional[Dict[str, float]]
     # T-square: two oppositions + one square
     for i, body1 in enumerate(bodies):
         for body2 in bodies[i + 1 :]:
-            opp_key = tuple(sorted([body1, body2]))
+            opp_key = (body1, body2) if body1 < body2 else (body2, body1)
             if opp_key in aspect_map and aspect_map[opp_key].aspect == "opposition":
                 # Find third body that squares both
                 for body3 in bodies:
                     if body3 in (body1, body2):
                         continue
-                    sq1_key = tuple(sorted([body1, body3]))
-                    sq2_key = tuple(sorted([body2, body3]))
+                    sq1_key = (body1, body3) if body1 < body3 else (body3, body1)
+                    sq2_key = (body2, body3) if body2 < body3 else (body3, body2)
                     if (
                         sq1_key in aspect_map
                         and aspect_map[sq1_key].aspect == "square"
@@ -257,13 +258,13 @@ def detect_patterns(aspects: List[Aspect], positions: Optional[Dict[str, float]]
     # Grand Trine: three trines forming a triangle
     for i, body1 in enumerate(bodies):
         for body2 in bodies[i + 1 :]:
-            tr1_key = tuple(sorted([body1, body2]))
+            tr1_key = (body1, body2) if body1 < body2 else (body2, body1)
             if tr1_key in aspect_map and aspect_map[tr1_key].aspect == "trine":
                 for body3 in bodies:
                     if body3 in (body1, body2):
                         continue
-                    tr2_key = tuple(sorted([body1, body3]))
-                    tr3_key = tuple(sorted([body2, body3]))
+                    tr2_key = (body1, body3) if body1 < body3 else (body3, body1)
+                    tr3_key = (body2, body3) if body2 < body3 else (body3, body2)
                     if (
                         tr2_key in aspect_map
                         and aspect_map[tr2_key].aspect == "trine"
@@ -309,7 +310,7 @@ def detect_patterns(aspects: List[Aspect], positions: Optional[Dict[str, float]]
                 
                 if shared:
                     # Check if other two bodies are in sextile
-                    sext_key = tuple(sorted([other1, other2]))
+                    sext_key = (other1, other2) if other1 < other2 else (other2, other1)
                     if sext_key in aspect_map and aspect_map[sext_key].aspect == "sextile":
                         patterns["yods"].append(
                             {
@@ -330,7 +331,7 @@ def detect_patterns(aspects: List[Aspect], positions: Optional[Dict[str, float]]
 
             # Check all pairs within the group
             for b1, b2 in combinations(group, 2):
-                key = tuple(sorted([b1, b2]))
+                key = (b1, b2) if b1 < b2 else (b2, b1)
                 if key in aspect_map:
                     if aspect_map[key].aspect == "square":
                         square_count += 1
