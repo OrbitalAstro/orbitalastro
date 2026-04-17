@@ -1,0 +1,3 @@
+## 2026-04-17 - Tuple Sorting in Aspect Pattern Detection
+**Learning:** `detect_patterns` in `astro/aspects.py` was previously using `tuple(sorted([b1, b2]))` inside nested loops to normalize pairs of bodies, which creates expensive lists and makes repeated built-in function calls. This was causing `detect_patterns` to consume significant CPU time (e.g. 5+ seconds for 5000 iterations).
+**Action:** Replaced `tuple(sorted([b1, b2]))` with `(b1, b2) if b1 < b2 else (b2, b1)`. Next time, look for expensive list allocations and built-in sorts for simple 2-element normalization inside hot loops and replace them with standard inline comparisons.
