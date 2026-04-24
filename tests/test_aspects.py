@@ -7,8 +7,12 @@ from datetime import datetime
 from astro.aspects import AspectConfig, detect_patterns, find_aspects
 
 
-def test_find_aspects_conjunction():
+from unittest.mock import patch
+
+@patch('astro.aspects.get_positions_from_swisseph')
+def test_find_aspects_conjunction(mock_get_positions):
     """Test finding conjunction aspects."""
+    mock_get_positions.return_value = {"sun": 10.5, "moon": 12.5}
     positions = {
         "sun": 10.0,
         "moon": 12.0,
@@ -21,8 +25,10 @@ def test_find_aspects_conjunction():
     assert conjunctions[0].orb_deg < 3.0
 
 
-def test_find_aspects_opposition():
+@patch('astro.aspects.get_positions_from_swisseph')
+def test_find_aspects_opposition(mock_get_positions):
     """Test finding opposition aspects."""
+    mock_get_positions.return_value = {"sun": 10.5, "moon": 190.5}
     positions = {
         "sun": 10.0,
         "moon": 190.0,
@@ -33,8 +39,10 @@ def test_find_aspects_opposition():
     assert len(oppositions) > 0
 
 
-def test_find_aspects_square():
+@patch('astro.aspects.get_positions_from_swisseph')
+def test_find_aspects_square(mock_get_positions):
     """Test finding square aspects."""
+    mock_get_positions.return_value = {"sun": 10.5, "moon": 100.5}
     positions = {
         "sun": 10.0,
         "moon": 100.0,
@@ -45,8 +53,10 @@ def test_find_aspects_square():
     assert len(squares) > 0
 
 
-def test_detect_patterns_grand_trine():
+@patch('astro.aspects.get_positions_from_swisseph')
+def test_detect_patterns_grand_trine(mock_get_positions):
     """Test detecting Grand Trine pattern."""
+    mock_get_positions.return_value = {"sun": 0.5, "moon": 120.5, "mars": 240.5}
     positions = {
         "sun": 0.0,
         "moon": 120.0,
@@ -58,8 +68,10 @@ def test_detect_patterns_grand_trine():
     assert "grand_trines" in patterns or len(patterns) >= 0  # May not always detect
 
 
-def test_detect_patterns_t_square():
+@patch('astro.aspects.get_positions_from_swisseph')
+def test_detect_patterns_t_square(mock_get_positions):
     """Test detecting T-square pattern."""
+    mock_get_positions.return_value = {"sun": 0.5, "moon": 180.5, "mars": 90.5}
     positions = {
         "sun": 0.0,
         "moon": 180.0,
@@ -72,8 +84,10 @@ def test_detect_patterns_t_square():
     assert len(aspects) > 0
 
 
-def test_aspect_config_custom_orbs():
+@patch('astro.aspects.get_positions_from_swisseph')
+def test_aspect_config_custom_orbs(mock_get_positions):
     """Test custom orb configuration."""
+    mock_get_positions.return_value = {"sun": 10.5, "moon": 20.5}
     config = AspectConfig()
     config.orbs["sun"] = 10.0
     positions = {
@@ -85,8 +99,10 @@ def test_aspect_config_custom_orbs():
     assert len(aspects) > 0
 
 
-def test_detect_patterns_grand_cross_explicit():
+@patch('astro.aspects.get_positions_from_swisseph')
+def test_detect_patterns_grand_cross_explicit(mock_get_positions):
     """Test detecting Grand Cross pattern with explicit positions."""
+    mock_get_positions.return_value = {"sun": 0.5, "mars": 90.5, "moon": 180.5, "pluto": 270.5}
     # Grand Cross Setup:
     # Sun: 0
     # Mars: 90 (Square Sun)
