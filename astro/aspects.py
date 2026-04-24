@@ -74,13 +74,19 @@ def _get_orb(body: str, config: AspectConfig) -> float:
 
 
 def _compute_velocity(
-    body: str, position: float, target_datetime: datetime, delta_hours: float = 1.0
+    body: str,
+    position: float,
+    target_datetime: datetime,
+    delta_hours: float = 1.0,
+    future_positions: Optional[Dict[str, float]] = None
 ) -> float:
     """Compute the velocity of a body in degrees per hour using Swiss Ephemeris."""
-    future_time = target_datetime + timedelta(hours=delta_hours)
     try:
-        future_jd = datetime_to_julian_day(future_time)
-        future_positions = get_positions_from_swisseph(future_time, future_jd)
+        if future_positions is None:
+            future_time = target_datetime + timedelta(hours=delta_hours)
+            future_jd = datetime_to_julian_day(future_time)
+            future_positions = get_positions_from_swisseph(future_time, future_jd)
+
         if body not in future_positions:
             return 0.0
         future_pos = future_positions[body]
@@ -99,6 +105,7 @@ def _is_applying(
     pos2: float,
     aspect_angle: float,
     target_datetime: datetime,
+    future_positions: Optional[Dict[str, float]] = None
 ) -> bool:
     """Determine if an aspect is applying (moving toward exact) or separating."""
     # Determine which body is faster
@@ -115,7 +122,7 @@ def _is_applying(
     faster_pos = pos1 if faster_body == body1 else pos2
 
     # Compute velocity of faster body
-    velocity = _compute_velocity(faster_body, faster_pos, target_datetime)
+    velocity = _compute_velocity(faster_body, faster_pos, target_datetime, future_positions=future_positions)
 
     # Current angular separation
     current_sep = abs(pos1 - pos2) % 360.0
@@ -160,6 +167,10 @@ def find_aspects(
     aspects: List[Aspect] = []
     bodies = list(positions.keys())
 
+    future_positions = None
+    future_time = target_datetime + timedelta(hours=1.0)
+    future_jd = datetime_to_julian_day(future_time)
+
     for i, body1 in enumerate(bodies):
         for body2 in bodies[i + 1 :]:
             pos1 = positions[body1]
@@ -183,7 +194,17 @@ def find_aspects(
                     exact = orb_deg < 0.1
 
                     # Determine applying/separating
-                    applying = _is_applying(body1, body2, pos1, pos2, aspect_angle, target_datetime)
+                    # Optimization: Calculate future_positions lazily once for all aspects to avoid
+                    # repeated expensive swisseph calculations inside this O(N^2) loop.
+                    if future_positions is None:
+                        try:
+                            future_positions = get_positions_from_swisseph(future_time, future_jd)
+                        except Exception:
+                            future_positions = {}
+
+                    applying = _is_applying(
+                        body1, body2, pos1, pos2, aspect_angle, target_datetime, future_positions
+                    )
 
                     aspects.append(
                         Aspect(
