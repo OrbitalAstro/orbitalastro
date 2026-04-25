@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import { signIn } from 'next-auth/react'
 import { useSearchParams } from 'next/navigation'
 import { Mail, Lock, User, Loader2, ArrowRight } from 'lucide-react'
@@ -13,7 +13,7 @@ function safeCallbackPath(raw: string | null): string {
   return raw
 }
 
-export default function SignUpPage() {
+function SignUpContent() {
   const searchParams = useSearchParams()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -213,5 +213,19 @@ export default function SignUpPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function SignUpPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gradient-to-b from-cosmic-dark via-deep-space to-cosmic-dark flex items-center justify-center text-cosmic-gold">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      }
+    >
+      <SignUpContent />
+    </Suspense>
   )
 }

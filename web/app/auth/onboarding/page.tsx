@@ -1,6 +1,6 @@
 'use client'
 
-import { FormEvent, useEffect, useMemo, useState } from 'react'
+import { FormEvent, Suspense, useEffect, useMemo, useState } from 'react'
 import { getSession } from 'next-auth/react'
 import { useSearchParams } from 'next/navigation'
 import { CheckCircle2, Loader2, Sparkles } from 'lucide-react'
@@ -25,7 +25,7 @@ function safePath(raw: string | null, fallback = '/journal-pilot'): string {
   return raw
 }
 
-export default function OnboardingPage() {
+function OnboardingContent() {
   const searchParams = useSearchParams()
   const nextPath = useMemo(() => safePath(searchParams.get('next')), [searchParams])
   const [authGate, setAuthGate] = useState<Gate>('loading')
@@ -248,5 +248,19 @@ export default function OnboardingPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function OnboardingPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gradient-to-b from-cosmic-dark via-deep-space to-cosmic-dark flex items-center justify-center text-cosmic-gold">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      }
+    >
+      <OnboardingContent />
+    </Suspense>
   )
 }
