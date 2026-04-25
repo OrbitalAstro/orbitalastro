@@ -51,6 +51,26 @@ def test_koch_houses():
     assert len(cusps) == 12
 
 
+def test_koch_houses_london_matches_swiss_ephemeris_reference():
+    """
+    Regression: native Koch implementation matches Swiss Ephemeris swehouse.c
+    (reference cusps from swe.houses(..., b'K') for this JD/location).
+    """
+    jd = datetime_to_julian_day(datetime(2000, 1, 1, 12, 0, 0))
+    lat, lon = 51.5074, -0.1278
+    cusps, asc, mc = compute_houses("koch", jd, lat, lon, None, None)
+    ref_cusps = [
+        24.014590, 58.813741, 82.022935, 99.493225, 123.358123, 159.243426,
+        204.014590, 238.813741, 262.022935, 279.493225, 303.358123, 339.243426,
+    ]
+    ref_asc = 24.014590440762543
+    ref_mc = 279.4932253031697
+    for i, r in enumerate(ref_cusps):
+        assert abs(cusps[i] - r) < 1e-4
+    assert abs(asc - ref_asc) < 1e-5
+    assert abs(mc - ref_mc) < 1e-5
+
+
 def test_all_house_systems():
     """Test all house systems return valid cusps."""
     systems = [

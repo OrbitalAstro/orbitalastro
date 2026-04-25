@@ -65,3 +65,6 @@ def build_patterns_module(patterns: Dict, config: Dict = None) -> str:
 
 
 
+
+
+

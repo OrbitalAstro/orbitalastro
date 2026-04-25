@@ -6,6 +6,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime, timedelta
+from itertools import combinations
 from typing import Dict, List, Optional, Tuple
 
 from astro.swisseph_positions import get_positions_from_swisseph
@@ -73,13 +74,19 @@ def _get_orb(body: str, config: AspectConfig) -> float:
 
 
 def _compute_velocity(
-    body: str, position: float, target_datetime: datetime, delta_hours: float = 1.0
+    body: str,
+    position: float,
+    target_datetime: datetime,
+    delta_hours: float = 1.0,
+    future_positions: Optional[Dict[str, float]] = None
 ) -> float:
     """Compute the velocity of a body in degrees per hour using Swiss Ephemeris."""
-    future_time = target_datetime + timedelta(hours=delta_hours)
     try:
-        future_jd = datetime_to_julian_day(future_time)
-        future_positions = get_positions_from_swisseph(future_time, future_jd)
+        if future_positions is None:
+            future_time = target_datetime + timedelta(hours=delta_hours)
+            future_jd = datetime_to_julian_day(future_time)
+            future_positions = get_positions_from_swisseph(future_time, future_jd)
+
         if body not in future_positions:
             return 0.0
         future_pos = future_positions[body]
@@ -98,6 +105,7 @@ def _is_applying(
     pos2: float,
     aspect_angle: float,
     target_datetime: datetime,
+    future_positions: Optional[Dict[str, float]] = None
 ) -> bool:
     """Determine if an aspect is applying (moving toward exact) or separating."""
     # Determine which body is faster
@@ -114,7 +122,7 @@ def _is_applying(
     faster_pos = pos1 if faster_body == body1 else pos2
 
     # Compute velocity of faster body
-    velocity = _compute_velocity(faster_body, faster_pos, target_datetime)
+    velocity = _compute_velocity(faster_body, faster_pos, target_datetime, future_positions=future_positions)
 
     # Current angular separation
     current_sep = abs(pos1 - pos2) % 360.0
@@ -159,6 +167,10 @@ def find_aspects(
     aspects: List[Aspect] = []
     bodies = list(positions.keys())
 
+    future_positions = None
+    future_time = target_datetime + timedelta(hours=1.0)
+    future_jd = datetime_to_julian_day(future_time)
+
     for i, body1 in enumerate(bodies):
         for body2 in bodies[i + 1 :]:
             pos1 = positions[body1]
@@ -182,7 +194,17 @@ def find_aspects(
                     exact = orb_deg < 0.1
 
                     # Determine applying/separating
-                    applying = _is_applying(body1, body2, pos1, pos2, aspect_angle, target_datetime)
+                    # Optimization: Calculate future_positions lazily once for all aspects to avoid
+                    # repeated expensive swisseph calculations inside this O(N^2) loop.
+                    if future_positions is None:
+                        try:
+                            future_positions = get_positions_from_swisseph(future_time, future_jd)
+                        except Exception:
+                            future_positions = {}
+
+                    applying = _is_applying(
+                        body1, body2, pos1, pos2, aspect_angle, target_datetime, future_positions
+                    )
 
                     aspects.append(
                         Aspect(
@@ -219,7 +241,8 @@ def detect_patterns(aspects: List[Aspect], positions: Optional[Dict[str, float]]
     # Build aspect graph
     aspect_map: Dict[Tuple[str, str], Aspect] = {}
     for aspect in aspects:
-        key = tuple(sorted([aspect.body1, aspect.body2]))
+        b1, b2 = aspect.body1, aspect.body2
+        key = (b1, b2) if b1 < b2 else (b2, b1)
         aspect_map[key] = aspect
 
     bodies = set()
@@ -231,14 +254,14 @@ def detect_patterns(aspects: List[Aspect], positions: Optional[Dict[str, float]]
     # T-square: two oppositions + one square
     for i, body1 in enumerate(bodies):
         for body2 in bodies[i + 1 :]:
-            opp_key = tuple(sorted([body1, body2]))
+            opp_key = (body1, body2) if body1 < body2 else (body2, body1)
             if opp_key in aspect_map and aspect_map[opp_key].aspect == "opposition":
                 # Find third body that squares both
                 for body3 in bodies:
                     if body3 in (body1, body2):
                         continue
-                    sq1_key = tuple(sorted([body1, body3]))
-                    sq2_key = tuple(sorted([body2, body3]))
+                    sq1_key = (body1, body3) if body1 < body3 else (body3, body1)
+                    sq2_key = (body2, body3) if body2 < body3 else (body3, body2)
                     if (
                         sq1_key in aspect_map
                         and aspect_map[sq1_key].aspect == "square"
@@ -256,13 +279,13 @@ def detect_patterns(aspects: List[Aspect], positions: Optional[Dict[str, float]]
     # Grand Trine: three trines forming a triangle
     for i, body1 in enumerate(bodies):
         for body2 in bodies[i + 1 :]:
-            tr1_key = tuple(sorted([body1, body2]))
+            tr1_key = (body1, body2) if body1 < body2 else (body2, body1)
             if tr1_key in aspect_map and aspect_map[tr1_key].aspect == "trine":
                 for body3 in bodies:
                     if body3 in (body1, body2):
                         continue
-                    tr2_key = tuple(sorted([body1, body3]))
-                    tr3_key = tuple(sorted([body2, body3]))
+                    tr2_key = (body1, body3) if body1 < body3 else (body3, body1)
+                    tr3_key = (body2, body3) if body2 < body3 else (body3, body2)
                     if (
                         tr2_key in aspect_map
                         and aspect_map[tr2_key].aspect == "trine"
@@ -308,7 +331,7 @@ def detect_patterns(aspects: List[Aspect], positions: Optional[Dict[str, float]]
                 
                 if shared:
                     # Check if other two bodies are in sextile
-                    sext_key = tuple(sorted([other1, other2]))
+                    sext_key = (other1, other2) if other1 < other2 else (other2, other1)
                     if sext_key in aspect_map and aspect_map[sext_key].aspect == "sextile":
                         patterns["yods"].append(
                             {
@@ -320,27 +343,31 @@ def detect_patterns(aspects: List[Aspect], positions: Optional[Dict[str, float]]
                         )
 
     # Grand Cross: four squares/oppositions forming a cross
-    # This is a simplified detection - looks for two oppositions that are square to each other
-    oppositions = [a for a in aspects if a.aspect == "opposition"]
-    for i, opp1 in enumerate(oppositions):
-        for opp2 in oppositions[i + 1 :]:
-            # Check if the four bodies form squares
-            bodies_set = {opp1.body1, opp1.body2, opp2.body1, opp2.body2}
-            if len(bodies_set) == 4:
-                bodies_list = list(bodies_set)
-                square_count = 0
-                for j, b1 in enumerate(bodies_list):
-                    for b2 in bodies_list[j + 1 :]:
-                        sq_key = tuple(sorted([b1, b2]))
-                        if sq_key in aspect_map and aspect_map[sq_key].aspect == "square":
-                            square_count += 1
-                if square_count >= 4:
-                    patterns["grand_crosses"].append(
-                        {
-                            "bodies": bodies_list,
-                            "oppositions": [[opp1.body1, opp1.body2], [opp2.body1, opp2.body2]],
-                        }
-                    )
+    # Iterating through all groups of 4 bodies to find full Grand Cross configurations
+    if len(bodies) >= 4:
+        for group in combinations(bodies, 4):
+            square_count = 0
+            opposition_count = 0
+            found_oppositions = []
+
+            # Check all pairs within the group
+            for b1, b2 in combinations(group, 2):
+                key = (b1, b2) if b1 < b2 else (b2, b1)
+                if key in aspect_map:
+                    if aspect_map[key].aspect == "square":
+                        square_count += 1
+                    elif aspect_map[key].aspect == "opposition":
+                        opposition_count += 1
+                        found_oppositions.append([b1, b2])
+
+            # A Grand Cross requires 4 squares and 2 oppositions
+            if square_count >= 4 and opposition_count >= 2:
+                patterns["grand_crosses"].append(
+                    {
+                        "bodies": list(group),
+                        "oppositions": found_oppositions,
+                    }
+                )
 
     return patterns
 
