@@ -26,6 +26,8 @@ type SolarOrbitProps = {
   periodSec: number
   counterClockwise?: boolean
   beginDelaySec?: number
+  /** Phase initiale sur l'orbite (0..1) pour éviter des départs groupés */
+  phaseOffset?: number
   ringGradientId: string
   strokeWidth?: number
   bodyFill: string
@@ -45,6 +47,7 @@ function SolarOrbit({
   periodSec,
   counterClockwise = false,
   beginDelaySec = 0,
+  phaseOffset = 0,
   ringGradientId,
   strokeWidth = 1.3,
   bodyFill,
@@ -52,6 +55,10 @@ function SolarOrbit({
   ringFilter,
 }: SolarOrbitProps) {
   const pathD = ellipseOrbitPath(rx, ry)
+  const clampedPhase = Math.max(0, Math.min(1, phaseOffset))
+  // begin négatif = l'orbite est déjà "en cours" au chargement (position de départ dispersée).
+  const phaseBegin = clampedPhase > 0 ? `${-(periodSec * clampedPhase)}s` : undefined
+  const beginValue = phaseBegin ?? (beginDelaySec > 0 ? `${beginDelaySec}s` : undefined)
   return (
     <g transform={`rotate(${tilt} ${CX} ${CY})`}>
       <ellipse
@@ -72,7 +79,7 @@ function SolarOrbit({
           dur={`${periodSec}s`}
           repeatCount="indefinite"
           path={pathD}
-          begin={beginDelaySec > 0 ? `${beginDelaySec}s` : undefined}
+          begin={beginValue}
           keyPoints={counterClockwise ? '1;0' : '0;1'}
           keyTimes="0;1"
           calcMode="linear"
@@ -258,9 +265,10 @@ export default function LogoBackground({ opacity = 0.15, className = '' }: LogoB
               rx={272}
               ry={174}
               tilt={-22}
-              periodSec={118}
-              counterClockwise={false}
+              periodSec={198}
+              counterClockwise
               beginDelaySec={0}
+              phaseOffset={0.07}
               ringGradientId="orbit-opal-a"
               strokeWidth={1.45}
               bodyFill="url(#sat-opal-1)"
@@ -270,9 +278,10 @@ export default function LogoBackground({ opacity = 0.15, className = '' }: LogoB
               rx={238}
               ry={152}
               tilt={31}
-              periodSec={86}
+              periodSec={156}
               counterClockwise
               beginDelaySec={2}
+              phaseOffset={0.29}
               ringGradientId="orbit-opal-b"
               strokeWidth={1.55}
               bodyFill="url(#sat-opal-2)"
@@ -282,9 +291,10 @@ export default function LogoBackground({ opacity = 0.15, className = '' }: LogoB
               rx={210}
               ry={134}
               tilt={-14}
-              periodSec={142}
-              counterClockwise={false}
+              periodSec={122}
+              counterClockwise
               beginDelaySec={5}
+              phaseOffset={0.53}
               ringGradientId="orbit-opal-c"
               strokeWidth={1.35}
               bodyFill="url(#sat-opal-3)"
@@ -294,9 +304,10 @@ export default function LogoBackground({ opacity = 0.15, className = '' }: LogoB
               rx={198}
               ry={126}
               tilt={19}
-              periodSec={68}
+              periodSec={104}
               counterClockwise
               beginDelaySec={1}
+              phaseOffset={0.74}
               ringGradientId="orbit-opal-d"
               strokeWidth={1.5}
               bodyFill="url(#sat-opal-4)"
@@ -306,9 +317,10 @@ export default function LogoBackground({ opacity = 0.15, className = '' }: LogoB
               rx={184}
               ry={118}
               tilt={-8}
-              periodSec={96}
-              counterClockwise={false}
+              periodSec={84}
+              counterClockwise
               beginDelaySec={8}
+              phaseOffset={0.88}
               ringGradientId="orbit-opal-b"
               strokeWidth={1.25}
               bodyFill="url(#sat-opal-5)"
