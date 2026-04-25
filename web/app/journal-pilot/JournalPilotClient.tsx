@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { getSession } from 'next-auth/react'
 import { motion } from 'framer-motion'
 import { BookOpenText, CalendarClock, Loader2, Sparkles } from 'lucide-react'
@@ -51,10 +51,17 @@ function parseJournalChat(reply: string): { speaker: string; body: string }[] {
     messages.push({ speaker: current.speaker, body: current.lines.join('\n').trim() })
   }
 
-  if (messages.length === 0) {
-    return [{ speaker: 'Guilde', body: trimmed }]
-  }
-  return messages.filter((msg) => msg.body.length > 0)
+  const normalized = messages.length === 0 ? [{ speaker: 'Guilde', body: trimmed }] : messages.filter((msg) => msg.body.length > 0)
+  // Réduit le bruit visuel : fusionne les blocs consécutifs d'un même intervenant.
+  return normalized.reduce<{ speaker: string; body: string }[]>((acc, current) => {
+    const prev = acc[acc.length - 1]
+    if (prev && prev.speaker === current.speaker) {
+      prev.body = `${prev.body}\n\n${current.body}`.trim()
+      return acc
+    }
+    acc.push({ ...current })
+    return acc
+  }, [])
 }
 
 const JOURNAL_SIGNIN = '/auth/signin?callbackUrl=/journal-pilot'
@@ -73,6 +80,7 @@ export default function JournalPilotClient() {
   const [nextExactLoading, setNextExactLoading] = useState(false)
   const [nextExactLines, setNextExactLines] = useState<string[] | null>(null)
   const [nextExactError, setNextExactError] = useState<string | null>(null)
+  const threadRef = useRef<HTMLDivElement | null>(null)
 
   const profileComplete = useMemo(() => {
     return Boolean(
@@ -142,6 +150,11 @@ export default function JournalPilotClient() {
     fetchProfileAndChat()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authGate])
+
+  useEffect(() => {
+    if (!threadRef.current) return
+    threadRef.current.scrollTop = threadRef.current.scrollHeight
+  }, [messages, sendingEntry])
 
   async function runNextExactTimes() {
     setNextExactLoading(true)
@@ -238,30 +251,6 @@ export default function JournalPilotClient() {
               </p>
             </div>
 
-            <form onSubmit={submitEntry} className="mt-6 bg-cosmic-purple/40 backdrop-blur-md border border-cosmic-gold/30 rounded-xl p-6">
-              <h2 className="text-xl font-semibold mb-3 flex items-center gap-2">
-                <Sparkles className="h-5 w-5" />
-                Nouveau message
-              </h2>
-              <textarea
-                value={entryInput}
-                onChange={(e) => setEntryInput(e.target.value)}
-                className="w-full min-h-[130px] bg-white/10 border border-cosmic-gold/30 rounded-lg px-3 py-2 text-cosmic-gold placeholder-cosmic-gold/55"
-                placeholder="Pose une question ou poursuis la conversation — le contexte astro du jour est injecté à chaque réponse."
-                maxLength={4000}
-              />
-              <div className="mt-3 flex items-center justify-between">
-                <span className="text-sm text-cosmic-gold/70">{entryInput.length}/4000</span>
-                <button
-                  type="submit"
-                  disabled={sendingEntry || !entryInput.trim()}
-                  className="px-5 py-2 rounded-lg bg-cosmic-gold text-cosmic-purple font-semibold hover:bg-cosmic-gold/90 transition disabled:opacity-60"
-                >
-                  {sendingEntry ? 'En train de répondre...' : 'Envoyer'}
-                </button>
-              </div>
-            </form>
-
             <div className="mt-4 bg-cosmic-purple/30 border border-cosmic-gold/25 rounded-xl p-4">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
@@ -298,7 +287,10 @@ export default function JournalPilotClient() {
 
             <div className="mt-6 space-y-3">
               <h2 className="text-xl font-semibold">Fil de discussion</h2>
-              <div className="p-4 rounded-xl border border-cosmic-gold/25 bg-cosmic-purple/35 backdrop-blur-sm min-h-[200px] max-h-[min(60vh,520px)] overflow-y-auto flex flex-col gap-3">
+              <div
+                ref={threadRef}
+                className="p-4 rounded-xl border border-cosmic-gold/30 bg-cosmic-purple/20 backdrop-blur-sm min-h-[200px] max-h-[min(60vh,520px)] overflow-y-auto flex flex-col gap-3"
+              >
                 {messages.length === 0 ? (
                   <div className="text-cosmic-gold/75 text-sm py-6 text-center">
                     Aucun message pour l&apos;instant. Écris pour ouvrir la conversation.
@@ -315,7 +307,7 @@ export default function JournalPilotClient() {
                         <div className="text-[10px] uppercase tracking-wide text-cosmic-gold/55 text-right mb-1">
                           Toi · {new Date(m.created_at).toLocaleString('fr-CA')}
                         </div>
-                        <div className="rounded-2xl rounded-br-md px-4 py-2.5 bg-cosmic-gold/20 border border-cosmic-gold/35 text-cosmic-gold text-sm whitespace-pre-wrap">
+                        <div className="rounded-2xl rounded-br-md px-4 py-2.5 bg-cosmic-gold/22 border border-cosmic-gold/45 text-cosmic-gold text-sm whitespace-pre-wrap">
                           {m.content}
                         </div>
                       </motion.div>
@@ -329,22 +321,58 @@ export default function JournalPilotClient() {
                         <div className="text-[10px] text-cosmic-gold/55">
                           Guilde · {new Date(m.created_at).toLocaleString('fr-CA')}
                         </div>
-                        {parseJournalChat(m.content).map((bubble, idx) => (
-                          <div key={`${m.id}-${idx}`} className="self-start max-w-[90%] md:max-w-[85%]">
-                            <div className="text-[10px] uppercase tracking-wide text-cosmic-gold/55 mb-1">
-                              {bubble.speaker}
+                        {parseJournalChat(m.content).map((bubble, idx) => {
+                          const isAstrology = bubble.speaker.trim().toLowerCase() === 'astrologie'
+                          return (
+                            <div
+                              key={`${m.id}-${idx}`}
+                              className={isAstrology ? 'self-center w-full max-w-[96%] md:max-w-[90%]' : 'self-start max-w-[90%] md:max-w-[85%]'}
+                            >
+                              <div className="text-[10px] uppercase tracking-wide text-cosmic-gold/55 mb-1">
+                                {bubble.speaker}
+                              </div>
+                              <div
+                                className={
+                                  isAstrology
+                                    ? 'rounded-2xl px-4 py-2.5 bg-white/20 border border-cosmic-gold/45 text-cosmic-gold text-sm whitespace-pre-wrap'
+                                    : 'rounded-2xl rounded-bl-md px-4 py-2.5 bg-white/12 border border-cosmic-gold/35 text-cosmic-gold text-sm whitespace-pre-wrap'
+                                }
+                              >
+                                {bubble.body}
+                              </div>
                             </div>
-                            <div className="rounded-2xl rounded-bl-md px-4 py-2.5 bg-white/5 border border-cosmic-gold/20 text-cosmic-gold/95 text-sm whitespace-pre-wrap">
-                              {bubble.body}
-                            </div>
-                          </div>
-                        ))}
+                          )
+                        })}
                       </motion.div>
                     )
                   )
                 )}
               </div>
             </div>
+
+            <form onSubmit={submitEntry} className="mt-4 bg-cosmic-purple/40 backdrop-blur-md border border-cosmic-gold/30 rounded-xl p-4">
+              <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                <Sparkles className="h-5 w-5" />
+                Répondre dans le fil
+              </h2>
+              <textarea
+                value={entryInput}
+                onChange={(e) => setEntryInput(e.target.value)}
+                className="w-full min-h-[100px] bg-white/10 border border-cosmic-gold/30 rounded-lg px-3 py-2 text-cosmic-gold placeholder-cosmic-gold/55"
+                placeholder="Écris ta réponse pour continuer la conversation..."
+                maxLength={4000}
+              />
+              <div className="mt-3 flex items-center justify-between">
+                <span className="text-sm text-cosmic-gold/70">{entryInput.length}/4000</span>
+                <button
+                  type="submit"
+                  disabled={sendingEntry || !entryInput.trim()}
+                  className="px-5 py-2 rounded-lg bg-cosmic-gold text-cosmic-purple font-semibold hover:bg-cosmic-gold/90 transition disabled:opacity-60"
+                >
+                  {sendingEntry ? 'En train de répondre...' : 'Envoyer'}
+                </button>
+              </div>
+            </form>
           </>
         ) : null}
       </div>
