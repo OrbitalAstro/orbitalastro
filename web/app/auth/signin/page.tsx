@@ -2,21 +2,28 @@
 
 import { useState } from 'react'
 import { signIn } from 'next-auth/react'
+import { useSearchParams } from 'next/navigation'
 import { Mail, Lock, Loader2, ArrowRight } from 'lucide-react'
 import Logo from '@/components/Logo'
 import Starfield from '@/components/Starfield'
 
 /** Évite les redirections ouvertes (callbackUrl externe). */
 function safeCallbackPath(raw: string | null): string {
-  if (!raw || !raw.startsWith('/') || raw.startsWith('//')) return '/dashboard'
+  if (!raw || !raw.startsWith('/') || raw.startsWith('//')) return '/journal-pilot'
   return raw
 }
 
 export default function SignInPage() {
+  const searchParams = useSearchParams()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const nextPath = safeCallbackPath(searchParams.get('callbackUrl'))
+  const signUpHref =
+    nextPath === '/journal-pilot'
+      ? '/auth/signup'
+      : `/auth/signup?callbackUrl=${encodeURIComponent(nextPath)}`
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -134,7 +141,7 @@ export default function SignInPage() {
             <p className="text-cosmic-silver text-sm">
               Pas encore de compte ?{' '}
               <a
-                href="/auth/signup"
+                href={signUpHref}
                 className="text-cosmic-gold hover:underline font-medium"
               >
                 Créer un compte

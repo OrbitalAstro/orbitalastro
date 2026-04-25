@@ -5,9 +5,7 @@ import { getSession } from 'next-auth/react'
 import { motion } from 'framer-motion'
 import { BookOpenText, CalendarClock, Loader2, Sparkles } from 'lucide-react'
 import BackButton from '@/components/BackButton'
-import LocationInput from '@/components/LocationInput'
 import Starfield from '@/components/Starfield'
-import { useTranslation } from '@/lib/useTranslation'
 
 type Profile = {
   id: string
@@ -60,13 +58,12 @@ function parseJournalChat(reply: string): { speaker: string; body: string }[] {
 }
 
 const JOURNAL_SIGNIN = '/auth/signin?callbackUrl=/journal-pilot'
+const JOURNAL_ONBOARDING = '/auth/onboarding?next=%2Fjournal-pilot'
 
 export default function JournalPilotClient() {
-  const t = useTranslation()
   const [authGate, setAuthGate] = useState<'loading' | 'authenticated' | 'unauthenticated'>('loading')
 
   const [loading, setLoading] = useState(true)
-  const [savingProfile, setSavingProfile] = useState(false)
   const [sendingEntry, setSendingEntry] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -76,18 +73,6 @@ export default function JournalPilotClient() {
   const [nextExactLoading, setNextExactLoading] = useState(false)
   const [nextExactLines, setNextExactLines] = useState<string[] | null>(null)
   const [nextExactError, setNextExactError] = useState<string | null>(null)
-  /** Permet de rouvrir le formulaire sans avoir à tout ressaisir à chaque visite (données déjà sur le compte). */
-  const [editingNatal, setEditingNatal] = useState(false)
-
-  const [profileForm, setProfileForm] = useState({
-    display_name: '',
-    birth_date: '',
-    birth_time: '12:00',
-    birth_place: '',
-    latitude: 0,
-    longitude: 0,
-    timezone: 'UTC',
-  })
 
   const profileComplete = useMemo(() => {
     return Boolean(
@@ -113,16 +98,16 @@ export default function JournalPilotClient() {
 
       const p: Profile | null = profileJson.profile
       setProfile(p)
-      if (p) {
-        setProfileForm({
-          display_name: p.display_name || '',
-          birth_date: p.birth_date || '',
-          birth_time: p.birth_time || '12:00',
-          birth_place: p.birth_place || '',
-          latitude: p.latitude || 0,
-          longitude: p.longitude || 0,
-          timezone: p.timezone || 'UTC',
-        })
+      const hasCompleteProfile = Boolean(
+        p?.birth_date &&
+          p?.birth_time &&
+          p?.birth_place &&
+          typeof p?.latitude === 'number' &&
+          typeof p?.longitude === 'number',
+      )
+      if (!hasCompleteProfile) {
+        window.location.assign(JOURNAL_ONBOARDING)
+        return
       }
 
       const chatRes = await fetch('/api/journal/chat', { credentials: 'include' })
@@ -157,28 +142,6 @@ export default function JournalPilotClient() {
     fetchProfileAndChat()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authGate])
-
-  async function saveProfile(e: React.FormEvent) {
-    e.preventDefault()
-    setSavingProfile(true)
-    setError(null)
-    try {
-      const res = await fetch('/api/journal/profile', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(profileForm),
-      })
-      const json = await res.json()
-      if (!res.ok) throw new Error(json?.error || 'Impossible de sauvegarder le profil')
-      setProfile(json.profile)
-      setEditingNatal(false)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur inconnue')
-    } finally {
-      setSavingProfile(false)
-    }
-  }
 
   async function runNextExactTimes() {
     setNextExactLoading(true)
@@ -264,111 +227,7 @@ export default function JournalPilotClient() {
           <div className="mt-4 p-3 rounded-lg border border-red-400/40 bg-red-900/20 text-red-100">{error}</div>
         ) : null}
 
-        {!profileComplete || editingNatal ? (
-          <form onSubmit={saveProfile} className="mt-6 bg-cosmic-purple/40 backdrop-blur-md border border-cosmic-gold/30 rounded-xl p-6 space-y-4">
-            <h2 className="text-xl font-semibold">
-              {!profileComplete ? 'Tes données de naissance (une seule fois)' : 'Modifier tes données de naissance'}
-            </h2>
-            <p className="text-sm text-cosmic-gold/75 -mt-2">
-              {!profileComplete ? (
-                <>
-                  Elles sont <strong className="text-cosmic-gold">enregistrées sur ton compte</strong> : tu ne les saisis
-                  qu’ici une fois, puis le journal les réutilise automatiquement à chaque connexion (transits, contexte
-                  astro). On ne calcule pas ta carte sur cet écran : ces infos servent à enrichir le clavardage.
-                </>
-              ) : (
-                <>
-                  Les changements remplacent les données déjà liées à ton compte ; le clavardage utilisera la nouvelle
-                  base dès l’enregistrement.
-                </>
-              )}
-            </p>
-            <div>
-              <label className="block mb-1 text-sm">{t.dialogues.firstName}</label>
-              <input
-                value={profileForm.display_name}
-                onChange={(e) => setProfileForm((p) => ({ ...p, display_name: e.target.value }))}
-                className="w-full bg-white/10 border border-cosmic-gold/30 rounded-lg px-3 py-2 text-cosmic-gold"
-                placeholder={t.dialogues.firstNamePlaceholder}
-              />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block mb-1 text-sm">{t.dialogues.birthDate}</label>
-                <input
-                  type="date"
-                  value={profileForm.birth_date}
-                  onChange={(e) => setProfileForm((p) => ({ ...p, birth_date: e.target.value }))}
-                  className="w-full bg-white/10 border border-cosmic-gold/30 rounded-lg px-3 py-2 text-cosmic-gold"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block mb-1 text-sm">{t.dialogues.birthTime}</label>
-                <input
-                  type="time"
-                  value={profileForm.birth_time}
-                  onChange={(e) => setProfileForm((p) => ({ ...p, birth_time: e.target.value }))}
-                  className="w-full bg-white/10 border border-cosmic-gold/30 rounded-lg px-3 py-2 text-cosmic-gold"
-                  required
-                />
-              </div>
-            </div>
-            <LocationInput
-              value={profileForm.birth_place}
-              onChange={(value) => setProfileForm((p) => ({ ...p, birth_place: value }))}
-              onLocationSelect={(location) =>
-                setProfileForm((p) => ({
-                  ...p,
-                  birth_place: location.name,
-                  latitude: location.latitude,
-                  longitude: location.longitude,
-                  timezone: location.timezone || 'UTC',
-                }))
-              }
-              label={t.dialogues.birthPlace}
-              variant="gold"
-              required
-            />
-            <div className="flex flex-wrap gap-3">
-              {editingNatal ? (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEditingNatal(false)
-                    if (profile) {
-                      setProfileForm({
-                        display_name: profile.display_name || '',
-                        birth_date: profile.birth_date || '',
-                        birth_time: profile.birth_time || '12:00',
-                        birth_place: profile.birth_place || '',
-                        latitude: profile.latitude || 0,
-                        longitude: profile.longitude || 0,
-                        timezone: profile.timezone || 'UTC',
-                      })
-                    }
-                  }}
-                  className="px-5 py-2 rounded-lg border border-cosmic-gold/50 text-cosmic-gold font-medium hover:bg-cosmic-gold/10 transition"
-                >
-                  Annuler
-                </button>
-              ) : null}
-              <button
-                type="submit"
-                disabled={savingProfile}
-                className="px-5 py-2 rounded-lg bg-cosmic-gold text-cosmic-purple font-semibold hover:bg-cosmic-gold/90 transition disabled:opacity-60"
-              >
-                {savingProfile
-                  ? 'Sauvegarde...'
-                  : profileComplete
-                    ? 'Enregistrer les modifications'
-                    : 'Enregistrer sur mon compte et ouvrir le clavardage'}
-              </button>
-            </div>
-          </form>
-        ) : null}
-
-        {profileComplete && !editingNatal ? (
+        {profileComplete ? (
           <>
             <div className="mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-xl border border-cosmic-gold/25 bg-cosmic-purple/30 px-4 py-3">
               <p className="text-sm text-cosmic-gold/85">
@@ -377,13 +236,6 @@ export default function JournalPilotClient() {
                 {profile?.birth_date ? ` · ${profile.birth_date}` : ''}
                 . Tu n’as rien à ressaisir à chaque visite.
               </p>
-              <button
-                type="button"
-                onClick={() => setEditingNatal(true)}
-                className="shrink-0 text-sm px-4 py-2 rounded-lg border border-cosmic-gold/45 text-cosmic-gold hover:bg-cosmic-gold/10 transition"
-              >
-                Modifier
-              </button>
             </div>
 
             <form onSubmit={submitEntry} className="mt-6 bg-cosmic-purple/40 backdrop-blur-md border border-cosmic-gold/30 rounded-xl p-6">

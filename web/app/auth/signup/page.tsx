@@ -2,17 +2,30 @@
 
 import { useState } from 'react'
 import { signIn } from 'next-auth/react'
+import { useSearchParams } from 'next/navigation'
 import { Mail, Lock, User, Loader2, ArrowRight } from 'lucide-react'
 import Logo from '@/components/Logo'
 import Starfield from '@/components/Starfield'
 
+/** Évite les redirections ouvertes (callbackUrl externe). */
+function safeCallbackPath(raw: string | null): string {
+  if (!raw || !raw.startsWith('/') || raw.startsWith('//')) return '/dashboard'
+  return raw
+}
+
 export default function SignUpPage() {
+  const searchParams = useSearchParams()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const nextPath = safeCallbackPath(searchParams.get('callbackUrl'))
+  const signInHref =
+    nextPath === '/dashboard'
+      ? '/auth/signin'
+      : `/auth/signin?callbackUrl=${encodeURIComponent(nextPath)}`
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -56,7 +69,8 @@ export default function SignUpPage() {
       if (result?.error) {
         setError('Erreur lors de la création du compte')
       } else {
-        window.location.assign('/dashboard')
+        const onboardingNext = encodeURIComponent(nextPath === '/dashboard' ? '/journal-pilot' : nextPath)
+        window.location.assign(`/auth/onboarding?next=${onboardingNext}`)
         return
       }
     } catch (err) {
@@ -189,7 +203,7 @@ export default function SignUpPage() {
             <p className="text-cosmic-silver text-sm">
               Déjà un compte ?{' '}
               <a
-                href="/auth/signin"
+                href={signInHref}
                 className="text-cosmic-gold hover:underline font-medium"
               >
                 Se connecter
