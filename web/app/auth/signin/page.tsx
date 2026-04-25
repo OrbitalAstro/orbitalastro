@@ -1,8 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { signIn } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
 import { Mail, Lock, Loader2, ArrowRight } from 'lucide-react'
 import Logo from '@/components/Logo'
 import Starfield from '@/components/Starfield'
@@ -14,17 +13,10 @@ function safeCallbackPath(raw: string | null): string {
 }
 
 export default function SignInPage() {
-  const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [afterLoginPath, setAfterLoginPath] = useState('/dashboard')
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    setAfterLoginPath(safeCallbackPath(params.get('callbackUrl')))
-  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -32,6 +24,11 @@ export default function SignInPage() {
     setLoading(true)
 
     try {
+      // Lire callbackUrl ici (sync au submit), pas dans un useEffect : sinon une soumission
+      // très rapide après chargement peut rediriger vers /dashboard au lieu du callback.
+      const params = new URLSearchParams(window.location.search)
+      const nextPath = safeCallbackPath(params.get('callbackUrl'))
+
       const result = await signIn('credentials', {
         email,
         password,
@@ -41,8 +38,10 @@ export default function SignInPage() {
       if (result?.error) {
         setError('Email ou mot de passe incorrect')
       } else {
-        router.push(afterLoginPath)
-        router.refresh()
+        // Ne pas utiliser router.push + router.refresh : la session serveur peut ne pas voir
+        // le cookie JWT encore, ce qui renvoie vers /auth/signin en boucle.
+        window.location.assign(nextPath)
+        return
       }
     } catch (err) {
       setError('Une erreur est survenue. Veuillez réessayer.')

@@ -2,13 +2,11 @@
 
 import { useState } from 'react'
 import { signIn } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
 import { Mail, Lock, User, Loader2, ArrowRight } from 'lucide-react'
 import Logo from '@/components/Logo'
 import Starfield from '@/components/Starfield'
 
 export default function SignUpPage() {
-  const router = useRouter()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -58,8 +56,8 @@ export default function SignUpPage() {
       if (result?.error) {
         setError('Erreur lors de la création du compte')
       } else {
-        router.push('/dashboard')
-        router.refresh()
+        window.location.assign('/dashboard')
+        return
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Une erreur est survenue')

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { getSession } from 'next-auth/react'
 import { motion } from 'framer-motion'
 import { BookOpenText, CalendarClock, Loader2, Sparkles } from 'lucide-react'
 import BackButton from '@/components/BackButton'
@@ -59,9 +59,11 @@ function parseJournalChat(reply: string): { speaker: string; body: string }[] {
   return messages.filter((msg) => msg.body.length > 0)
 }
 
+const JOURNAL_SIGNIN = '/auth/signin?callbackUrl=/journal-pilot'
+
 export default function JournalPilotClient() {
   const t = useTranslation()
-  const router = useRouter()
+  const [authGate, setAuthGate] = useState<'loading' | 'authenticated' | 'unauthenticated'>('loading')
 
   const [loading, setLoading] = useState(true)
   const [savingProfile, setSavingProfile] = useState(false)
@@ -101,9 +103,9 @@ export default function JournalPilotClient() {
     setLoading(true)
     setError(null)
     try {
-      const profileRes = await fetch('/api/journal/profile')
+      const profileRes = await fetch('/api/journal/profile', { credentials: 'include' })
       if (profileRes.status === 401) {
-        router.push('/auth/signin?callbackUrl=/journal-pilot')
+        window.location.assign(JOURNAL_SIGNIN)
         return
       }
       const profileJson = await profileRes.json()
@@ -123,7 +125,7 @@ export default function JournalPilotClient() {
         })
       }
 
-      const chatRes = await fetch('/api/journal/chat')
+      const chatRes = await fetch('/api/journal/chat', { credentials: 'include' })
       const chatJson = await chatRes.json()
       if (!chatRes.ok) throw new Error(chatJson?.error || 'Erreur clavardage')
       setMessages(chatJson.messages || [])
@@ -135,9 +137,26 @@ export default function JournalPilotClient() {
   }
 
   useEffect(() => {
+    let cancelled = false
+    getSession().then((session) => {
+      if (cancelled) return
+      if (!session?.user) {
+        setAuthGate('unauthenticated')
+        window.location.assign(JOURNAL_SIGNIN)
+        return
+      }
+      setAuthGate('authenticated')
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  useEffect(() => {
+    if (authGate !== 'authenticated') return
     fetchProfileAndChat()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [authGate])
 
   async function saveProfile(e: React.FormEvent) {
     e.preventDefault()
@@ -146,6 +165,7 @@ export default function JournalPilotClient() {
     try {
       const res = await fetch('/api/journal/profile', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(profileForm),
       })
@@ -164,7 +184,10 @@ export default function JournalPilotClient() {
     setNextExactLoading(true)
     setNextExactError(null)
     try {
-      const res = await fetch('/api/journal/next-exact-times', { method: 'POST' })
+      const res = await fetch('/api/journal/next-exact-times', {
+        method: 'POST',
+        credentials: 'include',
+      })
       const json = await res.json()
       if (!res.ok) {
         throw new Error(json?.error || 'Calcul impossible')
@@ -187,6 +210,7 @@ export default function JournalPilotClient() {
     try {
       const res = await fetch('/api/journal/chat', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: entryInput.trim() }),
       })
@@ -209,7 +233,7 @@ export default function JournalPilotClient() {
     }
   }
 
-  if (loading) {
+  if (authGate === 'loading' || authGate === 'unauthenticated' || loading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-cosmic-purple to-magenta-purple flex items-center justify-center text-cosmic-gold">
         <Loader2 className="h-8 w-8 animate-spin" />
