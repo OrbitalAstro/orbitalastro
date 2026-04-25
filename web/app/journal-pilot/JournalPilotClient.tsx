@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { getSession } from 'next-auth/react'
 import { motion } from 'framer-motion'
-import { BookOpenText, CalendarClock, Loader2, Sparkles } from 'lucide-react'
+import { BookOpenText, Loader2, Sparkles } from 'lucide-react'
 import BackButton from '@/components/BackButton'
 import Starfield from '@/components/Starfield'
 
@@ -77,9 +77,6 @@ export default function JournalPilotClient() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [entryInput, setEntryInput] = useState('')
-  const [nextExactLoading, setNextExactLoading] = useState(false)
-  const [nextExactLines, setNextExactLines] = useState<string[] | null>(null)
-  const [nextExactError, setNextExactError] = useState<string | null>(null)
   const threadRef = useRef<HTMLDivElement | null>(null)
 
   const profileComplete = useMemo(() => {
@@ -156,28 +153,6 @@ export default function JournalPilotClient() {
     threadRef.current.scrollTop = threadRef.current.scrollHeight
   }, [messages, sendingEntry])
 
-  async function runNextExactTimes() {
-    setNextExactLoading(true)
-    setNextExactError(null)
-    try {
-      const res = await fetch('/api/journal/next-exact-times', {
-        method: 'POST',
-        credentials: 'include',
-      })
-      const json = await res.json()
-      if (!res.ok) {
-        throw new Error(json?.error || 'Calcul impossible')
-      }
-      const lines: string[] = Array.isArray(json.linesFr) ? json.linesFr : []
-      setNextExactLines(lines)
-    } catch (err) {
-      setNextExactError(err instanceof Error ? err.message : 'Erreur')
-      setNextExactLines(null)
-    } finally {
-      setNextExactLoading(false)
-    }
-  }
-
   async function submitEntry(e: React.FormEvent) {
     e.preventDefault()
     if (!entryInput.trim()) return
@@ -249,40 +224,6 @@ export default function JournalPilotClient() {
                 {profile?.birth_date ? ` · ${profile.birth_date}` : ''}
                 . Tu n’as rien à ressaisir à chaque visite.
               </p>
-            </div>
-
-            <div className="mt-4 bg-cosmic-purple/30 border border-cosmic-gold/25 rounded-xl p-4">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                <div>
-                  <h3 className="text-sm font-semibold text-cosmic-gold flex items-center gap-2">
-                    <CalendarClock className="h-4 w-4" />
-                    Dates des prochains passages (calcul à part)
-                  </h3>
-                  <p className="text-xs text-cosmic-gold/70 mt-1">
-                    Recherche numérique sur l’éphemeride (plus lourd) — lance-la quand tu veux des dates chiffrées. Tu peux
-                    copier le résultat dans le clavardage pour que la guilde s’y réfère.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={runNextExactTimes}
-                  disabled={nextExactLoading}
-                  className="shrink-0 px-4 py-2 rounded-lg border border-cosmic-gold/50 text-cosmic-gold text-sm font-medium hover:bg-cosmic-gold/10 transition disabled:opacity-50"
-                >
-                  {nextExactLoading ? 'Calcul en cours…' : 'Lancer le calcul'}
-                </button>
-              </div>
-              {nextExactError ? (
-                <p className="mt-3 text-sm text-red-300">{nextExactError}</p>
-              ) : null}
-              {nextExactLines && nextExactLines.length > 0 ? (
-                <pre className="mt-3 text-xs text-cosmic-gold/90 whitespace-pre-wrap font-sans bg-black/20 rounded-lg p-3 border border-cosmic-gold/15 max-h-48 overflow-y-auto">
-                  {nextExactLines.join('\n')}
-                </pre>
-              ) : null}
-              {nextExactLines && nextExactLines.length === 0 && !nextExactLoading ? (
-                <p className="mt-3 text-sm text-cosmic-gold/70">Aucun passage trouvé dans l’horizon pour les aspects retenus.</p>
-              ) : null}
             </div>
 
             <div className="mt-6 space-y-3">
