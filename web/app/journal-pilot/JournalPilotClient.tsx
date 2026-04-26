@@ -278,6 +278,30 @@ export default function JournalPilotClient() {
     threadRef.current.scrollTop = threadRef.current.scrollHeight
   }, [messages, sendingEntry])
 
+  async function runNextExactTimes() {
+    setNextExactLoading(true)
+    setNextExactError(null)
+    try {
+      const res = await fetch('/api/journal/next-exact-times', {
+        method: 'POST',
+        credentials: 'include',
+      })
+      const json = await res.json()
+      if (!res.ok) {
+        if (json?.code === 'PROFILE_INCOMPLETE') {
+          throw new Error("Enregistre d'abord tes données de naissance (ci-dessus) pour lancer ce calcul.")
+        }
+        throw new Error(json?.error || 'Erreur de calcul des prochains passages.')
+      }
+      setNextExactLines(Array.isArray(json?.linesFr) ? json.linesFr : [])
+    } catch (err) {
+      setNextExactLines(null)
+      setNextExactError(err instanceof Error ? err.message : 'Erreur inconnue')
+    } finally {
+      setNextExactLoading(false)
+    }
+  }
+
   async function submitEntry(e: React.FormEvent) {
     e.preventDefault()
     if (!entryInput.trim()) return
