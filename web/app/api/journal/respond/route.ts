@@ -4,8 +4,23 @@ import { authOptions } from '@/lib/auth-options'
 import { getSupabaseAdmin } from '@/lib/supabase'
 import { fetchJournalAstroContext } from '@/lib/journal-astro-context'
 import { buildJournalGuildSystemInstruction } from '@/lib/journal-guild-prompt'
+import { loadJournalChatMemory, mergeJournalMemoryAfterTurn } from '@/lib/journal-chat-memory'
 
 export const runtime = 'nodejs'
+
+const GENEROUS_MIN_CHARS = 2400
+const GENEROUS_MIN_WORDS = 420
+
+function countWords(input: string): number {
+  return input
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean).length
+}
+
+function isTooShortGenerousReply(input: string): boolean {
+  return input.length < GENEROUS_MIN_CHARS || countWords(input) < GENEROUS_MIN_WORDS
+}
 
 function getApiBaseUrl() {
   return (process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000').replace(/\/+$/, '')
@@ -65,18 +80,44 @@ export async function POST(request: NextRequest) {
 
     const { natalSummary, majorTransits, targetDate, astroTimingBlock } = astro
 
+    let longTermMemory = ''
+    try {
+      longTermMemory = await loadJournalChatMemory(supabase, user.id)
+    } catch {
+      longTermMemory = ''
+    }
+
     const journalDate = new Date().toLocaleDateString('fr-CA')
     const systemInstruction = buildJournalGuildSystemInstruction({
       displayName: user.display_name || 'Client',
       natalSummary,
       astroTimingBlock,
       journalDate,
+      longTermMemory,
     })
 
-    const prompt = `Message qu'on vient d'envoyer dans le fil :
+    const prompt = `Message du journal :
 """${entryText}"""
 
-Si on demande le quand, un pic, l’énergie ou le timing : cite les **dates des prochains passages** du bloc quand elles y sont, la référence temporelle, les phases et les **noms de planètes** ; pas seulement des images. Réponds en 6 à 12 lignes « Rôle : … », style clavardage ; planètes en **je** qui **tutoyent**, **sans** se nommer après « je » (l’étiquette du rôle suffit).`
+Écris une réponse GÉNÉREUSE, profonde, structurée et actionnable en français.
+
+Contraintes obligatoires :
+- Longueur cible : 700 à 1200 mots.
+- 6 sections avec titres explicites, dans cet ordre :
+  1) Lecture principale
+  2) Dynamiques en tension (au moins 2 forces)
+  3) Timeline (maintenant, 3 mois, 12 mois)
+  4) Impacts concrets (travail, visibilité, argent)
+  5) Plan d'action 7 jours (5 actions réalistes)
+  6) Questions de journal (3 questions personnalisées)
+- Ton : chaleureux, précis, humain, jamais fataliste.
+- Chaque section doit contenir au moins un élément concret et utile.
+- Si la personne demande un "quand", un "pic", l'énergie ou le timing : cite d'abord les dates/heures disponibles dans le bloc astrologique, puis interprète.
+- Termine par une phrase de continuité ("si tu veux, je peux...").
+
+Interdit :
+- Réponse courte de type résumé.
+- Vagues généralités sans application concrète.`
 
     const apiBase = getApiBaseUrl()
     const aiResponse = await fetch(`${apiBase}/ai/interpret`, {
@@ -95,9 +136,44 @@ Si on demande le quand, un pic, l’énergie ou le timing : cite les **dates des
     }
 
     const aiData = await aiResponse.json()
-    const replyText = String(aiData?.content || '').trim()
+    let replyText = String(aiData?.content || '').trim()
     if (!replyText) {
       return NextResponse.json({ error: 'Réponse IA vide.' }, { status: 502 })
+    }
+
+    // Si le modèle reste trop bref, on force une seconde passe d'enrichissement.
+    if (isTooShortGenerousReply(replyText)) {
+      const enrichPrompt = `Enrichis la réponse ci-dessous pour atteindre un niveau "généreux" :
+
+--- Réponse actuelle ---
+${replyText}
+--- Fin ---
+
+Réécris complètement avec :
+- 700 à 1200 mots,
+- les 6 sections obligatoires dans l'ordre,
+- plus de concret, nuances et actions.
+
+Garde les mêmes données astrologiques, n'invente aucun transit ni date absente du bloc.`
+
+      const enrichResponse = await fetch(`${apiBase}/ai/interpret`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: enrichPrompt,
+          system_instruction: systemInstruction,
+          temperature: 0.7,
+          max_output_tokens: 4096,
+        }),
+      })
+
+      if (enrichResponse.ok) {
+        const enrichData = await enrichResponse.json()
+        const enrichedText = String(enrichData?.content || '').trim()
+        if (enrichedText) {
+          replyText = enrichedText
+        }
+      }
     }
 
     const { data: savedEntry, error: saveError } = await supabase
@@ -118,6 +194,15 @@ Si on demande le quand, un pic, l’énergie ou le timing : cite les **dates des
     if (saveError) {
       return NextResponse.json({ error: saveError.message }, { status: 500 })
     }
+
+    void mergeJournalMemoryAfterTurn({
+      supabase,
+      apiBase,
+      userId: user.id,
+      priorSummary: longTermMemory,
+      userMessage: entryText,
+      assistantMessage: replyText,
+    }).catch(() => {})
 
     return NextResponse.json({ ok: true, entry: savedEntry })
   } catch (error) {

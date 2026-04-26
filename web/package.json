@@ -10,6 +10,7 @@
     "build:vercel": "next build",
     "start": "next start",
     "lint": "next lint",
+    "lint:journal": "eslint \"app/journal-pilot/**/*.{ts,tsx}\" \"app/api/journal/**/*.ts\" \"lib/journal-*.ts\"",
     "postinstall": "echo 'Dependencies installed'"
   },
   "dependencies": {

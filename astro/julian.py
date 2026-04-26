@@ -2,7 +2,7 @@
 
 """Helper to convert UTC datetimes into Julian Days."""
 
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 
 
 def datetime_to_julian_day(dt_utc: datetime) -> float:
@@ -32,3 +32,12 @@ def datetime_to_julian_day(dt_utc: datetime) -> float:
         + frac_day
     )
     return jd
+
+
+def julian_day_to_datetime_utc(jd: float) -> datetime:
+    """
+    Convert Julian Day (UT) to timezone-aware UTC datetime.
+    Uses the J2000 anchor (JD 2451545.0 = 2000-01-01 12:00 UTC), standard in astronomy.
+    """
+    base = datetime(2000, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
+    return base + timedelta(days=float(jd) - 2451545.0)

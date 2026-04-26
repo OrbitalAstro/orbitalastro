@@ -4,10 +4,21 @@ import { authOptions } from '@/lib/auth-options'
 import { getSupabaseAdmin } from '@/lib/supabase'
 import { fetchJournalAstroContext } from '@/lib/journal-astro-context'
 import { buildJournalGuildSystemInstruction } from '@/lib/journal-guild-prompt'
+import {
+  loadJournalChatMemory,
+  mergeJournalMemoryAfterTurn,
+  shouldRunJournalLightMemoryMerge,
+} from '@/lib/journal-chat-memory'
 
 export const runtime = 'nodejs'
 
 const MAX_HISTORY_MESSAGES = 72
+const MAX_ARCHIVED_THREADS = 30
+
+function isMissingArchivedColumnError(message?: string): boolean {
+  const text = String(message || '').toLowerCase()
+  return text.includes('is_archived') && (text.includes('column') || text.includes('schema cache'))
+}
 
 function getApiBaseUrl() {
   return (process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000').replace(/\/+$/, '')
@@ -20,24 +31,63 @@ export async function GET() {
   }
 
   const supabase = getSupabaseAdmin()
-  const { data: thread, error: threadError } = await supabase
-    .from('journal_chat_threads')
-    .select('id')
-    .eq('user_id', session.user.id)
-    .maybeSingle()
+  let activeThread: { id: string } | null = null
+  let threadError: { message: string } | null = null
+  let archivedColumnSupported = true
+
+  {
+    const result = await supabase
+      .from('journal_chat_threads')
+      .select('id')
+      .eq('user_id', session.user.id)
+      .eq('is_archived', false)
+      .order('updated_at', { ascending: false })
+      .maybeSingle()
+    activeThread = result.data
+    threadError = result.error
+    if (threadError && isMissingArchivedColumnError(threadError.message)) {
+      archivedColumnSupported = false
+      const fallback = await supabase
+        .from('journal_chat_threads')
+        .select('id')
+        .eq('user_id', session.user.id)
+        .maybeSingle()
+      activeThread = fallback.data
+      threadError = fallback.error
+    }
+  }
 
   if (threadError) {
     return NextResponse.json({ error: threadError.message }, { status: 500 })
   }
 
-  if (!thread?.id) {
-    return NextResponse.json({ threadId: null, messages: [] })
+  let archivedThreads: Array<{ id: string; created_at: string; updated_at: string; archived_at: string | null }> = []
+  let archivedErr: { message: string } | null = null
+
+  if (archivedColumnSupported) {
+    const archivedRes = await supabase
+      .from('journal_chat_threads')
+      .select('id, created_at, updated_at, archived_at')
+      .eq('user_id', session.user.id)
+      .eq('is_archived', true)
+      .order('archived_at', { ascending: false })
+      .limit(MAX_ARCHIVED_THREADS)
+    archivedThreads = archivedRes.data || []
+    archivedErr = archivedRes.error
+  }
+
+  if (archivedErr) {
+    return NextResponse.json({ error: archivedErr.message }, { status: 500 })
+  }
+
+  if (!activeThread?.id) {
+    return NextResponse.json({ threadId: null, messages: [], archivedThreads: archivedThreads || [] })
   }
 
   const { data: messages, error: msgError } = await supabase
     .from('journal_chat_messages')
     .select('id, role, content, created_at')
-    .eq('thread_id', thread.id)
+    .eq('thread_id', activeThread.id)
     .order('created_at', { ascending: true })
     .limit(500)
 
@@ -45,7 +95,11 @@ export async function GET() {
     return NextResponse.json({ error: msgError.message }, { status: 500 })
   }
 
-  return NextResponse.json({ threadId: thread.id, messages: messages || [] })
+  return NextResponse.json({
+    threadId: activeThread.id,
+    messages: messages || [],
+    archivedThreads: archivedThreads || [],
+  })
 }
 
 export async function POST(request: NextRequest) {
@@ -83,11 +137,31 @@ export async function POST(request: NextRequest) {
     }
 
     let threadId: string
-    const { data: existingThread, error: findErr } = await supabase
-      .from('journal_chat_threads')
-      .select('id')
-      .eq('user_id', user.id)
-      .maybeSingle()
+    let existingThread: { id: string } | null = null
+    let findErr: { message: string } | null = null
+    let archivedColumnSupported = true
+
+    {
+      const result = await supabase
+        .from('journal_chat_threads')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('is_archived', false)
+        .order('updated_at', { ascending: false })
+        .maybeSingle()
+      existingThread = result.data
+      findErr = result.error
+      if (findErr && isMissingArchivedColumnError(findErr.message)) {
+        archivedColumnSupported = false
+        const fallback = await supabase
+          .from('journal_chat_threads')
+          .select('id')
+          .eq('user_id', user.id)
+          .maybeSingle()
+        existingThread = fallback.data
+        findErr = fallback.error
+      }
+    }
 
     if (findErr) {
       return NextResponse.json({ error: findErr.message }, { status: 500 })
@@ -96,9 +170,12 @@ export async function POST(request: NextRequest) {
     if (existingThread?.id) {
       threadId = existingThread.id
     } else {
+      const insertPayload = archivedColumnSupported
+        ? { user_id: user.id, is_archived: false }
+        : { user_id: user.id }
       const { data: created, error: insErr } = await supabase
         .from('journal_chat_threads')
-        .insert({ user_id: user.id })
+        .insert(insertPayload)
         .select('id')
         .single()
       if (insErr) {
@@ -152,12 +229,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: msg }, { status: 502 })
     }
 
+    let longTermMemory = ''
+    try {
+      longTermMemory = await loadJournalChatMemory(supabase, user.id)
+    } catch {
+      longTermMemory = ''
+    }
+
     const journalDate = new Date().toLocaleDateString('fr-CA')
     const systemInstruction = buildJournalGuildSystemInstruction({
       displayName: user.display_name || 'Client',
       natalSummary: astro.natalSummary,
       astroTimingBlock: astro.astroTimingBlock,
       journalDate,
+      longTermMemory,
     })
 
     const prompt = `Son dernier message dans le fil :
@@ -167,7 +252,13 @@ Considère tout l'historique déjà fourni dans la conversation (tours précéde
 
 Si la personne demande le **quand**, un **pic**, l’**énergie** ou le **timing** : cite d’abord les **dates/heures des « Prochains passages à l’orbe minimale »** quand elles sont dans le bloc, plus la **date-heure de référence**, les **phases** (exact / approche / séparation), **signes** et **noms de planètes** dans les lignes d’aspects. Tu **dois** inclure du concret chiffré tiré du bloc quand il y en a — ne te limite pas aux métaphores.
 
-Réponds en 6 à 14 lignes au format « Rôle : … », style clavardage. Les planètes parlent en **je** et **tutoyent** la personne — **sans** « je, [nom de la planète] » : l’étiquette du rôle suffit. Pas d'introduction du type « voici mon interprétation ».`
+Si le bloc contient **« PHÉNOMÈNES LUNAIRES »** (pleine lune / nouvelle lune calculée) : la **première** ligne **Astrologie :** donne **immédiatement** la date/heure de la lunaison indiquée sur la première puce, puis une phrase d’interprétation utile ; pas d’évitement ni de réponse uniquement métaphorique.
+
+**Volume attendu (important)** : ne force **pas** la personne à écrire « dis-moi en plus » ou « peux-tu développer ». Dès **ce** message, livre une réponse **généreuse** : assez de matière pour qu’elle ait une vision d’ensemble. Concrètement : **12 à 22 lignes** « Rôle : … », chaque rôle pertinent avec **plusieurs phrases** après les deux-points (voir consigne système). Inclure **au moins trois** planètes / points distincts après la première Astrologie, plus une **dernière** ligne Astrologie de synthèse.
+
+Si le dernier message de la personne est une vague relance (« encore », « un peu plus », etc.) : **approfondis sans répéter** les formulations du tour précédent ; apporte **nouveauté** (autres corps du bloc, conséquences sur 2–4 semaines, ce qu’il vaut mieux éviter ou favoriser).
+
+Les planètes parlent en **je** et **tutoyent** — **sans** « je, [nom de la planète] » : l’étiquette du rôle suffit. Pas d'introduction du type « voici mon interprétation ».`
 
     const apiBase = getApiBaseUrl()
     const aiResponse = await fetch(`${apiBase}/ai/interpret`, {
@@ -176,8 +267,8 @@ Réponds en 6 à 14 lignes au format « Rôle : … », style clavardage. Les pl
       body: JSON.stringify({
         prompt,
         system_instruction: systemInstruction,
-        temperature: 0.68,
-        max_output_tokens: 4096,
+        temperature: 0.72,
+        max_output_tokens: 6144,
         conversation_turns,
       }),
     })
@@ -212,6 +303,24 @@ Réponds en 6 à 14 lignes au format « Rôle : … », style clavardage. Les pl
 
     if (asstErr || !assistantRow) {
       return NextResponse.json({ error: asstErr?.message || 'Sauvegarde réponse impossible.' }, { status: 500 })
+    }
+
+    const { count: assistantCount, error: assistantCountErr } = await supabase
+      .from('journal_chat_messages')
+      .select('*', { count: 'exact', head: true })
+      .eq('thread_id', threadId)
+      .eq('role', 'assistant')
+
+    const ac = assistantCountErr ? 1 : assistantCount ?? 1
+    if (shouldRunJournalLightMemoryMerge(ac)) {
+      void mergeJournalMemoryAfterTurn({
+        supabase,
+        apiBase,
+        userId: user.id,
+        priorSummary: longTermMemory,
+        userMessage: text,
+        assistantMessage: replyText,
+      }).catch(() => {})
     }
 
     return NextResponse.json({

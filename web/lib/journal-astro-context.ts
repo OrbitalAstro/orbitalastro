@@ -7,6 +7,7 @@ import {
   type NextExactHitJson,
 } from '@/lib/journal-next-exact-cache'
 import { journalMessageWantsNextExactDates } from '@/lib/journal-timing-intent'
+import { parseJournalLunarIntent } from '@/lib/journal-lunar-intent'
 import { withJournalTransitBasisCache } from '@/lib/journal-transit-basis-cache'
 
 export type JournalUserForAstro = {
@@ -124,6 +125,29 @@ export function formatJournalNextExactLine(hit: JournalNextExactHit, timeZone: s
     return `- ${tb} ${hit.aspect} natal ${nb} → prochain passage à l’orbe minimale (calcul éphemerides) : ${local} (orbe ~${hit.min_orb_deg}° ; réf. UTC ${hit.exact_utc})`
   } catch {
     return `- ${hit.transiting_body} ${hit.aspect} ${hit.natal_body} → ${hit.exact_utc}`
+  }
+}
+
+export async function fetchJournalLunarLinesFromBackend(
+  fromIso: string,
+  intent: { event: 'full_moon' | 'new_moon'; moon_sign?: string },
+): Promise<string[]> {
+  try {
+    const res = await fetch(`${getJournalApiBaseUrl()}/api/transits/next-lunar-event`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        from_date: fromIso,
+        event: intent.event,
+        moon_sign: intent.moon_sign,
+        max_moons_to_scan: 36,
+      }),
+    })
+    if (!res.ok) return []
+    const json = (await res.json()) as { lines_fr?: string[] }
+    return Array.isArray(json.lines_fr) ? json.lines_fr : []
+  } catch {
+    return []
   }
 }
 
@@ -506,6 +530,14 @@ export async function fetchJournalAstroContext(
     : []
   const nextExactLinesFr = exacts.map((h) => formatJournalNextExactLine(h, tz))
 
+  const lunarIntent = fromUserMsg ? parseJournalLunarIntent(fromUserMsg) : null
+  const lunarLinesFr =
+    lunarIntent && targetDate ? await fetchJournalLunarLinesFromBackend(targetDate, lunarIntent) : []
+  const lunarSection =
+    lunarLinesFr.length > 0
+      ? ['PHÉNOMÈNES LUNAIRES (calcul moteur — Soleil / Lune, éphéméride) :', ...lunarLinesFr].join('\n')
+      : ''
+
   const snapshotFr = formatSnapshotInTimezone(targetDate, tz)
   const sky = transitsPayload.planets as Record<string, number> | undefined
   const displayForSky = majorTransitObjects.slice(0, JOURNAL_TRANSIT_DISPLAY_LINES)
@@ -544,6 +576,7 @@ export async function fetchJournalAstroContext(
     majorTransits.length > 0 ? majorTransits.map((l) => `- ${l}`).join('\n') : '- Aucun',
     '',
     nextExactSection,
+    lunarSection ? `\n${lunarSection}` : '',
   ].join('\n')
 
   return {

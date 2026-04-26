@@ -19,6 +19,7 @@ from astro.julian import datetime_to_julian_day
 from astro.master_prompt_builder import build_natal_reading_prompt
 from astro.chart_utils import build_chart_payload_for_narrative
 from astro.transit_exact_search import find_next_exacts_for_hints
+from astro.lunar_events import next_lunar_event_utc, normalize_moon_sign_token
 from api.schemas import NarrativeConfig
 
 router = APIRouter(prefix="/api", tags=["transits"])
@@ -62,6 +63,32 @@ class NextExactHit(BaseModel):
 
 class NextExactTimesResponse(BaseModel):
     exacts: List[NextExactHit]
+
+
+class NextLunarEventRequest(BaseModel):
+    from_date: str = Field(..., description="Instant de départ, ISO 8601 (UTC ou offset)")
+    event: str = Field("full_moon", description="full_moon ou new_moon")
+    moon_sign: Optional[str] = Field(
+        None,
+        description="Signe de la Lune souhaité (ex. scorpio, scorpion) ; optionnel",
+    )
+    max_moons_to_scan: int = Field(36, ge=1, le=48)
+
+
+class NextLunarEventHitModel(BaseModel):
+    exact_utc: str
+    event: str
+    moon_longitude_deg: float
+    sun_longitude_deg: float
+    moon_sign_en: str
+    moon_sign_fr: str
+    sun_sign_fr: str
+
+
+class NextLunarEventResponse(BaseModel):
+    hit: Optional[NextLunarEventHitModel] = None
+    scanned: List[NextLunarEventHitModel] = Field(default_factory=list)
+    lines_fr: List[str] = Field(default_factory=list)
 
 
 class TransitResponse(BaseModel):
@@ -235,4 +262,74 @@ async def next_exact_times(request: NextExactTimesRequest):
     )
     exacts = [NextExactHit(**x) for x in raw_exacts]
     return NextExactTimesResponse(exacts=exacts)
+
+
+@router.post("/transits/next-lunar-event", response_model=NextLunarEventResponse)
+async def next_lunar_event(request: NextLunarEventRequest):
+    """
+    Prochaine pleine lune ou nouvelle lune après `from_date`, avec option de filtre
+    sur le signe de la Lune (calcul Soleil–Lune, Swiss Ephemeris).
+    """
+    try:
+        from_dt = _parse_iso_utc(request.from_date)
+    except (ValueError, TypeError):
+        raise HTTPException(status_code=400, detail="from_date invalide (ISO 8601 attendu)")
+
+    ev = (request.event or "full_moon").strip().lower()
+    if ev not in ("full_moon", "new_moon"):
+        raise HTTPException(status_code=400, detail="event doit être full_moon ou new_moon")
+
+    wanted = normalize_moon_sign_token(request.moon_sign) if request.moon_sign else None
+    hit, scanned = next_lunar_event_utc(
+        from_dt,
+        ev,
+        moon_sign_en=wanted,
+        max_moons_to_scan=request.max_moons_to_scan,
+    )
+
+    def fmt(h) -> str:
+        iso = h.exact_utc.replace(microsecond=0).isoformat().replace("+00:00", "Z")
+        label = "Pleine lune" if h.event == "full_moon" else "Nouvelle lune"
+        return (
+            f"- {label} : {iso} (UTC) · Lune ~{h.moon_longitude_deg:.2f}° ({h.moon_sign_fr}) · "
+            f"Soleil ~{h.sun_longitude_deg:.2f}° ({h.sun_sign_fr})"
+        )
+
+    lines_fr: List[str] = []
+    if hit:
+        lines_fr.append(fmt(hit))
+    elif scanned:
+        lines_fr.append(
+            "Aucune lunaison du type demandé avec filtre de signe dans l’horizon scanné ; "
+            "prochaines occurrences (sans filtre de signe sur la liste) :"
+        )
+        for h in scanned[:8]:
+            lines_fr.append(fmt(h))
+
+    hit_model = (
+        NextLunarEventHitModel(
+            exact_utc=hit.exact_utc.replace(microsecond=0).isoformat().replace("+00:00", "Z"),
+            event=hit.event,
+            moon_longitude_deg=round(hit.moon_longitude_deg, 4),
+            sun_longitude_deg=round(hit.sun_longitude_deg, 4),
+            moon_sign_en=hit.moon_sign_en,
+            moon_sign_fr=hit.moon_sign_fr,
+            sun_sign_fr=hit.sun_sign_fr,
+        )
+        if hit
+        else None
+    )
+    scanned_models = [
+        NextLunarEventHitModel(
+            exact_utc=h.exact_utc.replace(microsecond=0).isoformat().replace("+00:00", "Z"),
+            event=h.event,
+            moon_longitude_deg=round(h.moon_longitude_deg, 4),
+            sun_longitude_deg=round(h.sun_longitude_deg, 4),
+            moon_sign_en=h.moon_sign_en,
+            moon_sign_fr=h.moon_sign_fr,
+            sun_sign_fr=h.sun_sign_fr,
+        )
+        for h in scanned
+    ]
+    return NextLunarEventResponse(hit=hit_model, scanned=scanned_models, lines_fr=lines_fr)
 
