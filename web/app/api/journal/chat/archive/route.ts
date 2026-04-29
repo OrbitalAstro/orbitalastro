@@ -7,6 +7,7 @@ import {
   loadJournalChatMemory,
   mergeJournalMemoryFromTranscript,
 } from '@/lib/journal-chat-memory'
+import { buildArchiveTitleFromMessages } from '@/lib/journal-archive-title'
 
 export const runtime = 'nodejs'
 
@@ -74,6 +75,9 @@ export async function POST() {
   }
 
   const snapshotMessages = currentMessages || []
+  const archiveTitle = buildArchiveTitleFromMessages(
+    snapshotMessages.map((m) => ({ role: m.role, content: m.content })),
+  )
 
   const { count, error: countErr } = await supabase
     .from('journal_chat_messages')
@@ -128,6 +132,7 @@ export async function POST() {
         created_at: snapshotMessages[0]?.created_at || new Date().toISOString(),
         updated_at: new Date().toISOString(),
         archived_at: new Date().toISOString(),
+        archive_title: archiveTitle,
         messages: snapshotMessages,
       },
     })
@@ -136,7 +141,12 @@ export async function POST() {
   const nowIso = new Date().toISOString()
   const { error: archiveErr } = await supabase
     .from('journal_chat_threads')
-    .update({ is_archived: true, archived_at: nowIso, updated_at: nowIso })
+    .update({
+      is_archived: true,
+      archived_at: nowIso,
+      updated_at: nowIso,
+      archive_title: archiveTitle,
+    })
     .eq('id', activeThread.id)
 
   if (archiveErr) {

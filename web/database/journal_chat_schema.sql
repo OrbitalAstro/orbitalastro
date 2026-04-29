@@ -28,6 +28,9 @@ ALTER TABLE journal_chat_threads
 ALTER TABLE journal_chat_threads
   ADD COLUMN IF NOT EXISTS archived_at TIMESTAMP WITH TIME ZONE;
 
+ALTER TABLE journal_chat_threads
+  ADD COLUMN IF NOT EXISTS archive_title TEXT;
+
 DO $$
 BEGIN
   IF EXISTS (

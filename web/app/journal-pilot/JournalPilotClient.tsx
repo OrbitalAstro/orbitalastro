@@ -3,10 +3,21 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { getSession } from 'next-auth/react'
 import { motion } from 'framer-motion'
-import { Archive, BookOpenText, Brain, CalendarClock, Loader2, Sparkles, Trash2 } from 'lucide-react'
+import {
+  Archive,
+  BookOpenText,
+  Brain,
+  CalendarClock,
+  History,
+  Loader2,
+  Trash2,
+  X,
+} from 'lucide-react'
 import BackButton from '@/components/BackButton'
 import Starfield from '@/components/Starfield'
+import { parseJournalGuildReply } from '@/lib/journal-chat-parse'
 import { JOURNAL_MEMORY_LIGHT_EVERY_N } from '@/lib/journal-memory-constants'
+import { glyphForJournalSpeaker } from '@/lib/journal-speaker-symbols'
 
 type Profile = {
   id: string
@@ -32,51 +43,30 @@ type ArchivedThread = {
   created_at: string
   updated_at: string
   archived_at?: string | null
+  archive_title?: string | null
   source?: 'server' | 'local'
   messages?: ChatMessage[]
 }
 
-/** Parse les réponses « Rôle : texte » (une ou plusieurs lignes par bulle). */
-function parseJournalChat(reply: string): { speaker: string; body: string }[] {
-  const trimmed = reply.trim()
-  if (!trimmed) return []
+const parseJournalChat = parseJournalGuildReply
 
-  const speakerPattern =
-    /^([A-Za-zÀ-ÿ][A-Za-zÀ-ÿéèêëàâôûùç'’\s]{1,30})\s*:\s*(.*)$/
-  const messages: { speaker: string; body: string }[] = []
-  let current: { speaker: string; lines: string[] } | null = null
-
-  for (const line of trimmed.split('\n')) {
-    const m = line.match(speakerPattern)
-    if (m) {
-      if (current) {
-        messages.push({ speaker: current.speaker, body: current.lines.join('\n').trim() })
-      }
-      current = { speaker: m[1].trim(), lines: m[2] ? [m[2]] : [] }
-    } else if (current) {
-      current.lines.push(line)
-    }
-  }
-  if (current) {
-    messages.push({ speaker: current.speaker, body: current.lines.join('\n').trim() })
-  }
-
-  const normalized = messages.length === 0 ? [{ speaker: 'Guilde', body: trimmed }] : messages.filter((msg) => msg.body.length > 0)
-  // Réduit le bruit visuel : fusionne les blocs consécutifs d'un même intervenant.
-  return normalized.reduce<{ speaker: string; body: string }[]>((acc, current) => {
-    const prev = acc[acc.length - 1]
-    if (prev && prev.speaker === current.speaker) {
-      prev.body = `${prev.body}\n\n${current.body}`.trim()
-      return acc
-    }
-    acc.push({ ...current })
-    return acc
-  }, [])
+function JournalSpeakerGlyph({ speaker }: { speaker: string }) {
+  const g = glyphForJournalSpeaker(speaker)
+  if (!g) return null
+  return (
+    <span className="mr-1 inline-block align-baseline text-[1.1rem] leading-none text-cosmic-gold/90" aria-hidden>
+      {g}
+    </span>
+  )
 }
 
 const JOURNAL_SIGNIN = '/auth/signin?callbackUrl=/journal-pilot'
 const JOURNAL_ONBOARDING = '/auth/onboarding?next=%2Fjournal-pilot'
 const LOCAL_ARCHIVE_KEY = 'journal_pilot_local_archives_v1'
+
+const JOURNAL_EMPTY_THREAD_WELCOME = `Bonjour — la guilde t’accueille ici.
+
+Écris ce qui te préoccupe, ce que tu veux explorer, ou une simple intuition à creuser : dès que tu envoies ton message, la réponse s’ajoute dans la même conversation, juste au-dessus, comme un fil naturel — pas besoin de « remonter » vers une autre zone.`
 
 export default function JournalPilotClient() {
   const [authGate, setAuthGate] = useState<'loading' | 'authenticated' | 'unauthenticated'>('loading')
@@ -103,6 +93,7 @@ export default function JournalPilotClient() {
   const [memoryLoading, setMemoryLoading] = useState(false)
   const [memorySaving, setMemorySaving] = useState(false)
   const [showMemoryClearConfirm, setShowMemoryClearConfirm] = useState(false)
+  const [showHistoryDrawer, setShowHistoryDrawer] = useState(false)
 
   function readLocalArchives(): ArchivedThread[] {
     if (typeof window === 'undefined') return []
@@ -118,6 +109,7 @@ export default function JournalPilotClient() {
           created_at: item.created_at || new Date().toISOString(),
           updated_at: item.updated_at || new Date().toISOString(),
           archived_at: item.archived_at || null,
+          archive_title: typeof item.archive_title === 'string' ? item.archive_title : null,
           source: 'local' as const,
           messages: Array.isArray(item.messages) ? item.messages : [],
         }))
@@ -135,6 +127,7 @@ export default function JournalPilotClient() {
         created_at: a.created_at,
         updated_at: a.updated_at,
         archived_at: a.archived_at || null,
+        archive_title: a.archive_title || null,
         messages: a.messages || [],
       }))
     window.localStorage.setItem(LOCAL_ARCHIVE_KEY, JSON.stringify(payload))
@@ -527,79 +520,161 @@ export default function JournalPilotClient() {
                 <p className="mt-3 text-sm text-cosmic-gold/70">Aucun passage trouvé dans l’horizon pour les aspects retenus.</p>
               ) : null}
             </div>
-            <div className="mt-6 space-y-3">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <h2 className="text-xl font-semibold">Fil de discussion</h2>
+            {/* Fil descendant continu : pas de « boîte » autour du dialogue — la zone de saisie prolonge le fil */}
+            <section className="mt-8 flex min-h-[min(52vh,480px)] max-h-[min(80vh,760px)] flex-col">
+              <div className="mb-2 flex shrink-0 items-center justify-between gap-2">
+                <p className="text-sm font-medium text-cosmic-gold/80">Clavardage avec la guilde</p>
+                <button
+                  type="button"
+                  onClick={() => setShowHistoryDrawer(true)}
+                  className="relative inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-cosmic-gold/80 hover:bg-cosmic-gold/10 transition"
+                  title="Historique des conversations archivées"
+                  aria-label="Ouvrir l’historique des conversations archivées"
+                >
+                  <History className="h-4 w-4" />
+                  {archivedThreads.length > 0 ? (
+                    <span className="absolute -right-0.5 -top-0.5 min-w-[1.125rem] rounded-full bg-cosmic-gold px-1 text-center text-[10px] font-bold leading-tight text-cosmic-purple">
+                      {archivedThreads.length > 99 ? '99+' : archivedThreads.length}
+                    </span>
+                  ) : null}
+                </button>
               </div>
+
               <div
                 ref={threadRef}
-                className="p-3 sm:p-4 rounded-xl border border-cosmic-gold/30 bg-cosmic-purple/20 backdrop-blur-sm min-h-[180px] max-h-[min(56vh,520px)] sm:max-h-[min(60vh,520px)] overflow-y-auto flex flex-col gap-3"
+                className="min-h-0 flex-1 overflow-y-auto flex flex-col gap-6 border-l border-cosmic-gold/15 pl-3 sm:pl-4"
               >
                 {messages.length === 0 ? (
-                  <div className="text-cosmic-gold/75 text-sm py-6 text-center">
-                    Aucun message pour l&apos;instant. Écris pour ouvrir la conversation.
+                  <div className="max-w-prose">
+                    <p className="flex items-baseline gap-1 text-[11px] uppercase tracking-wide text-cosmic-gold/40">
+                      <JournalSpeakerGlyph speaker="Guilde" />
+                      <span>Guilde</span>
+                    </p>
+                    <p className="mt-1 text-sm leading-relaxed text-cosmic-gold/90 whitespace-pre-wrap">
+                      {JOURNAL_EMPTY_THREAD_WELCOME}
+                    </p>
                   </div>
                 ) : (
                   messages.map((m) =>
                     m.role === 'user' ? (
                       <motion.div
                         key={m.id}
-                        initial={{ opacity: 0, y: 6 }}
+                        initial={{ opacity: 0, y: 4 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="self-end max-w-[96%] sm:max-w-[90%] md:max-w-[75%]"
+                        className="ml-auto max-w-[min(100%,42rem)] text-right"
                       >
-                        <div className="text-[10px] uppercase tracking-wide text-cosmic-gold/55 text-right mb-1">
+                        <p className="text-[11px] text-cosmic-gold/40">
+                          <JournalSpeakerGlyph speaker="Toi" />
                           Toi · {new Date(m.created_at).toLocaleString('fr-CA')}
-                        </div>
-                        <div className="rounded-2xl rounded-br-md px-4 py-2.5 bg-cosmic-gold/22 border border-cosmic-gold/45 text-cosmic-gold text-sm whitespace-pre-wrap">
+                        </p>
+                        <p className="mt-1 text-left text-sm leading-relaxed text-cosmic-gold whitespace-pre-wrap rounded-lg bg-cosmic-gold/[0.08] px-3 py-2">
                           {m.content}
-                        </div>
+                        </p>
                       </motion.div>
                     ) : (
                       <motion.div
                         key={m.id}
-                        initial={{ opacity: 0, y: 6 }}
+                        initial={{ opacity: 0, y: 4 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="self-start w-full max-w-[98%] sm:max-w-[95%] flex flex-col gap-2"
+                        className="max-w-[min(100%,48rem)]"
                       >
-                        <div className="text-[10px] text-cosmic-gold/55">
+                        <p className="text-[11px] text-cosmic-gold/40">
+                          <JournalSpeakerGlyph speaker="Guilde" />
                           Guilde · {new Date(m.created_at).toLocaleString('fr-CA')}
+                        </p>
+                        <div className="mt-2 flex flex-col gap-4">
+                          {parseJournalChat(m.content).map((bubble, idx) => {
+                            const isAstrology = bubble.speaker.trim().toLowerCase() === 'astrologie'
+                            return (
+                              <div key={`${m.id}-${idx}`} className={isAstrology ? 'max-w-prose' : ''}>
+                                <p className="text-[11px] uppercase tracking-wide text-cosmic-gold/40">
+                                  <JournalSpeakerGlyph speaker={bubble.speaker} />
+                                  {bubble.speaker}
+                                </p>
+                                <p className="mt-1 text-sm leading-relaxed text-cosmic-gold/95 whitespace-pre-wrap">
+                                  {bubble.body}
+                                </p>
+                              </div>
+                            )
+                          })}
                         </div>
-                        {parseJournalChat(m.content).map((bubble, idx) => {
-                          const isAstrology = bubble.speaker.trim().toLowerCase() === 'astrologie'
-                          return (
-                            <div
-                              key={`${m.id}-${idx}`}
-                              className={isAstrology ? 'self-center w-full max-w-[100%] sm:max-w-[96%] md:max-w-[90%]' : 'self-start max-w-[96%] sm:max-w-[90%] md:max-w-[85%]'}
-                            >
-                              <div className="text-[10px] uppercase tracking-wide text-cosmic-gold/55 mb-1">
-                                {bubble.speaker}
-                              </div>
-                              <div
-                                className={
-                                  isAstrology
-                                    ? 'rounded-2xl px-4 py-2.5 bg-white/20 border border-cosmic-gold/45 text-cosmic-gold text-sm whitespace-pre-wrap'
-                                    : 'rounded-2xl rounded-bl-md px-4 py-2.5 bg-white/12 border border-cosmic-gold/35 text-cosmic-gold text-sm whitespace-pre-wrap'
-                                }
-                              >
-                                {bubble.body}
-                              </div>
-                            </div>
-                          )
-                        })}
                       </motion.div>
                     )
                   )
                 )}
               </div>
-            </div>
 
-            <div className="mt-6 space-y-3">
-              <h2 className="text-xl font-semibold">Historique</h2>
+              <form onSubmit={submitEntry} className="mt-4 shrink-0 border-t border-cosmic-gold/10 pt-4">
+                <label htmlFor="journal-entry-input" className="sr-only">
+                  Message pour la guilde
+                </label>
+                <textarea
+                  id="journal-entry-input"
+                  value={entryInput}
+                  onChange={(e) => setEntryInput(e.target.value)}
+                  rows={3}
+                  className="w-full resize-y min-h-[5.5rem] border-0 border-b border-cosmic-gold/20 bg-transparent px-0 py-2 text-sm leading-relaxed text-cosmic-gold placeholder:text-cosmic-gold/35 outline-none transition focus:border-cosmic-gold/45"
+                  placeholder="Écris la suite du fil ici…"
+                  maxLength={4000}
+                />
+                <div className="mt-3 flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <span className="text-[11px] text-cosmic-gold/40">{entryInput.length}/4000</span>
+                  <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center">
+                    <button
+                      type="button"
+                      onClick={() => setShowArchiveConfirm(true)}
+                      disabled={endingConversation || messages.length === 0 || sendingEntry}
+                      className="inline-flex w-full items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm text-cosmic-gold/75 underline decoration-cosmic-gold/25 underline-offset-4 hover:text-cosmic-gold hover:decoration-cosmic-gold/50 disabled:opacity-40 sm:w-auto"
+                    >
+                      <Archive className="h-4 w-4 shrink-0 opacity-70" />
+                      {endingConversation ? 'Archivage...' : 'Fin de la conversation'}
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={sendingEntry || !entryInput.trim()}
+                      className="w-full rounded-lg bg-cosmic-gold px-5 py-2 text-sm font-semibold text-cosmic-purple hover:bg-cosmic-gold/90 transition disabled:opacity-50 sm:w-auto"
+                    >
+                      {sendingEntry ? 'En train de répondre...' : 'Envoyer'}
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </section>
+          </>
+        ) : null}
+      </div>
+      {showHistoryDrawer ? (
+        <div className="fixed inset-0 z-30 flex">
+          <button
+            type="button"
+            className="min-h-0 flex-1 bg-black/55"
+            aria-label="Fermer l’historique"
+            onClick={() => setShowHistoryDrawer(false)}
+          />
+          <aside
+            className="flex h-full w-full max-w-md shrink-0 flex-col border-l border-cosmic-gold/35 bg-gradient-to-b from-cosmic-purple to-magenta-purple shadow-2xl"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="journal-history-title"
+          >
+            <div className="flex items-center justify-between gap-2 border-b border-cosmic-gold/25 px-4 py-3">
+              <h2 id="journal-history-title" className="text-lg font-semibold text-cosmic-gold">
+                Historique
+              </h2>
+              <button
+                type="button"
+                onClick={() => setShowHistoryDrawer(false)}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-cosmic-gold/35 text-cosmic-gold hover:bg-cosmic-gold/10 transition"
+                aria-label="Fermer le panneau"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="min-h-0 flex-1 overflow-y-auto px-3 py-3 sm:px-4 flex flex-col gap-3">
               <p className="text-xs text-cosmic-gold/70">
-                L&apos;historique archivé est affiché ici, juste sous le fil de discussion.
+                Conversations archivées (compte ou cet appareil). Touche une entrée pour relire le fil.
               </p>
-              <div className="p-3 sm:p-4 rounded-xl border border-cosmic-gold/30 bg-cosmic-purple/20 backdrop-blur-sm">
+              <div className="p-3 rounded-xl border border-cosmic-gold/30 bg-cosmic-purple/20 backdrop-blur-sm">
                 {archivedThreads.length === 0 ? (
                   <p className="text-sm text-cosmic-gold/70">Aucune conversation archivée pour le moment.</p>
                 ) : (
@@ -615,9 +690,12 @@ export default function JournalPilotClient() {
                           className="w-full text-left rounded-lg border border-cosmic-gold/30 hover:border-cosmic-gold/50 px-3 py-2 transition disabled:opacity-60"
                         >
                           <div className="text-sm text-cosmic-gold font-medium break-words">
-                            Conversation archivée · {new Date(thread.archived_at || thread.updated_at).toLocaleString('fr-CA')}
+                            {thread.archive_title?.trim() || 'Conversation archivée'}
                           </div>
                           <div className="text-xs text-cosmic-gold/70 mt-1">
+                            {thread.archived_at || thread.updated_at
+                              ? `Archivée le ${new Date(thread.archived_at || thread.updated_at).toLocaleString('fr-CA')} · `
+                              : null}
                             Source: {thread.source === 'local' ? 'cet appareil' : 'compte'}
                             {' · '}
                             Début: {new Date(thread.created_at).toLocaleString('fr-CA')}
@@ -630,59 +708,48 @@ export default function JournalPilotClient() {
                 )}
               </div>
               {selectedArchive ? (
-                <div className="p-3 sm:p-4 rounded-xl border border-cosmic-gold/25 bg-black/20 max-h-[52vh] sm:max-h-[420px] overflow-y-auto flex flex-col gap-2">
+                <div className="p-3 rounded-xl border border-cosmic-gold/25 bg-black/20 max-h-[min(50vh,380px)] overflow-y-auto flex flex-col gap-2">
                   <p className="text-xs uppercase tracking-wide text-cosmic-gold/65">
-                    Historique ouvert · {new Date(archivedThreads.find((t) => t.id === selectedArchive.id)?.archived_at || '').toLocaleString('fr-CA')}
+                    Historique ouvert ·{' '}
+                    {new Date(
+                      archivedThreads.find((t) => t.id === selectedArchive.id)?.archived_at || '',
+                    ).toLocaleString('fr-CA')}
                   </p>
-                  {selectedArchive.messages.map((m) => (
-                    <div key={m.id} className="rounded-lg border border-cosmic-gold/20 bg-cosmic-purple/25 px-3 py-2">
-                      <div className="text-[10px] uppercase tracking-wide text-cosmic-gold/60 mb-1">
-                        {m.role === 'user' ? 'Toi' : 'Guilde'} · {new Date(m.created_at).toLocaleString('fr-CA')}
+                  {selectedArchive.messages.map((m) =>
+                    m.role === 'user' ? (
+                      <div key={m.id} className="rounded-lg border border-cosmic-gold/20 bg-cosmic-purple/25 px-3 py-2">
+                        <div className="mb-1 text-[10px] uppercase tracking-wide text-cosmic-gold/60">
+                          <JournalSpeakerGlyph speaker="Toi" />
+                          Toi · {new Date(m.created_at).toLocaleString('fr-CA')}
+                        </div>
+                        <div className="text-sm text-cosmic-gold whitespace-pre-wrap">{m.content}</div>
                       </div>
-                      <div className="text-sm text-cosmic-gold whitespace-pre-wrap">{m.content}</div>
-                    </div>
-                  ))}
+                    ) : (
+                      <div key={m.id} className="rounded-lg border border-cosmic-gold/20 bg-cosmic-purple/25 px-3 py-2">
+                        <div className="mb-1 text-[10px] uppercase tracking-wide text-cosmic-gold/60">
+                          <JournalSpeakerGlyph speaker="Guilde" />
+                          Guilde · {new Date(m.created_at).toLocaleString('fr-CA')}
+                        </div>
+                        <div className="mt-1 flex flex-col gap-3">
+                          {parseJournalChat(m.content).map((bubble, idx) => (
+                            <div key={`${m.id}-${idx}`}>
+                              <p className="text-[10px] uppercase tracking-wide text-cosmic-gold/55">
+                                <JournalSpeakerGlyph speaker={bubble.speaker} />
+                                {bubble.speaker}
+                              </p>
+                              <p className="mt-0.5 text-sm text-cosmic-gold whitespace-pre-wrap">{bubble.body}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ),
+                  )}
                 </div>
               ) : null}
             </div>
-
-            <form onSubmit={submitEntry} className="mt-4 bg-cosmic-purple/40 backdrop-blur-md border border-cosmic-gold/30 rounded-xl p-3 sm:p-4">
-              <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                <Sparkles className="h-5 w-5" />
-                Répondre dans le fil
-              </h2>
-              <textarea
-                value={entryInput}
-                onChange={(e) => setEntryInput(e.target.value)}
-                className="w-full min-h-[100px] bg-white/10 border border-cosmic-gold/30 rounded-lg px-3 py-2 text-cosmic-gold placeholder-cosmic-gold/55"
-                placeholder="Écris ta réponse pour continuer la conversation..."
-                maxLength={4000}
-              />
-              <div className="mt-3 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2">
-                <span className="text-sm text-cosmic-gold/70">{entryInput.length}/4000</span>
-                <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setShowArchiveConfirm(true)}
-                    disabled={endingConversation || messages.length === 0 || sendingEntry}
-                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-cosmic-gold/45 text-cosmic-gold text-sm font-medium hover:bg-cosmic-gold/10 transition disabled:opacity-50"
-                  >
-                    <Archive className="h-4 w-4" />
-                    {endingConversation ? 'Archivage...' : 'Fin de la conversation'}
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={sendingEntry || !entryInput.trim()}
-                    className="w-full sm:w-auto px-5 py-2 rounded-lg bg-cosmic-gold text-cosmic-purple font-semibold hover:bg-cosmic-gold/90 transition disabled:opacity-60"
-                  >
-                    {sendingEntry ? 'En train de répondre...' : 'Envoyer'}
-                  </button>
-                </div>
-              </div>
-            </form>
-          </>
-        ) : null}
-      </div>
+          </aside>
+        </div>
+      ) : null}
       {showArchiveConfirm ? (
         <div className="fixed inset-0 z-40 flex items-end sm:items-center justify-center bg-black/60 px-3 sm:px-4 pb-3 sm:pb-0">
           <div className="w-full max-w-md rounded-xl border border-cosmic-gold/30 bg-cosmic-purple/95 p-4 sm:p-5 shadow-2xl">

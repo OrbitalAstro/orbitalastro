@@ -61,13 +61,19 @@ export async function GET() {
     return NextResponse.json({ error: threadError.message }, { status: 500 })
   }
 
-  let archivedThreads: Array<{ id: string; created_at: string; updated_at: string; archived_at: string | null }> = []
+  let archivedThreads: Array<{
+    id: string
+    created_at: string
+    updated_at: string
+    archived_at: string | null
+    archive_title?: string | null
+  }> = []
   let archivedErr: { message: string } | null = null
 
   if (archivedColumnSupported) {
     const archivedRes = await supabase
       .from('journal_chat_threads')
-      .select('id, created_at, updated_at, archived_at')
+      .select('id, created_at, updated_at, archived_at, archive_title')
       .eq('user_id', session.user.id)
       .eq('is_archived', true)
       .order('archived_at', { ascending: false })
@@ -250,15 +256,15 @@ export async function POST(request: NextRequest) {
 
 Considère tout l'historique déjà fourni dans la conversation (tours précédents) : enchaîne naturellement, fais des liens si utiles, et si tu repères un schéma récurrent, nomme-le avec douceur.
 
-Si la personne demande le **quand**, un **pic**, l’**énergie** ou le **timing** : cite d’abord les **dates/heures des « Prochains passages à l’orbe minimale »** quand elles sont dans le bloc, plus la **date-heure de référence**, les **phases** (exact / approche / séparation), **signes** et **noms de planètes** dans les lignes d’aspects. Tu **dois** inclure du concret chiffré tiré du bloc quand il y en a — ne te limite pas aux métaphores.
+Si la personne demande le **quand**, un **pic**, l’**énergie** ou le **timing** : cite d’abord les **dates/heures** des passages listés (y compris sous « Prochains passages à l’orbe minimale ») quand elles sont dans le bloc, plus la **date-heure de référence**, les **phases** (exact / approche / séparation), **signes**, **maisons** et **noms de planètes** dans les lignes d’aspects. Inclus du **concret** (dates, phases) tiré du bloc — **sans** recopier d’**orbes en degrés** dans le texte. Ne te limite pas aux métaphores.
 
 Si le bloc contient **« PHÉNOMÈNES LUNAIRES »** (pleine lune / nouvelle lune calculée) : la **première** ligne **Astrologie :** donne **immédiatement** la date/heure de la lunaison indiquée sur la première puce, puis une phrase d’interprétation utile ; pas d’évitement ni de réponse uniquement métaphorique.
 
-**Volume attendu (important)** : ne force **pas** la personne à écrire « dis-moi en plus » ou « peux-tu développer ». Dès **ce** message, livre une réponse **généreuse** : assez de matière pour qu’elle ait une vision d’ensemble. Concrètement : **12 à 22 lignes** « Rôle : … », chaque rôle pertinent avec **plusieurs phrases** après les deux-points (voir consigne système). Inclure **au moins trois** planètes / points distincts après la première Astrologie, plus une **dernière** ligne Astrologie de synthèse.
+**Volume attendu (important)** : ne force **pas** la personne à écrire « dis-moi en plus » ou « peux-tu développer ». Dès **ce** message, livre une réponse **généreuse** : assez de matière pour qu’elle ait une vision d’ensemble. Concrètement : **12 à 22 interventions** (ligne d’étiquette + mini-paragraphe), chaque planète avec l’étiquette **(Natal: signe, maison n + Transit: signe, maison n)** quand les données le permettent (voir consigne système), puis **plusieurs phrases** de corps. Inclure **au moins trois** planètes / points distincts après la première Astrologie, plus une **dernière** ligne Astrologie de synthèse.
 
 Si le dernier message de la personne est une vague relance (« encore », « un peu plus », etc.) : **approfondis sans répéter** les formulations du tour précédent ; apporte **nouveauté** (autres corps du bloc, conséquences sur 2–4 semaines, ce qu’il vaut mieux éviter ou favoriser).
 
-Les planètes parlent en **je** et **tutoyent** — **sans** « je, [nom de la planète] » : l’étiquette du rôle suffit. Pas d'introduction du type « voici mon interprétation ».`
+Les planètes parlent en **je** et **tutoyent** — **sans** « je, [nom de la planète] », **sans** « je suis ta Lune / ton Soleil » ni équivalent : l’étiquette du rôle suffit. Pas d'introduction du type « voici mon interprétation ».`
 
     const apiBase = getApiBaseUrl()
     const aiResponse = await fetch(`${apiBase}/ai/interpret`, {
