@@ -35,6 +35,14 @@ const GLYPHS: Record<string, string> = {
   pluto: '♇',
   chiron: '⚷',
   lilith: '⚸',
+  ceres: '⚳',
+  pallas: '⚴',
+  junon: '⚵',
+  juno: '⚵',
+  vesta: '⚶',
+  eris: '⯰',
+  vertex: 'Vx',
+  part: '⊗',
 
   // Signes (FR sans accents)
   belier: '♈',

@@ -94,6 +94,8 @@ export default function JournalPilotClient() {
   const [memorySaving, setMemorySaving] = useState(false)
   const [showMemoryClearConfirm, setShowMemoryClearConfirm] = useState(false)
   const [showHistoryDrawer, setShowHistoryDrawer] = useState(false)
+  const [isNearBottom, setIsNearBottom] = useState(true)
+  const entryTextareaRef = useRef<HTMLTextAreaElement | null>(null)
 
   function readLocalArchives(): ArchivedThread[] {
     if (typeof window === 'undefined') return []
@@ -266,10 +268,41 @@ export default function JournalPilotClient() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authGate])
 
-  useEffect(() => {
+  const scrollThreadToBottom = useCallback((behavior: ScrollBehavior = 'auto') => {
     if (!threadRef.current) return
-    threadRef.current.scrollTop = threadRef.current.scrollHeight
-  }, [messages, sendingEntry])
+    threadRef.current.scrollTo({ top: threadRef.current.scrollHeight, behavior })
+  }, [])
+
+  useEffect(() => {
+    const el = threadRef.current
+    if (!el) return
+    const onScroll = () => {
+      const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight
+      setIsNearBottom(distanceFromBottom < 140)
+    }
+    onScroll()
+    el.addEventListener('scroll', onScroll, { passive: true })
+    return () => el.removeEventListener('scroll', onScroll)
+  }, [])
+
+  useEffect(() => {
+    if (isNearBottom || sendingEntry) {
+      scrollThreadToBottom('smooth')
+    }
+  }, [messages, sendingEntry, isNearBottom, scrollThreadToBottom])
+
+  useEffect(() => {
+    const el = entryTextareaRef.current
+    if (!el) return
+    const computed = window.getComputedStyle(el)
+    const lineHeight = Number.parseFloat(computed.lineHeight) || 24
+    const maxHeight = Math.round(lineHeight * 6)
+
+    el.style.height = 'auto'
+    const next = Math.min(el.scrollHeight, maxHeight)
+    el.style.height = `${Math.max(next, Math.round(lineHeight * 2))}px`
+    el.style.overflowY = el.scrollHeight > maxHeight ? 'auto' : 'hidden'
+  }, [entryInput])
 
   async function runNextExactTimes() {
     setNextExactLoading(true)
@@ -542,7 +575,7 @@ export default function JournalPilotClient() {
 
               <div
                 ref={threadRef}
-                className="min-h-0 flex-1 overflow-y-auto flex flex-col gap-6 border-l border-cosmic-gold/15 pl-3 sm:pl-4"
+                className="min-h-0 flex-1 overflow-y-auto flex flex-col gap-7 border-l border-cosmic-gold/15 pl-3 sm:pl-4 pr-1 sm:pr-2 scroll-pb-28"
               >
                 {messages.length === 0 ? (
                   <div className="max-w-prose">
@@ -561,13 +594,13 @@ export default function JournalPilotClient() {
                         key={m.id}
                         initial={{ opacity: 0, y: 4 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="ml-auto max-w-[min(100%,42rem)] text-right"
+                        className="ml-auto max-w-[min(100%,40rem)] text-right"
                       >
-                        <p className="text-[11px] text-cosmic-gold/40">
+                        <p className="text-[11px] text-cosmic-gold/45">
                           <JournalSpeakerGlyph speaker="Toi" />
                           Toi · {new Date(m.created_at).toLocaleString('fr-CA')}
                         </p>
-                        <p className="mt-1 text-left text-sm leading-relaxed text-cosmic-gold whitespace-pre-wrap rounded-lg bg-cosmic-gold/[0.08] px-3 py-2">
+                        <p className="mt-1.5 text-left text-[15px] leading-7 text-cosmic-gold whitespace-pre-wrap rounded-xl bg-cosmic-gold/[0.09] px-3.5 py-2.5">
                           {m.content}
                         </p>
                       </motion.div>
@@ -576,22 +609,22 @@ export default function JournalPilotClient() {
                         key={m.id}
                         initial={{ opacity: 0, y: 4 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="max-w-[min(100%,48rem)]"
+                        className="max-w-[min(100%,46rem)]"
                       >
-                        <p className="text-[11px] text-cosmic-gold/40">
+                        <p className="text-[11px] text-cosmic-gold/45">
                           <JournalSpeakerGlyph speaker="Guilde" />
                           Guilde · {new Date(m.created_at).toLocaleString('fr-CA')}
                         </p>
-                        <div className="mt-2 flex flex-col gap-4">
+                        <div className="mt-2.5 flex flex-col gap-5">
                           {parseJournalChat(m.content).map((bubble, idx) => {
                             const isAstrology = bubble.speaker.trim().toLowerCase() === 'astrologie'
                             return (
-                              <div key={`${m.id}-${idx}`} className={isAstrology ? 'max-w-prose' : ''}>
-                                <p className="text-[11px] uppercase tracking-wide text-cosmic-gold/40">
+                              <div key={`${m.id}-${idx}`} className={`${isAstrology ? 'max-w-prose' : ''} rounded-lg px-1`}>
+                                <p className="text-[11px] uppercase tracking-wide text-cosmic-gold/45">
                                   <JournalSpeakerGlyph speaker={bubble.speaker} />
                                   {bubble.speaker}
                                 </p>
-                                <p className="mt-1 text-sm leading-relaxed text-cosmic-gold/95 whitespace-pre-wrap">
+                                <p className="mt-1.5 text-[15px] leading-7 text-cosmic-gold/95 whitespace-pre-wrap">
                                   {bubble.body}
                                 </p>
                               </div>
@@ -604,16 +637,32 @@ export default function JournalPilotClient() {
                 )}
               </div>
 
-              <form onSubmit={submitEntry} className="mt-4 shrink-0 border-t border-cosmic-gold/10 pt-4">
+              {!isNearBottom ? (
+                <div className="mt-3 flex justify-center">
+                  <button
+                    type="button"
+                    onClick={() => scrollThreadToBottom('smooth')}
+                    className="rounded-full border border-cosmic-gold/40 bg-cosmic-purple/70 px-3 py-1 text-xs text-cosmic-gold hover:bg-cosmic-purple/90 transition"
+                  >
+                    Revenir au dernier message
+                  </button>
+                </div>
+              ) : null}
+
+              <form
+                onSubmit={submitEntry}
+                className="sticky bottom-0 mt-4 shrink-0 border-t border-cosmic-gold/10 bg-gradient-to-t from-cosmic-purple via-cosmic-purple/95 to-transparent pt-4 pb-1"
+              >
                 <label htmlFor="journal-entry-input" className="sr-only">
                   Message pour la guilde
                 </label>
                 <textarea
+                  ref={entryTextareaRef}
                   id="journal-entry-input"
                   value={entryInput}
                   onChange={(e) => setEntryInput(e.target.value)}
-                  rows={3}
-                  className="w-full resize-y min-h-[5.5rem] border-0 border-b border-cosmic-gold/20 bg-transparent px-0 py-2 text-sm leading-relaxed text-cosmic-gold placeholder:text-cosmic-gold/35 outline-none transition focus:border-cosmic-gold/45"
+                  rows={2}
+                  className="w-full resize-none min-h-[3.5rem] max-h-[11rem] border-0 border-b border-cosmic-gold/20 bg-transparent px-0 py-2 text-sm leading-relaxed text-cosmic-gold placeholder:text-cosmic-gold/35 outline-none transition focus:border-cosmic-gold/45"
                   placeholder="Écris la suite du fil ici…"
                   maxLength={4000}
                 />

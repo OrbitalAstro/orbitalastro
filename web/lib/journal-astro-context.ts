@@ -22,6 +22,8 @@ export type JournalUserForAstro = {
 type NatalPlanet = { longitude?: number; sign?: string; house?: number }
 type NatalResponse = {
   planets?: Record<string, NatalPlanet>
+  houses?: Record<string, number>
+  extra_objects?: Record<string, number>
   ascendant?: number | { sign?: string; longitude?: number }
   midheaven?: number
 }
@@ -65,9 +67,27 @@ export const JOURNAL_BODY_FR: Record<string, string> = {
   uranus: 'Uranus',
   neptune: 'Neptune',
   pluto: 'Pluton',
+  asc: 'Ascendant',
+  ascendant: 'Ascendant',
+  dsc: 'Descendant',
+  descendant: 'Descendant',
+  mc: 'Milieu du Ciel',
+  ic: 'Imum Coeli',
   true_node: 'Nœud nord',
   north_node: 'Nœud nord',
+  south_node: 'Nœud sud',
   chiron: 'Chiron',
+  lilith_mean: 'Lilith moyenne',
+  lilith_true: 'Lilith vraie',
+  ceres: 'Cérès',
+  pallas: 'Pallas',
+  juno: 'Junon',
+  vesta: 'Vesta',
+  eris: 'Éris',
+  vertex: 'Vertex',
+  part_of_fortune: 'Part de Fortune',
+  part_of_spirit: "Part d'Esprit",
+  part_of_karma: 'Part de Karma',
 }
 
 function bodyLabelFr(key: string): string {
@@ -81,6 +101,49 @@ function longitudeToSignFr(longitude: number): { sign: string; degInSign: number
   const degInSign = Math.round((lon - idx * 30) * 10) / 10
   return { sign: ZODIAC_FR[idx], degInSign }
 }
+
+function houseFromLongitude(longitude: number, houses: Record<string, number> | undefined): number | null {
+  if (!houses) return null
+  const c = Array.from({ length: 12 }, (_, i) => houses[String(i + 1)])
+  if (c.some((v) => typeof v !== 'number')) return null
+  const lon = ((longitude % 360) + 360) % 360
+  const inArc = (x: number, a: number, b: number): boolean => {
+    if (a <= b) return x >= a && x < b
+    return x >= a || x < b
+  }
+  for (let i = 0; i < 12; i++) {
+    const start = ((c[i] as number) % 360 + 360) % 360
+    const end = ((c[(i + 1) % 12] as number) % 360 + 360) % 360
+    if (inArc(lon, start, end)) return i + 1
+  }
+  return 12
+}
+
+function formatPlacementFromLongitude(
+  key: string,
+  longitude: number,
+  houses: Record<string, number> | undefined,
+): string {
+  const { sign } = longitudeToSignFr(longitude)
+  const house = houseFromLongitude(longitude, houses)
+  return `${bodyLabelFr(key)} ${sign}${house ? ` maison ${house}` : ''}`
+}
+
+const JOURNAL_EXTRA_FOCUS_KEYS = [
+  'true_node',
+  'north_node',
+  'south_node',
+  'chiron',
+  'lilith_true',
+  'lilith_mean',
+  'ceres',
+  'pallas',
+  'juno',
+  'vesta',
+  'eris',
+  'vertex',
+  'part_of_fortune',
+] as const
 
 function formatSnapshotInTimezone(isoUtc: string, timeZone: string): string {
   try {
@@ -262,6 +325,7 @@ function majorTransitScore(t: Transit): number {
 
 function buildNatalSummary(natal: NatalResponse): string {
   const planets = natal.planets || {}
+  const houses = natal.houses
   const sun = planets.sun
   const moon = planets.moon
   const venus = planets.venus
@@ -283,7 +347,77 @@ function buildNatalSummary(natal: NatalResponse): string {
     ascendantSign ? `Ascendant ${ascendantSign}` : null,
   ].filter(Boolean)
 
+  const extrasFromPlanets = JOURNAL_EXTRA_FOCUS_KEYS.map((k) => {
+    const p = planets[k]
+    if (!p?.sign && typeof p?.longitude !== 'number') return null
+    if (p?.sign) return `${bodyLabelFr(k)} ${p.sign}${p.house ? ` maison ${p.house}` : ''}`
+    return formatPlacementFromLongitude(k, p.longitude as number, houses)
+  }).filter(Boolean)
+
+  const extrasFromObjects = JOURNAL_EXTRA_FOCUS_KEYS.map((k) => {
+    const lon = natal.extra_objects?.[k]
+    if (typeof lon !== 'number') return null
+    if (extrasFromPlanets.some((s) => String(s).toLowerCase().startsWith(bodyLabelFr(k).toLowerCase()))) return null
+    return formatPlacementFromLongitude(k, lon, houses)
+  }).filter(Boolean)
+
+  const extras = [...extrasFromPlanets, ...extrasFromObjects]
+  if (extras.length > 0) {
+    parts.push(`Points complémentaires: ${extras.join(', ')}`)
+  }
+
   return parts.length > 0 ? parts.join(' | ') : 'Résumé natal indisponible'
+}
+
+function buildCommunicationProfile(natal: NatalResponse): string[] {
+  const planets = natal.planets || {}
+  const mercury = planets.mercury
+  const moon = planets.moon
+  const asc =
+    typeof natal.ascendant === 'object' && natal.ascendant?.sign
+      ? natal.ascendant.sign
+      : undefined
+  const house3 = natal.houses?.['3']
+  const house4 = natal.houses?.['4']
+  const maison3Sign =
+    typeof house3 === 'number' && typeof house4 === 'number' ? longitudeToSignFr(house3).sign : undefined
+
+  const bullets: string[] = []
+
+  if (mercury?.sign || mercury?.house) {
+    bullets.push(
+      `Canal mental principal : Mercure${mercury?.sign ? ` en ${mercury.sign}` : ''}${
+        mercury?.house ? ` (maison ${mercury.house})` : ''
+      }.`,
+    )
+  }
+  if (moon?.sign || moon?.house) {
+    bullets.push(
+      `Filtre émotionnel : Lune${moon?.sign ? ` en ${moon.sign}` : ''}${moon?.house ? ` (maison ${moon.house})` : ''}.`,
+    )
+  }
+  if (asc) {
+    bullets.push(`Style relationnel perçu : Ascendant ${asc}.`)
+  }
+  if (maison3Sign || typeof house3 === 'number') {
+    bullets.push(
+      `Voie d'expression quotidienne : maison 3${maison3Sign ? ` en ${maison3Sign}` : ''} (cuspide ${Math.round(
+        ((house3 as number) % 360) * 10,
+      ) / 10}°).`,
+    )
+  }
+
+  const adaptationHints = [
+    'Adapte la forme du message avant le fond : clarté, rythme, vocabulaire et niveau de concret selon ce profil.',
+    'Si le profil montre une dominante émotionnelle, commence par valider le ressenti puis propose une action.',
+    'Si le profil montre une dominante mentale/pratique, donne rapidement une structure claire (priorité, timing, action).',
+  ]
+
+  return bullets.length > 0
+    ? [...bullets, ...adaptationHints]
+    : [
+        "Profil de réception non déterminé précisément avec les données actuelles ; adopte un style clair, empathique et concret, puis ajuste selon la réponse de la personne.",
+      ]
 }
 
 /** Aspects classés conservés pour indices next-exact (au-delà des lignes affichées). */
@@ -507,6 +641,7 @@ export async function fetchJournalAstroContext(
   const basis = await computeJournalTransitBasis(user)
   const { targetDate, majorTransitObjects, majorTransits, transitsPayload, natalSummary, majorTransitSummary, tz } =
     basis
+  const natalData = basis.natalData
 
   const horizonDays = 540
   const hints = majorTransitObjects
@@ -553,6 +688,47 @@ export async function fetchJournalAstroContext(
     return `- ${bodyLabelFr(body)} : ~${degInSign}° ${sign} (à la date de référence ci-dessous)`
   })
 
+  const extraTransitSkyLines = JOURNAL_EXTRA_FOCUS_KEYS.map((body) => {
+    const lon = sky?.[body]
+    if (typeof lon !== 'number') return null
+    const { sign, degInSign } = longitudeToSignFr(lon)
+    return `- ${bodyLabelFr(body)} : ~${degInSign}° ${sign} (à la date de référence ci-dessous)`
+  }).filter(Boolean)
+
+  const natalExtraLines = JOURNAL_EXTRA_FOCUS_KEYS.map((key) => {
+    const fromPlanets = natalData.planets?.[key]
+    if (fromPlanets?.sign || typeof fromPlanets?.longitude === 'number') {
+      if (fromPlanets.sign) {
+        return `- ${bodyLabelFr(key)} natal : ${fromPlanets.sign}${fromPlanets.house ? `, maison ${fromPlanets.house}` : ''}`
+      }
+      return `- ${formatPlacementFromLongitude(key, fromPlanets.longitude as number, natalData.houses)} natal`
+    }
+    const lon = natalData.extra_objects?.[key]
+    if (typeof lon !== 'number') return null
+    return `- ${formatPlacementFromLongitude(key, lon, natalData.houses)} natal`
+  }).filter(Boolean)
+  const communicationProfileLines = buildCommunicationProfile(natalData)
+  const angleLines = (() => {
+    const lines: string[] = []
+    const ascLon = typeof natalData.ascendant === 'number' ? natalData.ascendant : natalData.ascendant?.longitude
+    const mcLon = typeof natalData.midheaven === 'number' ? natalData.midheaven : undefined
+    if (typeof ascLon === 'number') {
+      const { sign } = longitudeToSignFr(ascLon)
+      lines.push(`- Ascendant natal : ${sign}, maison 1`)
+      const dscLon = (ascLon + 180) % 360
+      const dscSign = longitudeToSignFr(dscLon).sign
+      lines.push(`- Descendant natal : ${dscSign}, maison 7`)
+    }
+    if (typeof mcLon === 'number') {
+      const { sign } = longitudeToSignFr(mcLon)
+      lines.push(`- Milieu du Ciel natal : ${sign}, maison 10`)
+      const icLon = (mcLon + 180) % 360
+      const icSign = longitudeToSignFr(icLon).sign
+      lines.push(`- Imum Coeli natal : ${icSign}, maison 4`)
+    }
+    return lines
+  })()
+
   const nextExactSection = !includeNextExact
     ? 'Prochains passages à l’orbe minimale : non calculés pour ce message (aucun besoin timing / transits détecté dans la question — économie de calcul). Ne pas inventer de dates ; si la personne demande ensuite « quand » ou un transit précis, le prochain tour pourra inclure le bloc calculé ou elle peut utiliser le bouton de calcul dans l’app.'
     : nextExactLinesFr.length > 0
@@ -565,12 +741,24 @@ export async function fetchJournalAstroContext(
         : 'Prochains passages à l’orbe minimale : calcul indisponible ou vide ; ne pas inventer de dates — la personne peut relancer le calcul côté app ou coller un résultat dans le fil.'
 
   const astroTimingBlock = [
+    'PROFIL DE RÉCEPTION / COMMUNICATION (à appliquer en premier dans la formulation) :',
+    communicationProfileLines.map((l) => `- ${l}`).join('\n'),
+    '',
     'RÉFÉRENCE TEMPORELLE (ancre pour toute prévision ou « temps » astrologique)',
     `- Date & heure de calcul (fuseau profil ${tz}) : ${snapshotFr}`,
     `- Même instant en ISO (UTC) : ${targetDate}`,
     '',
     'Ciel à cet instant (corps impliqués dans les aspects listés) :',
     skyLines.length > 0 ? skyLines.join('\n') : '- (positions non fournies)',
+    extraTransitSkyLines.length > 0
+      ? ['Points complémentaires à cet instant (nœuds, Lilith, Chiron, astéroïdes, Vertex, Parts) :', ...extraTransitSkyLines].join('\n')
+      : '',
+    '',
+    'Angles natals (si calculés) :',
+    angleLines.length > 0 ? angleLines.join('\n') : '- (non fournis par ce calcul)',
+    '',
+    'Placements natals complémentaires (si calculés) :',
+    natalExtraLines.length > 0 ? natalExtraLines.join('\n') : '- (non fournis par ce calcul)',
     '',
     'Aspects majeurs filtrés (chaque ligne = un cycle en cours à cette date ; utilise exact / approche / séparation) :',
     majorTransits.length > 0 ? majorTransits.map((l) => `- ${l}`).join('\n') : '- Aucun',

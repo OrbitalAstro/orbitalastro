@@ -24,6 +24,91 @@ function getApiBaseUrl() {
   return (process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000').replace(/\/+$/, '')
 }
 
+function normalizeForMatch(s: string): string {
+  return s
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+}
+
+type GuardedElement = {
+  label: string
+  aliases: string[]
+}
+
+const GUARDED_ELEMENTS: GuardedElement[] = [
+  { label: 'Soleil', aliases: ['soleil', 'sun'] },
+  { label: 'Lune', aliases: ['lune', 'moon'] },
+  { label: 'Mercure', aliases: ['mercure', 'mercury'] },
+  { label: 'Vénus', aliases: ['venus', 'venuse'] },
+  { label: 'Mars', aliases: ['mars'] },
+  { label: 'Jupiter', aliases: ['jupiter'] },
+  { label: 'Saturne', aliases: ['saturne', 'saturn'] },
+  { label: 'Uranus', aliases: ['uranus'] },
+  { label: 'Neptune', aliases: ['neptune'] },
+  { label: 'Pluton', aliases: ['pluton', 'pluto'] },
+  { label: 'Ascendant', aliases: ['ascendant', 'asc'] },
+  { label: 'Descendant', aliases: ['descendant', 'dsc'] },
+  { label: 'Milieu du Ciel', aliases: ['milieu du ciel', 'mc'] },
+  { label: 'Imum Coeli', aliases: ['imum coeli', 'ic'] },
+  { label: 'Nœud nord', aliases: ['nœud nord', 'noeud nord', 'nord node', 'north node'] },
+  { label: 'Nœud sud', aliases: ['nœud sud', 'noeud sud', 'south node'] },
+  { label: 'Chiron', aliases: ['chiron'] },
+  { label: 'Lilith', aliases: ['lilith'] },
+  { label: 'Cérès', aliases: ['ceres', 'cérès'] },
+  { label: 'Pallas', aliases: ['pallas'] },
+  { label: 'Junon', aliases: ['junon', 'juno'] },
+  { label: 'Vesta', aliases: ['vesta'] },
+  { label: 'Éris', aliases: ['eris', 'éris'] },
+  { label: 'Vertex', aliases: ['vertex'] },
+  { label: 'Part de Fortune', aliases: ['part de fortune'] },
+]
+
+function blockHasConcreteElementData(astroTimingBlock: string, element: GuardedElement): boolean {
+  const n = normalizeForMatch(astroTimingBlock)
+  const aliases = element.aliases.map((a) => normalizeForMatch(a))
+  return aliases.some((a) => n.includes(`${a} natal :`) || n.includes(`- ${a} : ~`))
+}
+
+function replyMentionsElement(replyText: string, element: GuardedElement): boolean {
+  const n = normalizeForMatch(replyText)
+  return element.aliases.map((a) => normalizeForMatch(a)).some((a) => n.includes(a))
+}
+
+function replyHasElementPlacementLabel(replyText: string, element: GuardedElement): boolean {
+  const rx = new RegExp(`${element.label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*\\(Natal\\s*:`, 'i')
+  return rx.test(replyText)
+}
+
+function replyClaimsMissingElementData(replyText: string, element: GuardedElement): boolean {
+  const n = normalizeForMatch(replyText)
+  const missingPattern =
+    /(je n(?:e|'|’)ai(?:\s+malheureusement)?\s+pas|pas de|aucun(?:e)?|indisponible|non fourni(?:e)?).{0,120}(donnee|calcul|position|transit|signe|maison)/
+  return replyMentionsElement(replyText, element) && missingPattern.test(n)
+}
+
+function buildElementConsistencyIssues(replyText: string, astroTimingBlock: string): string[] {
+  const issues: string[] = []
+  for (const element of GUARDED_ELEMENTS) {
+    const hasBlockData = blockHasConcreteElementData(astroTimingBlock, element)
+    const mentions = replyMentionsElement(replyText, element)
+    if (!mentions) continue
+    const hasPlacement = replyHasElementPlacementLabel(replyText, element)
+    const claimsMissing = replyClaimsMissingElementData(replyText, element)
+
+    if (hasBlockData && claimsMissing) {
+      issues.push(`${element.label}: contradiction — tu dis manquer de données alors que le bloc en contient.`)
+    }
+    if (hasBlockData && !hasPlacement) {
+      issues.push(`${element.label}: mention sans placement concret dans l’étiquette (Natal/Transit).`)
+    }
+    if (!hasBlockData && hasPlacement) {
+      issues.push(`${element.label}: placement affirmé alors que le bloc n’en fournit pas.`)
+    }
+  }
+  return issues
+}
+
 export async function GET() {
   const session = await getServerSession(authOptions)
   if (!session?.user?.id) {
@@ -256,15 +341,18 @@ export async function POST(request: NextRequest) {
 
 Considère tout l'historique déjà fourni dans la conversation (tours précédents) : enchaîne naturellement, fais des liens si utiles, et si tu repères un schéma récurrent, nomme-le avec douceur.
 
+Avant de rédiger, lis et applique le bloc **« PROFIL DE RÉCEPTION / COMMUNICATION »** s’il est présent : adapte d’abord la manière de communiquer (clarté, rythme, niveau de concret, vocabulaire), puis le contenu astrologique.
+La mémoire de compte aide pour la continuité, mais ne doit pas être recopiée mécaniquement : n’utilise que les éléments utiles à cette question précise.
+
 Si la personne demande le **quand**, un **pic**, l’**énergie** ou le **timing** : cite d’abord les **dates/heures** des passages listés (y compris sous « Prochains passages à l’orbe minimale ») quand elles sont dans le bloc, plus la **date-heure de référence**, les **phases** (exact / approche / séparation), **signes**, **maisons** et **noms de planètes** dans les lignes d’aspects. Inclus du **concret** (dates, phases) tiré du bloc — **sans** recopier d’**orbes en degrés** dans le texte. Ne te limite pas aux métaphores.
 
 Si le bloc contient **« PHÉNOMÈNES LUNAIRES »** (pleine lune / nouvelle lune calculée) : la **première** ligne **Astrologie :** donne **immédiatement** la date/heure de la lunaison indiquée sur la première puce, puis une phrase d’interprétation utile ; pas d’évitement ni de réponse uniquement métaphorique.
 
-**Volume attendu (important)** : ne force **pas** la personne à écrire « dis-moi en plus » ou « peux-tu développer ». Dès **ce** message, livre une réponse **généreuse** : assez de matière pour qu’elle ait une vision d’ensemble. Concrètement : **12 à 22 interventions** (ligne d’étiquette + mini-paragraphe), chaque planète avec l’étiquette **(Natal: signe, maison n + Transit: signe, maison n)** quand les données le permettent (voir consigne système), puis **plusieurs phrases** de corps. Inclure **au moins trois** planètes / points distincts après la première Astrologie, plus une **dernière** ligne Astrologie de synthèse.
+**Volume attendu (important)** : ne force **pas** la personne à écrire « dis-moi en plus » ou « peux-tu développer ». Dès **ce** message, livre une réponse **généreuse** : assez de matière pour qu’elle ait une vision d’ensemble. Concrètement : **12 à 22 interventions** (ligne d’étiquette + mini-paragraphe), chaque voix (planète **ou** point calculé) avec l’étiquette **(Natal: signe, maison n + Transit: signe, maison n)** quand les données le permettent (voir consigne système), puis **plusieurs phrases** de corps. Inclure **au moins trois** planètes / points distincts après la première Astrologie, plus une **dernière** ligne Astrologie de synthèse.
 
 Si le dernier message de la personne est une vague relance (« encore », « un peu plus », etc.) : **approfondis sans répéter** les formulations du tour précédent ; apporte **nouveauté** (autres corps du bloc, conséquences sur 2–4 semaines, ce qu’il vaut mieux éviter ou favoriser).
 
-Les planètes parlent en **je** et **tutoyent** — **sans** « je, [nom de la planète] », **sans** « je suis ta Lune / ton Soleil » ni équivalent : l’étiquette du rôle suffit. Pas d'introduction du type « voici mon interprétation ».`
+Les planètes et points parlent en **je** et **tutoyent** — **sans** « je, [nom du corps/point] », **sans** « je suis ta Lune / ton Soleil » ni équivalent : l’étiquette du rôle suffit. Pas d'introduction du type « voici mon interprétation ».`
 
     const apiBase = getApiBaseUrl()
     const aiResponse = await fetch(`${apiBase}/ai/interpret`, {
@@ -286,10 +374,43 @@ Les planètes parlent en **je** et **tutoyent** — **sans** « je, [nom de la p
     }
 
     const aiData = await aiResponse.json()
-    const replyText = String(aiData?.content || '').trim()
+    let replyText = String(aiData?.content || '').trim()
     if (!replyText) {
       await supabase.from('journal_chat_messages').delete().eq('id', userRow.id)
       return NextResponse.json({ error: 'Réponse IA vide.' }, { status: 502 })
+    }
+
+    const elementIssues = buildElementConsistencyIssues(replyText, astro.astroTimingBlock)
+    if (elementIssues.length > 0) {
+      const correctionPrompt = `${prompt}
+
+IMPORTANT — CORRECTION QUALITÉ :
+Ta réponse précédente est invalide sur la cohérence des éléments astrologiques.
+Points à corriger :
+${elementIssues.map((i) => `- ${i}`).join('\n')}
+
+Réécris une version corrigée complète et cohérente. Règles strictes :
+- Si le bloc contient les placements d’un point, utilise l’étiquette avec (Natal: ... + Transit: ...).
+- Si le bloc ne contient pas de placement pour un point, n’invente pas et n’ouvre pas de voix dédiée pour ce point.
+- N’écris aucune phrase contradictoire de type « pas de données » puis interprétation détaillée du même point.
+- Retourne uniquement la réponse finale corrigée, au même format de conversation.`
+
+      const corrected = await fetch(`${apiBase}/ai/interpret`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: correctionPrompt,
+          system_instruction: systemInstruction,
+          temperature: 0.68,
+          max_output_tokens: 6144,
+          conversation_turns,
+        }),
+      })
+      if (corrected.ok) {
+        const correctedData = await corrected.json()
+        const correctedText = String(correctedData?.content || '').trim()
+        if (correctedText) replyText = correctedText
+      }
     }
 
     const { data: assistantRow, error: asstErr } = await supabase

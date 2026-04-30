@@ -4,7 +4,7 @@
  */
 
 const ROLE_LINE_START =
-  /^(Astrologie|Lune|Soleil|Mercure|Vénus|Venus|Mars|Jupiter|Saturne|Uranus|Neptune|Pluton)\s*/i
+  /^(Astrologie|Lune|Soleil|Mercure|Vénus|Venus|Mars|Jupiter|Saturne|Uranus|Neptune|Pluton|Ascendant|Descendant|Milieu du Ciel|Imum Coeli|IC|MC|Nœud nord|Noeud nord|Nœud sud|Noeud sud|Chiron|Lilith|Cérès|Ceres|Pallas|Junon|Juno|Vesta|Éris|Eris|Vertex|Part de Fortune|Part d'Esprit|Part de Karma)\s*/i
 
 /** Retourne { role, body } si la ligne commence par un rôle guilde reconnu, sinon null. */
 export function splitJournalGuildRoleLine(line: string): { role: string; body: string } | null {
