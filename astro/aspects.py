@@ -147,6 +147,7 @@ def find_aspects(
     positions: Dict[str, float],
     config: Optional[AspectConfig] = None,
     target_datetime: Optional[datetime] = None,
+    future_positions: Optional[Dict[str, float]] = None,
 ) -> List[Aspect]:
     """
     Find all aspects between bodies in the positions dictionary.
@@ -167,9 +168,9 @@ def find_aspects(
     aspects: List[Aspect] = []
     bodies = list(positions.keys())
 
-    future_positions = None
-    future_time = target_datetime + timedelta(hours=1.0)
-    future_jd = datetime_to_julian_day(future_time)
+    if future_positions is None:
+        future_time = target_datetime + timedelta(hours=1.0)
+        future_jd = datetime_to_julian_day(future_time)
 
     for i, body1 in enumerate(bodies):
         for body2 in bodies[i + 1 :]:

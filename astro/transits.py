@@ -4,7 +4,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Dict, List, Optional
 
 from astro.aspects import Aspect, AspectConfig, find_aspects
@@ -38,6 +38,10 @@ def compute_transits(
     all_positions.update(transiting_positions)
     all_positions.update(natal_positions)
 
+    future_time = target_datetime_utc + timedelta(hours=1.0)
+    future_jd = datetime_to_julian_day(future_time)
+    future_positions = get_positions_from_swisseph(future_time, future_jd)
+
     # Find aspects between transiting and natal positions
     transits = []
     for transiting_body, transiting_long in transiting_positions.items():
@@ -53,7 +57,7 @@ def compute_transits(
             }
 
             # Find aspects between this pair
-            aspects = find_aspects(pair_positions, config, target_datetime_utc)
+            aspects = find_aspects(pair_positions, config, target_datetime_utc, future_positions=future_positions)
 
             # Rename aspects to reflect transit nature
             for aspect in aspects:
@@ -110,6 +114,10 @@ def compute_transits_to_angles(
         "dsc": (natal_asc + 180.0) % 360.0,
     }
 
+    future_time = target_datetime_utc + timedelta(hours=1.0)
+    future_jd = datetime_to_julian_day(future_time)
+    future_positions = get_positions_from_swisseph(future_time, future_jd)
+
     transits_to_angles = []
     for angle_name, angle_long in angles.items():
         angle_positions = {f"angle_{angle_name}": angle_long}
@@ -117,7 +125,7 @@ def compute_transits_to_angles(
             transit_positions = {transiting_body: transiting_long}
             transit_positions.update(angle_positions)
 
-            aspects = find_aspects(transit_positions, config, target_datetime_utc)
+            aspects = find_aspects(transit_positions, config, target_datetime_utc, future_positions=future_positions)
             for aspect in aspects:
                 # Determine which is the transiting body
                 if aspect.body1.startswith("angle_"):
