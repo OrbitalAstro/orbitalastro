@@ -8,8 +8,9 @@ import { loadJournalChatMemory, mergeJournalMemoryAfterTurn } from '@/lib/journa
 
 export const runtime = 'nodejs'
 
-const GENEROUS_MIN_CHARS = 2400
-const GENEROUS_MIN_WORDS = 420
+/** Seuil « trop court » : messagerie synthétique ; on n’exige plus un pavé type article. */
+const GENEROUS_MIN_CHARS = 320
+const GENEROUS_MIN_WORDS = 55
 
 function countWords(input: string): number {
   return input
@@ -99,25 +100,17 @@ export async function POST(request: NextRequest) {
     const prompt = `Message du journal :
 """${entryText}"""
 
-Écris une réponse GÉNÉREUSE, profonde, structurée et actionnable en français.
+Réponds en **français**, au **même format messagerie** que la consigne système : lignes **Astrologie :** et planètes / points avec **étiquette (Natal: … + Transit: …)** puis texte à la ligne — **pas** d’article en 6 sections, **pas** de titres de chapitres, **pas** de pavé de 700+ mots.
 
-Contraintes obligatoires :
-- Longueur cible : 700 à 1200 mots.
-- 6 sections avec titres explicites, dans cet ordre :
-  1) Lecture principale
-  2) Dynamiques en tension (au moins 2 forces)
-  3) Timeline (maintenant, 3 mois, 12 mois)
-  4) Impacts concrets (travail, visibilité, argent)
-  5) Plan d'action 7 jours (5 actions réalistes)
-  6) Questions de journal (3 questions personnalisées)
-- Ton : chaleureux, précis, humain, jamais fataliste.
-- Chaque section doit contenir au moins un élément concret et utile.
-- Si la personne demande un "quand", un "pic", l'énergie ou le timing : cite d'abord les dates/heures disponibles dans le bloc astrologique, puis interprète.
-- Termine par une phrase de continuité ("si tu veux, je peux...").
+Exigences :
+- **Synthèse** : **3 à 5 tours de parole** au total en général ; **1 à 2 planètes** (ou points) après une première **Astrologie :** qui cadre ; **1 à 2 phrases** par intervention sauf si un bloc doit regrouper des **dates** du bloc (timing / lunaison).
+- **Utile** : faits du bloc quand ils servent + interprétation + **une** piste concrète ou une **question** courte en fin — sans répéter la mémoire pour rien.
+- Si **quand / pic / timing / énergie** : dates et phases du bloc en priorité, **sans orbes en degrés** dans la prose.
+- Ton : chaleureux, précis, jamais fataliste.
 
 Interdit :
-- Réponse courte de type résumé.
-- Vagues généralités sans application concrète.`
+- Réponse **vide** ou **fuyante** (que des métaphores sans lien au message ni au bloc).
+- Liste de six planètes « par habitude ».`
 
     const apiBase = getApiBaseUrl()
     const aiResponse = await fetch(`${apiBase}/ai/interpret`, {
@@ -143,18 +136,19 @@ Interdit :
 
     // Si le modèle reste trop bref, on force une seconde passe d'enrichissement.
     if (isTooShortGenerousReply(replyText)) {
-      const enrichPrompt = `Enrichis la réponse ci-dessous pour atteindre un niveau "généreux" :
+      const enrichPrompt = `La réponse ci-dessous est trop courte ou trop vague pour une entrée de journal. Réécris **au même format messagerie** (étiquettes Astrologie / planètes comme dans la consigne système).
 
 --- Réponse actuelle ---
 ${replyText}
 --- Fin ---
 
-Réécris complètement avec :
-- 700 à 1200 mots,
-- les 6 sections obligatoires dans l'ordre,
-- plus de concret, nuances et actions.
+Objectif : **un peu plus de substance** sans devenir un roman :
+- Garde **au plus 5 à 7 tours de parole** au total, **2 à 3 planètes** max si le bloc le justifie ;
+- **2 à 3 phrases** pour la première **Astrologie :** si besoin de cadrage ou de dates ;
+- chaque planète : **2 à 4 phrases** max ;
+- une **dernière Astrologie :** d’**une phrase** pour relancer ou résumer.
 
-Garde les mêmes données astrologiques, n'invente aucun transit ni date absente du bloc.`
+Mêmes données astrologiques : n’invente aucun transit ni date absente du bloc. Pas de sections numérotées type article.`
 
       const enrichResponse = await fetch(`${apiBase}/ai/interpret`, {
         method: 'POST',

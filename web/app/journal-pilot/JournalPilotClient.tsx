@@ -3,20 +3,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { getSession } from 'next-auth/react'
 import { motion } from 'framer-motion'
-import {
-  Archive,
-  BookOpenText,
-  Brain,
-  CalendarClock,
-  History,
-  Loader2,
-  Trash2,
-  X,
-} from 'lucide-react'
+import { Archive, BookOpenText, History, Loader2, X } from 'lucide-react'
 import BackButton from '@/components/BackButton'
 import Starfield from '@/components/Starfield'
+import JournalBubbleTailSvg from '@/components/JournalBubbleTailSvg'
+import JournalGuildSpeechBubble from '@/components/JournalGuildSpeechBubble'
 import { parseJournalGuildReply } from '@/lib/journal-chat-parse'
-import { JOURNAL_MEMORY_LIGHT_EVERY_N } from '@/lib/journal-memory-constants'
 import { glyphForJournalSpeaker } from '@/lib/journal-speaker-symbols'
 
 type Profile = {
@@ -64,9 +56,30 @@ const JOURNAL_SIGNIN = '/auth/signin?callbackUrl=/journal-pilot'
 const JOURNAL_ONBOARDING = '/auth/onboarding?next=%2Fjournal-pilot'
 const LOCAL_ARCHIVE_KEY = 'journal_pilot_local_archives_v1'
 
-const JOURNAL_EMPTY_THREAD_WELCOME = `Bonjour — la guilde t’accueille ici.
+/** En-tête du fil côté réponses combinées (glyphe ✶). */
+const JOURNAL_GUILD_HEADING = "l'Astrologie"
+const JOURNAL_GUILD_HEADING_GLYPH = 'Astrologie'
 
-Écris ce qui te préoccupe, ce que tu veux explorer, ou une simple intuition à creuser : dès que tu envoies ton message, la réponse s’ajoute dans la même conversation, juste au-dessus, comme un fil naturel — pas besoin de « remonter » vers une autre zone.`
+function isJournalAstrologySpeaker(speaker: string): boolean {
+  return speaker.trim().toLowerCase().startsWith('astrologie')
+}
+
+function journalGuildBubbleLayout(
+  bubble: { speaker: string },
+  planetAlternate: { n: number },
+): { margin: string; tail: 'left' | 'right' } {
+  if (isJournalAstrologySpeaker(bubble.speaker)) {
+    return { margin: 'mr-auto', tail: 'left' }
+  }
+  const k = planetAlternate.n++
+  if (k % 2 === 0) return { margin: 'ml-auto', tail: 'right' }
+  return { margin: 'mr-auto', tail: 'left' }
+}
+
+function journalGuildHeaderRowClass(compact?: boolean): string {
+  const size = compact ? 'text-[10px]' : 'text-[11px]'
+  return `${size} uppercase tracking-wide text-cosmic-gold/55`
+}
 
 export default function JournalPilotClient() {
   const [authGate, setAuthGate] = useState<'loading' | 'authenticated' | 'unauthenticated'>('loading')
@@ -83,16 +96,8 @@ export default function JournalPilotClient() {
   const [endingConversation, setEndingConversation] = useState(false)
   const [showArchiveConfirm, setShowArchiveConfirm] = useState(false)
   const [loadingArchiveId, setLoadingArchiveId] = useState<string | null>(null)
-  const [nextExactLoading, setNextExactLoading] = useState(false)
-  const [nextExactLines, setNextExactLines] = useState<string[] | null>(null)
-  const [nextExactError, setNextExactError] = useState<string | null>(null)
   const threadRef = useRef<HTMLDivElement | null>(null)
 
-  const [memoryDraft, setMemoryDraft] = useState('')
-  const [memoryUpdatedAt, setMemoryUpdatedAt] = useState<string | null>(null)
-  const [memoryLoading, setMemoryLoading] = useState(false)
-  const [memorySaving, setMemorySaving] = useState(false)
-  const [showMemoryClearConfirm, setShowMemoryClearConfirm] = useState(false)
   const [showHistoryDrawer, setShowHistoryDrawer] = useState(false)
   const [isNearBottom, setIsNearBottom] = useState(true)
   const entryTextareaRef = useRef<HTMLTextAreaElement | null>(null)
@@ -145,62 +150,12 @@ export default function JournalPilotClient() {
     )
   }, [profile])
 
-  const fetchJournalMemory = useCallback(async () => {
-    setMemoryLoading(true)
-    try {
-      const memRes = await fetch('/api/journal/memory', { credentials: 'include' })
-      const memJson = await memRes.json()
-      if (memRes.ok) {
-        setMemoryDraft(String(memJson.summary || ''))
-        setMemoryUpdatedAt(memJson.updated_at ? String(memJson.updated_at) : null)
-      } else {
-        setMemoryDraft('')
-        setMemoryUpdatedAt(null)
-      }
-    } catch {
-      setMemoryDraft('')
-      setMemoryUpdatedAt(null)
-    } finally {
-      setMemoryLoading(false)
-    }
-  }, [])
-
-  async function saveJournalMemory() {
-    setMemorySaving(true)
-    setError(null)
-    try {
-      const res = await fetch('/api/journal/memory', {
-        method: 'PATCH',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ summary: memoryDraft }),
-      })
-      const j = await res.json()
-      if (!res.ok) throw new Error(j?.error || 'Sauvegarde mémoire impossible')
-      setMemoryUpdatedAt(j.updated_at ? String(j.updated_at) : null)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur mémoire')
-    } finally {
-      setMemorySaving(false)
-    }
-  }
-
-  async function clearJournalMemory() {
-    setMemorySaving(true)
-    setError(null)
-    try {
-      const res = await fetch('/api/journal/memory', { method: 'DELETE', credentials: 'include' })
-      const j = await res.json()
-      if (!res.ok) throw new Error(j?.error || 'Effacement impossible')
-      setMemoryDraft('')
-      setMemoryUpdatedAt(j.updated_at ? String(j.updated_at) : null)
-      setShowMemoryClearConfirm(false)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur mémoire')
-    } finally {
-      setMemorySaving(false)
-    }
-  }
+  const emptyThreadWelcome = useMemo(() => {
+    const raw = profile?.display_name?.trim()
+    const first = raw ? raw.split(/\s+/)[0] : ''
+    if (first) return `Bonjour ${first}, De quoi souhaites-tu jaser?`
+    return 'Bonjour, De quoi souhaites-tu jaser?'
+  }, [profile?.display_name])
 
   async function fetchProfileAndChat() {
     setLoading(true)
@@ -238,7 +193,6 @@ export default function JournalPilotClient() {
       }))
       const localArchives = readLocalArchives()
       setArchivedThreads([...serverArchives, ...localArchives])
-      await fetchJournalMemory()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur inconnue')
     } finally {
@@ -278,21 +232,34 @@ export default function JournalPilotClient() {
   }, [authGate])
 
   const scrollThreadToBottom = useCallback((behavior: ScrollBehavior = 'auto') => {
-    if (!threadRef.current) return
-    threadRef.current.scrollTo({ top: threadRef.current.scrollHeight, behavior })
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: document.documentElement.scrollHeight, behavior })
+    })
   }, [])
 
   useEffect(() => {
-    const el = threadRef.current
-    if (!el) return
-    const onScroll = () => {
-      const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight
-      setIsNearBottom(distanceFromBottom < 140)
+    const checkNearBottom = () => {
+      const doc = document.documentElement
+      const distance = doc.scrollHeight - window.innerHeight - window.scrollY
+      setIsNearBottom(distance < 160)
     }
-    onScroll()
-    el.addEventListener('scroll', onScroll, { passive: true })
-    return () => el.removeEventListener('scroll', onScroll)
+    checkNearBottom()
+    window.addEventListener('scroll', checkNearBottom, { passive: true })
+    window.addEventListener('resize', checkNearBottom, { passive: true })
+    return () => {
+      window.removeEventListener('scroll', checkNearBottom)
+      window.removeEventListener('resize', checkNearBottom)
+    }
   }, [])
+
+  useEffect(() => {
+    const id = requestAnimationFrame(() => {
+      const doc = document.documentElement
+      const distance = doc.scrollHeight - window.innerHeight - window.scrollY
+      setIsNearBottom(distance < 160)
+    })
+    return () => cancelAnimationFrame(id)
+  }, [messages, sendingEntry, entryInput])
 
   useEffect(() => {
     if (isNearBottom || sendingEntry) {
@@ -303,39 +270,25 @@ export default function JournalPilotClient() {
   useEffect(() => {
     const el = entryTextareaRef.current
     if (!el) return
-    const computed = window.getComputedStyle(el)
-    const lineHeight = Number.parseFloat(computed.lineHeight) || 24
-    const maxHeight = Math.round(lineHeight * 6)
+    const measure = () => {
+      const computed = window.getComputedStyle(el)
+      const lineHeight = Number.parseFloat(computed.lineHeight) || 24
+      const minLines = 6
+      const maxLines = 52
+      const maxHeight = Math.min(
+        Math.round(lineHeight * maxLines),
+        Math.round(window.innerHeight * 0.58),
+      )
 
-    el.style.height = 'auto'
-    const next = Math.min(el.scrollHeight, maxHeight)
-    el.style.height = `${Math.max(next, Math.round(lineHeight * 2))}px`
-    el.style.overflowY = el.scrollHeight > maxHeight ? 'auto' : 'hidden'
-  }, [entryInput])
-
-  async function runNextExactTimes() {
-    setNextExactLoading(true)
-    setNextExactError(null)
-    try {
-      const res = await fetch('/api/journal/next-exact-times', {
-        method: 'POST',
-        credentials: 'include',
-      })
-      const json = await res.json()
-      if (!res.ok) {
-        if (json?.code === 'PROFILE_INCOMPLETE') {
-          throw new Error("Enregistre d'abord tes données de naissance (ci-dessus) pour lancer ce calcul.")
-        }
-        throw new Error(json?.error || 'Erreur de calcul des prochains passages.')
-      }
-      setNextExactLines(Array.isArray(json?.linesFr) ? json.linesFr : [])
-    } catch (err) {
-      setNextExactLines(null)
-      setNextExactError(err instanceof Error ? err.message : 'Erreur inconnue')
-    } finally {
-      setNextExactLoading(false)
+      el.style.height = 'auto'
+      const next = Math.min(el.scrollHeight, maxHeight)
+      el.style.height = `${Math.max(next, Math.round(lineHeight * minLines))}px`
+      el.style.overflowY = el.scrollHeight > maxHeight ? 'auto' : 'hidden'
     }
-  }
+    measure()
+    window.addEventListener('resize', measure, { passive: true })
+    return () => window.removeEventListener('resize', measure)
+  }, [entryInput])
 
   async function submitEntry(e: React.FormEvent) {
     e.preventDefault()
@@ -352,7 +305,7 @@ export default function JournalPilotClient() {
       const json = await res.json()
       if (!res.ok) {
         if (json?.code === 'PROFILE_INCOMPLETE') {
-          throw new Error("Enregistre d'abord tes données de naissance (ci-dessus) pour activer le clavardage.")
+          throw new Error("Enregistre d'abord tes données de naissance dans ton profil pour activer le clavardage.")
         }
         throw new Error(json?.error || 'Erreur de génération')
       }
@@ -361,7 +314,6 @@ export default function JournalPilotClient() {
       if (added.length > 0) {
         setMessages((prev) => [...prev, ...added])
       }
-      void fetchJournalMemory()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur inconnue')
     } finally {
@@ -439,11 +391,8 @@ export default function JournalPilotClient() {
             Journal pilote Astrologie & Guilde
           </h1>
           <p className="text-cosmic-gold/85 text-sm sm:text-base">
-            Ici tu ouvres une session de <strong className="text-cosmic-gold">clavardage</strong> : tu poses des questions,
-            tu lances des sujets, la guilde répond en s&apos;appuyant sur les <strong className="text-cosmic-gold">transits</strong> et le
-            contexte astrologique — pas sur un écran de « calcul de thème ». Le fil est <strong className="text-cosmic-gold">mémorisé</strong> pour
-            la continuité, les liens entre tes messages et les motifs qui reviennent. Divertissement symbolique — pas de
-            fatalisme ni d&apos;angle médical.
+            Ici tu ouvres une session de clavardage : tu poses des questions, tu lances des sujets, l&apos;Astrologie et sa
+            guilde répondent en s&apos;appuyant sur ta carte du ciel et les transits, soit ton contexte astrologique.
           </p>
         </div>
 
@@ -453,119 +402,9 @@ export default function JournalPilotClient() {
 
         {profileComplete ? (
           <>
-            <div className="mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-xl border border-cosmic-gold/25 bg-cosmic-purple/30 px-3 sm:px-4 py-3">
-              <p className="text-sm text-cosmic-gold/85">
-                <span className="font-medium text-cosmic-gold">Données de naissance</span> enregistrées sur ton compte
-                {profile?.birth_place ? ` (${profile.birth_place})` : ''}
-                {profile?.birth_date ? ` · ${profile.birth_date}` : ''}
-                . Tu n’as rien à ressaisir à chaque visite.
-              </p>
-            </div>
-
-            <div className="mt-4 bg-cosmic-purple/30 border border-cosmic-gold/25 rounded-xl p-3 sm:p-4">
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                  <h3 className="text-sm font-semibold text-cosmic-gold flex items-center gap-2">
-                    <Brain className="h-4 w-4" />
-                    Mémoire du journal (compte)
-                  </h3>
-                  <p className="text-xs text-cosmic-gold/70 mt-1 max-w-prose">
-                    Résumé persistant pour la cohérence d&apos;une session à l&apos;autre. Tu peux le relire, le corriger
-                    ou l&apos;effacer. Il est aussi mis à jour automatiquement (tous les {JOURNAL_MEMORY_LIGHT_EVERY_N}{' '}
-                    messages de la guilde environ,
-                    et à chaque archivage).
-                  </p>
-                  {memoryUpdatedAt ? (
-                    <p className="text-[10px] text-cosmic-gold/55 mt-1">
-                      Dernière mise à jour : {new Date(memoryUpdatedAt).toLocaleString('fr-CA')}
-                    </p>
-                  ) : null}
-                </div>
-                <div className="flex flex-col sm:flex-row gap-2 shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => fetchJournalMemory()}
-                    disabled={memoryLoading}
-                    className="w-full sm:w-auto px-3 py-2 rounded-lg border border-cosmic-gold/40 text-cosmic-gold text-xs font-medium hover:bg-cosmic-gold/10 transition disabled:opacity-50"
-                  >
-                    {memoryLoading ? 'Chargement…' : 'Rafraîchir'}
-                  </button>
-                </div>
-              </div>
-              {memoryLoading ? (
-                <div className="mt-3 flex items-center gap-2 text-sm text-cosmic-gold/80">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Chargement de la mémoire…
-                </div>
-              ) : (
-                <>
-                  <textarea
-                    value={memoryDraft}
-                    onChange={(e) => setMemoryDraft(e.target.value)}
-                    className="mt-3 w-full min-h-[140px] bg-black/25 border border-cosmic-gold/25 rounded-lg px-3 py-2 text-sm text-cosmic-gold placeholder-cosmic-gold/45"
-                    placeholder="(vide) — la mémoire se remplit au fil des échanges ou tu peux écrire ici ce que la guilde doit savoir sur toi."
-                    maxLength={3600}
-                  />
-                  <div className="mt-2 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setShowMemoryClearConfirm(true)}
-                      disabled={memorySaving || !memoryDraft.trim()}
-                      className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-red-400/50 text-red-200 text-xs font-medium hover:bg-red-900/30 transition disabled:opacity-40"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                      Effacer la mémoire
-                    </button>
-                    <button
-                      type="button"
-                      onClick={saveJournalMemory}
-                      disabled={memorySaving}
-                      className="w-full sm:w-auto px-4 py-2 rounded-lg bg-cosmic-gold text-cosmic-purple text-sm font-semibold hover:bg-cosmic-gold/90 transition disabled:opacity-60"
-                    >
-                      {memorySaving ? 'Enregistrement…' : 'Enregistrer'}
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
-
-            <div className="mt-4 bg-cosmic-purple/30 border border-cosmic-gold/25 rounded-xl p-3 sm:p-4">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                <div>
-                  <h3 className="text-sm font-semibold text-cosmic-gold flex items-center gap-2">
-                    <CalendarClock className="h-4 w-4" />
-                    Dates des prochains passages (calcul à part)
-                  </h3>
-                  <p className="text-xs text-cosmic-gold/70 mt-1">
-                    Recherche numérique sur l’éphemeride (plus lourd) — lance-la quand tu veux des dates chiffrées. Tu peux
-                    copier le résultat dans le clavardage pour que la guilde s’y réfère.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={runNextExactTimes}
-                  disabled={nextExactLoading}
-                  className="w-full sm:w-auto shrink-0 px-4 py-2 rounded-lg border border-cosmic-gold/50 text-cosmic-gold text-sm font-medium hover:bg-cosmic-gold/10 transition disabled:opacity-50"
-                >
-                  {nextExactLoading ? 'Calcul en cours…' : 'Lancer le calcul'}
-                </button>
-              </div>
-              {nextExactError ? (
-                <p className="mt-3 text-sm text-red-300">{nextExactError}</p>
-              ) : null}
-              {nextExactLines && nextExactLines.length > 0 ? (
-                <pre className="mt-3 text-xs text-cosmic-gold/90 whitespace-pre-wrap font-sans bg-black/20 rounded-lg p-3 border border-cosmic-gold/15 max-h-48 overflow-y-auto">
-                  {nextExactLines.join('\n')}
-                </pre>
-              ) : null}
-              {nextExactLines && nextExactLines.length === 0 && !nextExactLoading ? (
-                <p className="mt-3 text-sm text-cosmic-gold/70">Aucun passage trouvé dans l’horizon pour les aspects retenus.</p>
-              ) : null}
-            </div>
             {/* Fil descendant continu : pas de « boîte » autour du dialogue — la zone de saisie prolonge le fil */}
-            <section className="mt-8 flex min-h-[min(52vh,480px)] max-h-[min(80vh,760px)] flex-col">
-              <div className="mb-2 flex shrink-0 items-center justify-between gap-2">
-                <p className="text-sm font-medium text-cosmic-gold/80">Clavardage avec la guilde</p>
+            <section className="mt-8 flex flex-col pb-40 sm:pb-44">
+              <div className="mb-2 flex shrink-0 items-center justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setShowHistoryDrawer(true)}
@@ -582,18 +421,16 @@ export default function JournalPilotClient() {
                 </button>
               </div>
 
-              <div
-                ref={threadRef}
-                className="min-h-0 flex-1 overflow-y-auto flex flex-col gap-7 border-l border-cosmic-gold/15 pl-3 sm:pl-4 pr-1 sm:pr-2 scroll-pb-28"
-              >
+              <div className="flex flex-col border-l border-cosmic-gold/15 pl-3 sm:pl-4 pr-1 sm:pr-2">
+                <div ref={threadRef} className="flex flex-col gap-7">
                 {messages.length === 0 ? (
                   <div className="max-w-prose">
-                    <p className="flex items-baseline gap-1 text-[11px] uppercase tracking-wide text-cosmic-gold/40">
-                      <JournalSpeakerGlyph speaker="Guilde" />
-                      <span>Guilde</span>
+                    <p className="flex items-baseline gap-1 text-[11px] tracking-wide text-cosmic-gold/40">
+                      <JournalSpeakerGlyph speaker={JOURNAL_GUILD_HEADING_GLYPH} />
+                      <span>{JOURNAL_GUILD_HEADING}</span>
                     </p>
                     <p className="mt-1 text-sm leading-relaxed text-cosmic-gold/90 whitespace-pre-wrap">
-                      {JOURNAL_EMPTY_THREAD_WELCOME}
+                      {emptyThreadWelcome}
                     </p>
                   </div>
                 ) : (
@@ -603,47 +440,110 @@ export default function JournalPilotClient() {
                         key={m.id}
                         initial={{ opacity: 0, y: 4 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="ml-auto max-w-[min(100%,40rem)] text-right"
+                        className="mx-auto w-full max-w-[min(100%,40rem)] text-center"
                       >
-                        <p className="text-[11px] text-cosmic-gold/45">
+                        <p className="flex items-baseline justify-center gap-1 text-[11px] text-cosmic-gold/45">
                           <JournalSpeakerGlyph speaker="Toi" />
                           Toi · {new Date(m.created_at).toLocaleString('fr-CA')}
                         </p>
-                        <p className="mt-1.5 text-left text-[15px] leading-7 text-cosmic-gold whitespace-pre-wrap rounded-xl bg-cosmic-gold/[0.09] px-3.5 py-2.5">
-                          {m.content}
-                        </p>
+                        <div className="journal-user-bubble w-full max-w-[min(100%,40rem)]">
+                          <JournalBubbleTailSvg side="center" />
+                          <div className="journal-user-bubble__frame">
+                            <p className="text-[15px] leading-7 text-cosmic-gold/95 whitespace-pre-wrap text-center">
+                              {m.content}
+                            </p>
+                          </div>
+                        </div>
                       </motion.div>
                     ) : (
                       <motion.div
                         key={m.id}
                         initial={{ opacity: 0, y: 4 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="max-w-[min(100%,46rem)]"
+                        className="w-full"
                       >
                         <p className="text-[11px] text-cosmic-gold/45">
-                          <JournalSpeakerGlyph speaker="Guilde" />
-                          Guilde · {new Date(m.created_at).toLocaleString('fr-CA')}
+                          <JournalSpeakerGlyph speaker={JOURNAL_GUILD_HEADING_GLYPH} />
+                          {JOURNAL_GUILD_HEADING} · {new Date(m.created_at).toLocaleString('fr-CA')}
                         </p>
-                        <div className="mt-2.5 flex flex-col gap-5">
-                          {parseJournalChat(m.content).map((bubble, idx) => {
-                            const isAstrology = bubble.speaker.trim().toLowerCase() === 'astrologie'
-                            return (
-                              <div key={`${m.id}-${idx}`} className={`${isAstrology ? 'max-w-prose' : ''} rounded-lg px-1`}>
-                                <p className="text-[11px] uppercase tracking-wide text-cosmic-gold/45">
-                                  <JournalSpeakerGlyph speaker={bubble.speaker} />
-                                  {bubble.speaker}
-                                </p>
-                                <p className="mt-1.5 text-[15px] leading-7 text-cosmic-gold/95 whitespace-pre-wrap">
-                                  {bubble.body}
-                                </p>
-                              </div>
-                            )
-                          })}
+                        <div className="mt-2.5 flex w-full flex-col gap-6 sm:gap-8">
+                          {(() => {
+                            const planetAlternate = { n: 0 }
+                            return parseJournalChat(m.content).map((bubble, idx) => {
+                              const layout = journalGuildBubbleLayout(bubble, planetAlternate)
+                              return (
+                                <JournalGuildSpeechBubble
+                                  key={`${m.id}-${idx}`}
+                                  speaker={bubble.speaker}
+                                  tail={layout.tail}
+                                  colorIdx={idx}
+                                  className={`max-w-[min(100%,46rem)] sm:max-w-[min(100%,52rem)] ${layout.margin}`}
+                                >
+                                  <p className={journalGuildHeaderRowClass()}>
+                                    <JournalSpeakerGlyph speaker={bubble.speaker} />
+                                    {bubble.speaker}
+                                  </p>
+                                  <p className="mt-1 text-left text-[15px] leading-7 text-cosmic-gold/95 whitespace-pre-wrap">
+                                    {bubble.body}
+                                  </p>
+                                </JournalGuildSpeechBubble>
+                              )
+                            })
+                          })()}
                         </div>
                       </motion.div>
                     )
                   )
                 )}
+              </div>
+
+              <form
+                id="journal-compose-form"
+                onSubmit={submitEntry}
+                className={`${messages.length === 0 ? 'mt-3' : 'mt-8'} w-full shrink-0 pb-2 ${messages.length === 0 ? 'max-w-prose' : 'max-w-[min(100%,46rem)]'}`}
+              >
+                <label htmlFor="journal-entry-input" className="sr-only">
+                  Message pour la guilde
+                </label>
+                <textarea
+                  ref={entryTextareaRef}
+                  id="journal-entry-input"
+                  value={entryInput}
+                  onChange={(e) => setEntryInput(e.target.value)}
+                  rows={6}
+                  className="w-full resize-none min-h-0 max-h-none border-0 bg-transparent px-0 py-2 text-[15px] leading-relaxed text-cosmic-gold placeholder:text-cosmic-gold/60 outline-none ring-0 transition focus:outline-none focus:ring-0"
+                  placeholder="Écris la suite du fil ici…"
+                  maxLength={4000}
+                />
+              </form>
+
+              <div
+                className="fixed bottom-0 left-0 right-0 z-20 border-t border-cosmic-gold/30 bg-cosmic-purple/93 backdrop-blur-md shadow-[0_-10px_36px_rgba(0,0,0,0.38)]"
+              >
+                <div className="mx-auto flex max-w-5xl flex-col-reverse gap-2 px-3 pb-[max(0.65rem,env(safe-area-inset-bottom))] pt-3 sm:flex-row sm:items-center sm:justify-between sm:px-4">
+                  <span className="text-[11px] font-medium tabular-nums text-cosmic-gold/80">
+                    {entryInput.length}/4000
+                  </span>
+                  <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center">
+                    <button
+                      type="button"
+                      onClick={() => setShowArchiveConfirm(true)}
+                      disabled={endingConversation || messages.length === 0 || sendingEntry}
+                      className="inline-flex w-full items-center justify-center gap-2 rounded-lg px-2 py-1.5 text-sm text-cosmic-gold/90 underline decoration-cosmic-gold/40 underline-offset-[5px] hover:text-cosmic-gold hover:decoration-cosmic-gold/70 disabled:opacity-50 sm:w-auto"
+                    >
+                      <Archive className="h-4 w-4 shrink-0 text-cosmic-gold/90" />
+                      {endingConversation ? 'Archivage...' : 'Fin de la conversation'}
+                    </button>
+                    <button
+                      type="submit"
+                      form="journal-compose-form"
+                      disabled={sendingEntry || !entryInput.trim()}
+                      className="w-full rounded-lg bg-cosmic-gold px-5 py-2 text-sm font-semibold text-cosmic-purple hover:bg-cosmic-gold/90 transition disabled:opacity-50 sm:w-auto"
+                    >
+                      {sendingEntry ? 'En train de répondre...' : 'Envoyer'}
+                    </button>
+                  </div>
+                </div>
               </div>
 
               {!isNearBottom ? (
@@ -657,46 +557,7 @@ export default function JournalPilotClient() {
                   </button>
                 </div>
               ) : null}
-
-              <form
-                onSubmit={submitEntry}
-                className="sticky bottom-0 mt-4 shrink-0 border-t border-cosmic-gold/10 bg-gradient-to-t from-cosmic-purple via-cosmic-purple/95 to-transparent pt-4 pb-1"
-              >
-                <label htmlFor="journal-entry-input" className="sr-only">
-                  Message pour la guilde
-                </label>
-                <textarea
-                  ref={entryTextareaRef}
-                  id="journal-entry-input"
-                  value={entryInput}
-                  onChange={(e) => setEntryInput(e.target.value)}
-                  rows={2}
-                  className="w-full resize-none min-h-[3.5rem] max-h-[11rem] border-0 border-b border-cosmic-gold/20 bg-transparent px-0 py-2 text-sm leading-relaxed text-cosmic-gold placeholder:text-cosmic-gold/35 outline-none transition focus:border-cosmic-gold/45"
-                  placeholder="Écris la suite du fil ici…"
-                  maxLength={4000}
-                />
-                <div className="mt-3 flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
-                  <span className="text-[11px] text-cosmic-gold/40">{entryInput.length}/4000</span>
-                  <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center">
-                    <button
-                      type="button"
-                      onClick={() => setShowArchiveConfirm(true)}
-                      disabled={endingConversation || messages.length === 0 || sendingEntry}
-                      className="inline-flex w-full items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm text-cosmic-gold/75 underline decoration-cosmic-gold/25 underline-offset-4 hover:text-cosmic-gold hover:decoration-cosmic-gold/50 disabled:opacity-40 sm:w-auto"
-                    >
-                      <Archive className="h-4 w-4 shrink-0 opacity-70" />
-                      {endingConversation ? 'Archivage...' : 'Fin de la conversation'}
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={sendingEntry || !entryInput.trim()}
-                      className="w-full rounded-lg bg-cosmic-gold px-5 py-2 text-sm font-semibold text-cosmic-purple hover:bg-cosmic-gold/90 transition disabled:opacity-50 sm:w-auto"
-                    >
-                      {sendingEntry ? 'En train de répondre...' : 'Envoyer'}
-                    </button>
-                  </div>
-                </div>
-              </form>
+              </div>
             </section>
           </>
         ) : null}
@@ -775,29 +636,49 @@ export default function JournalPilotClient() {
                   </p>
                   {selectedArchive.messages.map((m) =>
                     m.role === 'user' ? (
-                      <div key={m.id} className="rounded-lg border border-cosmic-gold/20 bg-cosmic-purple/25 px-3 py-2">
-                        <div className="mb-1 text-[10px] uppercase tracking-wide text-cosmic-gold/60">
+                      <div key={m.id} className="text-center">
+                        <div className="mb-1 flex justify-center text-[10px] uppercase tracking-wide text-cosmic-gold/60">
                           <JournalSpeakerGlyph speaker="Toi" />
                           Toi · {new Date(m.created_at).toLocaleString('fr-CA')}
                         </div>
-                        <div className="text-sm text-cosmic-gold whitespace-pre-wrap">{m.content}</div>
+                        <div className="journal-user-bubble w-full max-w-[min(100%,38rem)]">
+                          <JournalBubbleTailSvg side="center" />
+                          <div className="journal-user-bubble__frame">
+                            <p className="text-sm text-cosmic-gold whitespace-pre-wrap">{m.content}</p>
+                          </div>
+                        </div>
                       </div>
                     ) : (
-                      <div key={m.id} className="rounded-lg border border-cosmic-gold/20 bg-cosmic-purple/25 px-3 py-2">
-                        <div className="mb-1 text-[10px] uppercase tracking-wide text-cosmic-gold/60">
-                          <JournalSpeakerGlyph speaker="Guilde" />
-                          Guilde · {new Date(m.created_at).toLocaleString('fr-CA')}
+                      <div key={m.id} className="rounded-lg border border-cosmic-gold/15 bg-black/15 px-2 py-2">
+                        <div className="mb-1 text-[10px] tracking-wide text-cosmic-gold/60">
+                          <JournalSpeakerGlyph speaker={JOURNAL_GUILD_HEADING_GLYPH} />
+                          {JOURNAL_GUILD_HEADING} · {new Date(m.created_at).toLocaleString('fr-CA')}
                         </div>
-                        <div className="mt-1 flex flex-col gap-3">
-                          {parseJournalChat(m.content).map((bubble, idx) => (
-                            <div key={`${m.id}-${idx}`}>
-                              <p className="text-[10px] uppercase tracking-wide text-cosmic-gold/55">
-                                <JournalSpeakerGlyph speaker={bubble.speaker} />
-                                {bubble.speaker}
-                              </p>
-                              <p className="mt-0.5 text-sm text-cosmic-gold whitespace-pre-wrap">{bubble.body}</p>
-                            </div>
-                          ))}
+                        <div className="mt-1 flex w-full flex-col gap-5 sm:gap-6">
+                          {(() => {
+                            const planetAlternate = { n: 0 }
+                            return parseJournalChat(m.content).map((bubble, idx) => {
+                              const layout = journalGuildBubbleLayout(bubble, planetAlternate)
+                              return (
+                                <JournalGuildSpeechBubble
+                                  key={`${m.id}-${idx}`}
+                                  speaker={bubble.speaker}
+                                  tail={layout.tail}
+                                  colorIdx={idx}
+                                  compact
+                                  className={`max-w-[min(100%,40rem)] sm:max-w-[min(100%,46rem)] ${layout.margin}`}
+                                >
+                                  <p className={journalGuildHeaderRowClass(true)}>
+                                    <JournalSpeakerGlyph speaker={bubble.speaker} />
+                                    {bubble.speaker}
+                                  </p>
+                                  <p className="mt-0.5 text-left text-sm leading-snug text-cosmic-gold whitespace-pre-wrap">
+                                    {bubble.body}
+                                  </p>
+                                </JournalGuildSpeechBubble>
+                              )
+                            })
+                          })()}
                         </div>
                       </div>
                     ),
@@ -834,35 +715,6 @@ export default function JournalPilotClient() {
                 className="w-full sm:w-auto px-4 py-2 rounded-lg bg-cosmic-gold text-cosmic-purple font-semibold hover:bg-cosmic-gold/90 transition disabled:opacity-60"
               >
                 {endingConversation ? 'Archivage...' : 'Confirmer'}
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
-      {showMemoryClearConfirm ? (
-        <div className="fixed inset-0 z-40 flex items-end sm:items-center justify-center bg-black/60 px-3 sm:px-4 pb-3 sm:pb-0">
-          <div className="w-full max-w-md rounded-xl border border-red-400/35 bg-cosmic-purple/95 p-4 sm:p-5 shadow-2xl">
-            <h3 className="text-lg font-semibold text-cosmic-gold">Effacer la mémoire du journal ?</h3>
-            <p className="mt-2 text-sm text-cosmic-gold/80">
-              Le résumé persistant sur ton compte sera vidé. La guilde n&apos;aura plus ce contexte jusqu&apos;à ce qu&apos;il se
-              reconstruise au fil des prochains échanges (ou que tu le réécrives toi-même).
-            </p>
-            <div className="mt-5 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => setShowMemoryClearConfirm(false)}
-                disabled={memorySaving}
-                className="w-full sm:w-auto px-4 py-2 rounded-lg border border-cosmic-gold/35 text-cosmic-gold/90 hover:bg-cosmic-gold/10 transition disabled:opacity-60"
-              >
-                Annuler
-              </button>
-              <button
-                type="button"
-                onClick={() => void clearJournalMemory()}
-                disabled={memorySaving}
-                className="w-full sm:w-auto px-4 py-2 rounded-lg bg-red-700 text-white font-semibold hover:bg-red-600 transition disabled:opacity-60"
-              >
-                {memorySaving ? 'Effacement…' : 'Effacer définitivement'}
               </button>
             </div>
           </div>

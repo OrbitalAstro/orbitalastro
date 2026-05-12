@@ -38,8 +38,8 @@ const LEGACY_SPEAKER_LINE =
   /^([A-Za-zÀ-ÿ][A-Za-zÀ-ÿéèêëàâôûùç'’\s]{1,80})\s*:\s*(.*)$/
 
 /** Bulles « intervenant : corps » pour l’affichage fil journal. */
-export function parseJournalGuildReply(reply: string): { speaker: string; body: string }[] {
-  const trimmed = reply.trim()
+export function parseJournalGuildReply(reply: string | null | undefined): { speaker: string; body: string }[] {
+  const trimmed = String(reply ?? '').trim()
   if (!trimmed) return []
 
   const messages: { speaker: string; body: string }[] = []

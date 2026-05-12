@@ -196,6 +196,9 @@ def _call_gemini_api(
         # Extract text content
         if "candidates" in data and data["candidates"]:
             candidate = data["candidates"][0]
+            finish = candidate.get("finishReason") or candidate.get("finish_reason")
+            if finish and str(finish).upper() not in ("STOP", "FINISH_REASON_UNSPECIFIED", "STOP_SEQUENCE"):
+                logger.warning(f"[AI] finishReason={finish} (model={model})")
             if "content" in candidate and "parts" in candidate["content"]:
                 text = candidate["content"]["parts"][0]["text"]
                 # Log text length to detect truncation

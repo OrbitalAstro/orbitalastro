@@ -54,8 +54,9 @@ export class ErrorBoundary extends Component<Props, State> {
             {this.state.error && (
               <details className="text-left mb-6 text-sm text-white/60">
                 <summary className="cursor-pointer mb-2">Error Details</summary>
-                <pre className="bg-black/30 p-3 rounded overflow-auto">
+                <pre className="bg-black/30 p-3 rounded overflow-auto whitespace-pre-wrap break-words max-h-48">
                   {this.state.error.message}
+                  {this.state.error.stack ? `\n\n${this.state.error.stack}` : ''}
                 </pre>
               </details>
             )}

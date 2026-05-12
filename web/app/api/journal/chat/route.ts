@@ -11,6 +11,8 @@ import {
 } from '@/lib/journal-chat-memory'
 
 export const runtime = 'nodejs'
+/** Évite les coupures côté Vercel/hosting pendant l’appel Python → Gemini (réponses guilde). */
+export const maxDuration = 120
 
 const MAX_HISTORY_MESSAGES = 72
 const MAX_ARCHIVED_THREADS = 30
@@ -348,11 +350,13 @@ Si la personne demande le **quand**, un **pic**, l’**énergie** ou le **timing
 
 Si le bloc contient **« PHÉNOMÈNES LUNAIRES »** (pleine lune / nouvelle lune calculée) : la **première** ligne **Astrologie :** donne **immédiatement** la date/heure de la lunaison indiquée sur la première puce, puis une phrase d’interprétation utile ; pas d’évitement ni de réponse uniquement métaphorique.
 
-**Volume attendu (important)** : ne force **pas** la personne à écrire « dis-moi en plus » ou « peux-tu développer ». Dès **ce** message, livre une réponse **généreuse** : assez de matière pour qu’elle ait une vision d’ensemble. Concrètement : **12 à 22 interventions** (ligne d’étiquette + mini-paragraphe), chaque voix (planète **ou** point calculé) avec l’étiquette **(Natal: signe, maison n + Transit: signe, maison n)** quand les données le permettent (voir consigne système), puis **plusieurs phrases** de corps. Inclure **au moins trois** planètes / points distincts après la première Astrologie, plus une **dernière** ligne Astrologie de synthèse.
+**Volume attendu (important)** : ne force **pas** la personne à écrire « dis-moi en plus ». Livre **tout de suite** une réponse **utile et lisible** : **synthèse** (voir consigne système : **3 à 5 tours de parole** au total en général, **1 à 2 planètes** après une première **Astrologie :** serrée). Chaque voix avec l’étiquette **(Natal: signe, maison n + Transit: signe, maison n)** quand les données le permettent, puis **1 à 2 phrases** de corps par planète. **Pas** de défilé de six planètes « par défaut » ; si la personne demande plus, tu élargis.
+
+**Question ciblée** (un seul sujet, ex. risque pro / « est-ce que… ») : applique le plafond **4 tours** de la consigne système ; **pas** de préface longue sur les émotions avant la réponse ; **interdit** « je suis… » / « je suis la structure… » dans les voix planètes ; **interdit** degrés et orbres chiffrés dans la prose.
 
 Si le dernier message de la personne est une vague relance (« encore », « un peu plus », etc.) : **approfondis sans répéter** les formulations du tour précédent ; apporte **nouveauté** (autres corps du bloc, conséquences sur 2–4 semaines, ce qu’il vaut mieux éviter ou favoriser).
 
-Les planètes et points parlent en **je** et **tutoyent** — **sans** « je, [nom du corps/point] », **sans** « je suis ta Lune / ton Soleil » ni équivalent : l’étiquette du rôle suffit. Pas d'introduction du type « voici mon interprétation ».`
+Les planètes et points parlent en **je** et **tutoyent** — **sans** « je, [nom du corps/point] », **sans** « je suis… » (Lune, Soleil, structure, force, Milieu du Ciel, etc.) : l’étiquette du rôle suffit. Pas d'introduction du type « voici mon interprétation ».`
 
     const apiBase = getApiBaseUrl()
     const aiResponse = await fetch(`${apiBase}/ai/interpret`, {
@@ -362,7 +366,9 @@ Les planètes et points parlent en **je** et **tutoyent** — **sans** « je, [n
         prompt,
         system_instruction: systemInstruction,
         temperature: 0.72,
-        max_output_tokens: 6144,
+        // Marge large : la longueur réelle est pilotée par le prompt (synthèse) ; un plafond trop bas
+        // provoque des réponses coupées au milieu d’une phrase (MAX_TOKENS / budget sortie).
+        max_output_tokens: 8192,
         conversation_turns,
       }),
     })
@@ -402,7 +408,7 @@ Réécris une version corrigée complète et cohérente. Règles strictes :
           prompt: correctionPrompt,
           system_instruction: systemInstruction,
           temperature: 0.68,
-          max_output_tokens: 6144,
+          max_output_tokens: 8192,
           conversation_turns,
         }),
       })
