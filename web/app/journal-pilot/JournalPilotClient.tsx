@@ -248,7 +248,15 @@ export default function JournalPilotClient() {
 
   useEffect(() => {
     let cancelled = false
-    getSession().then((session) => {
+    async function gate() {
+      const deadline = Date.now() + 3500
+      let delayMs = 60
+      let session = await getSession()
+      while (!cancelled && !session?.user && Date.now() < deadline) {
+        await new Promise((r) => setTimeout(r, delayMs))
+        delayMs = Math.min(Math.round(delayMs * 1.55), 500)
+        session = await getSession()
+      }
       if (cancelled) return
       if (!session?.user) {
         setAuthGate('unauthenticated')
@@ -256,7 +264,8 @@ export default function JournalPilotClient() {
         return
       }
       setAuthGate('authenticated')
-    })
+    }
+    void gate()
     return () => {
       cancelled = true
     }

@@ -1,7 +1,7 @@
 'use client'
 
 import { Suspense, useState } from 'react'
-import { signIn } from 'next-auth/react'
+import { getSession, signIn } from 'next-auth/react'
 import { useSearchParams } from 'next/navigation'
 import { Mail, Lock, Loader2, ArrowRight } from 'lucide-react'
 import Logo from '@/components/Logo'
@@ -11,6 +11,19 @@ import Starfield from '@/components/Starfield'
 function safeCallbackPath(raw: string | null): string {
   if (!raw || !raw.startsWith('/') || raw.startsWith('//')) return '/journal-pilot'
   return raw
+}
+
+/** Après signIn, le cookie httpOnly peut arriver un tick après la réponse ; on attend getSession avant navigation. */
+async function waitForClientSession(maxMs = 2500): Promise<boolean> {
+  const deadline = Date.now() + maxMs
+  let delayMs = 40
+  while (Date.now() < deadline) {
+    const session = await getSession()
+    if (session?.user) return true
+    await new Promise((r) => setTimeout(r, delayMs))
+    delayMs = Math.min(Math.round(delayMs * 1.55), 450)
+  }
+  return false
 }
 
 function SignInContent() {
@@ -45,8 +58,14 @@ function SignInContent() {
       if (result?.error) {
         setError('Email ou mot de passe incorrect')
       } else {
-        // Ne pas utiliser router.push + router.refresh : la session serveur peut ne pas voir
-        // le cookie JWT encore, ce qui renvoie vers /auth/signin en boucle.
+        const sessionReady = await waitForClientSession()
+        if (!sessionReady) {
+          setError(
+            'La session ne s’est pas enregistrée. Réessaie. Si ça persiste, vérifie que NEXTAUTH_URL sur Fly correspond exactement à l’URL dans la barre d’adresse (www.orbitalastro.ca vs orbitalastro.ca).',
+          )
+          setLoading(false)
+          return
+        }
         window.location.assign(nextPath)
         return
       }

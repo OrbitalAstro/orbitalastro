@@ -11,6 +11,8 @@ primary_region = "yyz"
     # Important: les variables `NEXT_PUBLIC_*` sont intégrées au build (pas au runtime).
     # Si votre app API Fly a un autre nom, remplacez l’URL.
     NEXT_PUBLIC_API_URL = "https://api.orbitalastro.ca"
+    # URL canonique du site (www ou apex) : sert au cookie de session partagé `.orbitalastro.ca`.
+    NEXT_PUBLIC_APP_URL = "https://www.orbitalastro.ca"
 
 [env]
   PORT = "8080"
