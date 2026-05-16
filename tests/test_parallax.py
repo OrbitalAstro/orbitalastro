@@ -49,3 +49,24 @@ def test_parallax_without_correction():
         assert isinstance(moon_with_parallax, float)
     except FileNotFoundError:
         pytest.skip("Ephemeris data not available")
+
+def test_parallax_with_altitude():
+    """Test that altitude affects the parallax correction slightly."""
+    moon_long_geo = 100.0
+    moon_lat_geo = 0.0
+    observer_lat = 45.0
+    observer_lon = -73.0
+    jd = datetime_to_julian_day(datetime(2000, 1, 1, 12, 0, 0))
+
+    topo_long_sea_level, topo_lat_sea_level = correct_moon_for_parallax(
+        moon_long_geo, moon_lat_geo, observer_lat, observer_lon, jd, observer_alt_m=0.0
+    )
+
+    topo_long_high, topo_lat_high = correct_moon_for_parallax(
+        moon_long_geo, moon_lat_geo, observer_lat, observer_lon, jd, observer_alt_m=8000.0  # Everest-ish
+    )
+
+    # Altitude should change the result, but very slightly
+    assert topo_long_sea_level != topo_long_high
+    diff = abs(topo_long_sea_level - topo_long_high)
+    assert diff < 0.1  # Difference should be very small
