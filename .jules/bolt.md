@@ -4,3 +4,7 @@
 ## 2026-05-08 - Optimize _orb_at specific body position lookup
 **Learning:** When calculating an orb for a single transit body over a search space in a loop, using a general purpose get_positions_from_swisseph that computes positions for ALL bodies introduces massive overhead.
 **Action:** Query the single body directly using swe.calc_ut instead of loading all celestial bodies.
+
+## 2024-05-18 - Optimize find_solar_return specific sun position lookup
+**Learning:** Similar to transit searches, when searching for solar returns iteratively (e.g. binary search), using a general purpose `get_positions_from_swisseph` that computes positions for ALL bodies inside the loop introduces significant overhead.
+**Action:** Query the single body (Sun) directly using `swe.calc_ut` during the search phase, and only compute the full chart once the exact moment is found.
