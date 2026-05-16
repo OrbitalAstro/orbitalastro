@@ -1,11 +1,13 @@
 'use client'
 
 import { Suspense, useState } from 'react'
+import Link from 'next/link'
 import { signIn } from 'next-auth/react'
 import { useSearchParams } from 'next/navigation'
 import { Mail, Lock, User, Loader2, ArrowRight } from 'lucide-react'
 import Logo from '@/components/Logo'
 import Starfield from '@/components/Starfield'
+import { useTranslation } from '@/lib/useTranslation'
 
 /** Évite les redirections ouvertes (callbackUrl externe). */
 function safeCallbackPath(raw: string | null): string {
@@ -14,6 +16,7 @@ function safeCallbackPath(raw: string | null): string {
 }
 
 function SignUpContent() {
+  const t = useTranslation()
   const searchParams = useSearchParams()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -199,8 +202,16 @@ function SignUpContent() {
             </button>
           </form>
 
-          <div className="mt-6 text-center">
-            <p className="text-cosmic-silver text-sm">
+          <div className="mt-6 space-y-4 text-center text-sm">
+            <p>
+              <Link
+                href="/auth/forgot-password"
+                className="text-cosmic-gold hover:underline font-semibold"
+              >
+                {t.authPasswordReset.forgotLink}
+              </Link>
+            </p>
+            <p className="text-cosmic-silver">
               Déjà un compte ?{' '}
               <a
                 href={signInHref}

@@ -140,15 +140,6 @@ function SignInContent() {
               </div>
             </div>
 
-            <div className="text-right -mt-2">
-              <Link
-                href="/auth/forgot-password"
-                className="text-sm text-cosmic-gold hover:underline font-medium"
-              >
-                {t.authPasswordReset.forgotLink}
-              </Link>
-            </div>
-
             <button
               type="submit"
               disabled={loading}
@@ -168,8 +159,16 @@ function SignInContent() {
             </button>
           </form>
 
-          <div className="mt-6 text-center">
-            <p className="text-cosmic-silver text-sm">
+          <div className="mt-6 space-y-4 text-center text-sm">
+            <p>
+              <Link
+                href="/auth/forgot-password"
+                className="text-cosmic-gold hover:underline font-semibold"
+              >
+                {t.authPasswordReset.forgotLink}
+              </Link>
+            </p>
+            <p className="text-cosmic-silver">
               Pas encore de compte ?{' '}
               <a
                 href={signUpHref}
