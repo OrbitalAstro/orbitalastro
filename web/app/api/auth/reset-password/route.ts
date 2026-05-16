@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { isAuthPasswordLongEnough } from '@/lib/auth/validation'
 import { getSupabaseAdmin } from '@/lib/supabase'
 import { hashPassword } from '@/lib/password'
 import { hashResetToken } from '@/lib/password-reset-token'
@@ -15,7 +16,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'INVALID' }, { status: 400 })
     }
 
-    if (password.length < 8) {
+    if (!isAuthPasswordLongEnough(password)) {
       return NextResponse.json({ error: 'SHORT' }, { status: 400 })
     }
 

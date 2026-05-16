@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS payments (
   stripe_session_id TEXT UNIQUE NOT NULL,
   stripe_customer_id TEXT,
   customer_email TEXT NOT NULL,
-  product_id TEXT NOT NULL, -- 'dialogue', 'reading-2026', 'valentine-2026', 'monthly'
+  product_id TEXT NOT NULL, -- 'dialogue', 'reading-2026', 'valentine-2026', 'monthly', 'journal-monthly'
   amount_paid DECIMAL(10, 2) NOT NULL,
   currency TEXT NOT NULL DEFAULT 'cad',
   status TEXT NOT NULL, -- 'paid', 'pending', 'failed', 'refunded'
@@ -25,7 +25,7 @@ CREATE INDEX IF NOT EXISTS idx_payments_stripe_session ON payments(stripe_sessio
 CREATE TABLE IF NOT EXISTS user_access (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   customer_email TEXT NOT NULL,
-  product_id TEXT NOT NULL, -- 'dialogue', 'reading-2026', 'valentine-2026', 'monthly'
+  product_id TEXT NOT NULL, -- 'dialogue', 'reading-2026', 'valentine-2026', 'monthly', 'journal-monthly'
   payment_id UUID REFERENCES payments(id) ON DELETE CASCADE,
   expires_at TIMESTAMP WITH TIME ZONE, -- NULL = accès permanent (pour les achats uniques)
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),

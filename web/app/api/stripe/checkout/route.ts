@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
 import Stripe from 'stripe'
+import { authOptions } from '@/lib/auth-options'
+import { JOURNAL_MONTHLY_PRODUCT_ID } from '@/lib/journal-subscription'
+import { getJournalMonthlyStripePriceId } from '@/lib/stripe-journal-price'
 
 // Initialiser Stripe seulement au runtime, pas au build time
 function getStripe() {
@@ -32,19 +36,38 @@ const getPriceIdForProduct = (productId: string): string | null => {
       test: 'price_1SrTNsJOod2H9eSEa2Nz1heK',
       live: 'price_1SrTNsJOod2H9eSEa2Nz1heK', // Placeholder
     },
+    [JOURNAL_MONTHLY_PRODUCT_ID]: {
+      test: process.env.STRIPE_PRICE_JOURNAL_MONTHLY_TEST || 'price_1TXmKzJOod2H9eSELhFz3A3S',
+      live: process.env.STRIPE_PRICE_JOURNAL_MONTHLY_LIVE || '',
+    },
+    monthly: {
+      test: process.env.STRIPE_PRICE_JOURNAL_MONTHLY_TEST || 'price_1TXmKzJOod2H9eSELhFz3A3S',
+      live: process.env.STRIPE_PRICE_JOURNAL_MONTHLY_LIVE || '',
+    },
   }
   
+  if (productId === JOURNAL_MONTHLY_PRODUCT_ID || productId === 'monthly') {
+    return getJournalMonthlyStripePriceId()
+  }
+
   const product = priceIdMap[productId]
   if (!product) {
     return null
   }
-  
-  return isLiveMode ? product.live : product.test
+
+  const id = isLiveMode ? product.live : product.test
+  return id || null
 }
 
 export async function POST(request: NextRequest) {
   try {
     const { priceId: priceIdFromClient, productId, email, promoCode } = await request.json()
+
+    const sessionAuth = await getServerSession(authOptions)
+    const checkoutEmail =
+      (typeof email === 'string' && email.trim()) ||
+      sessionAuth?.user?.email ||
+      undefined
 
     // Déterminer le bon Price ID côté serveur (plus fiable que côté client)
     const actualPriceId = productId ? getPriceIdForProduct(productId) : priceIdFromClient
@@ -57,7 +80,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Déterminer le type de paiement (one-time ou subscription)
-    const isSubscription = productId === 'monthly' || productId === 'yearly'
+    const isSubscription =
+      productId === 'monthly' || productId === 'yearly' || productId === JOURNAL_MONTHLY_PRODUCT_ID
     
     // Déterminer l'URL de base pour les redirections
     // Utiliser NEXT_PUBLIC_APP_URL si défini, sinon utiliser l'origin de la requête
@@ -86,9 +110,15 @@ export async function POST(request: NextRequest) {
           quantity: 1,
         },
       ],
-      customer_email: email,
-      success_url: `${baseUrl}/pricing?success=true&product=${productId}&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${baseUrl}/pricing?canceled=true`,
+      customer_email: checkoutEmail,
+      success_url:
+        productId === JOURNAL_MONTHLY_PRODUCT_ID
+          ? `${baseUrl}/journal-pilot?subscribed=true&session_id={CHECKOUT_SESSION_ID}`
+          : `${baseUrl}/pricing?success=true&product=${productId}&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url:
+        productId === JOURNAL_MONTHLY_PRODUCT_ID
+          ? `${baseUrl}/journal-pilot?canceled=1`
+          : `${baseUrl}/pricing?canceled=true`,
       metadata: {
         productId: productId || 'unknown',
         promoCode: promoCode || '',
@@ -103,11 +133,13 @@ export async function POST(request: NextRequest) {
         },
       },
       // Forcer l'envoi automatique du reçu par email pour les paiements uniques
-      ...(email && !isSubscription ? {
-        payment_intent_data: {
-          receipt_email: email,
-        },
-      } : {}),
+      ...(checkoutEmail && !isSubscription
+        ? {
+            payment_intent_data: {
+              receipt_email: checkoutEmail,
+            },
+          }
+        : {}),
     }
 
     // Obtenir l'instance Stripe
@@ -156,9 +188,14 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Pour les abonnements, permettre les codes promo
+    // Pour les abonnements, permettre les codes promo + métadonnées sur l'abonnement
     if (isSubscription) {
       sessionConfig.allow_promotion_codes = true
+      sessionConfig.subscription_data = {
+        metadata: {
+          productId: productId || 'unknown',
+        },
+      }
     }
 
     // Vérifier que le Price ID existe avant de créer la session

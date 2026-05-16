@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { randomBytes } from 'crypto'
+import { parseNormalizedAuthEmail } from '@/lib/auth/validation'
 import { getSupabaseAdmin } from '@/lib/supabase'
 import { hashResetToken } from '@/lib/password-reset-token'
 import { passwordResetPublicOrigin } from '@/lib/password-reset-origin'
@@ -26,14 +27,6 @@ function checkRateLimit(key: string, limit: number, windowMs: number): boolean {
   return true
 }
 
-function normalizeEmail(raw: unknown): string | null {
-  const s = String(raw || '')
-    .toLowerCase()
-    .trim()
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s)) return null
-  return s
-}
-
 function siteBaseUrl(request: NextRequest): string {
   return passwordResetPublicOrigin(request)
 }
@@ -51,7 +44,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: true })
   }
 
-  const email = normalizeEmail(body.email)
+  const email = parseNormalizedAuthEmail(body.email)
   if (!email) {
     return NextResponse.json({ ok: true })
   }

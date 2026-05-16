@@ -33,8 +33,8 @@ export default function PricingPage() {
         redirectUrl = `/reading-2026?purchased=true${sessionId ? `&session_id=${sessionId}` : ''}`
       } else if (product === 'valentine-2026') {
         redirectUrl = `/saint-valentin?purchased=true${sessionId ? `&session_id=${sessionId}` : ''}`
-      } else if (product === 'monthly') {
-        redirectUrl = '/dashboard?subscribed=true'
+      } else if (product === 'monthly' || product === 'journal-monthly') {
+        redirectUrl = `/journal-pilot?subscribed=true${sessionId ? `&session_id=${sessionId}` : ''}`
       }
       
       // Utiliser window.location.href pour une redirection immédiate
@@ -51,9 +51,11 @@ export default function PricingPage() {
   }, [router])
 
   const handlePurchase = async (product: Product) => {
-    if (!product.stripePriceId) {
-      alert('Ce produit n\'est pas encore configuré. Veuillez contacter le support.')
-      return
+    if (!product.stripePriceId || product.stripePriceId === 'server-configured') {
+      if (product.id !== 'journal-monthly') {
+        alert('Ce produit n\'est pas encore configuré. Veuillez contacter le support.')
+        return
+      }
     }
 
     setLoading(product.id)
@@ -241,7 +243,7 @@ export default function PricingPage() {
         {subscriptions.some(sub => sub.stripePriceId) && (
           <div>
             <h2 className="text-3xl font-bold text-center mb-8 text-white">
-              Abonnement
+              Journal pilote — abonnement mensuel
             </h2>
             <div className="grid md:grid-cols-1 gap-8 max-w-3xl mx-auto">
               {subscriptions.map((subscription) => (

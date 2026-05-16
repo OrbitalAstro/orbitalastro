@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
+import { assertJournalSubscription } from '@/lib/journal-subscription'
 import { getSupabaseAdmin } from '@/lib/supabase'
 import { fetchJournalAstroContext } from '@/lib/journal-astro-context'
 import { buildJournalGuildSystemInstruction } from '@/lib/journal-guild-prompt'
@@ -32,6 +33,8 @@ export async function POST(request: NextRequest) {
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
+  const subBlock = await assertJournalSubscription(session)
+  if (subBlock) return subBlock
 
   try {
     const { entry } = await request.json()

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
+import { hasJournalAccess, isJournalSubscriptionProduct } from '@/lib/journal-subscription'
 
 function getStripe() {
   const secretKey = process.env.STRIPE_SECRET_KEY
@@ -29,6 +30,16 @@ export async function GET(request: NextRequest) {
         { error: 'Product ID is required' },
         { status: 400 }
       )
+    }
+
+    if (isJournalSubscriptionProduct(productId)) {
+      const subscribed = await hasJournalAccess(email)
+      return NextResponse.json({
+        paid: subscribed,
+        productId,
+        quantity: subscribed ? 1 : 0,
+        generationsUsed: 0,
+      })
     }
 
     const stripe = getStripe()

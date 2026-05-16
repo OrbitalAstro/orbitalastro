@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { getSession } from 'next-auth/react'
 import { motion } from 'framer-motion'
-import { Archive, BookOpenText, History, Loader2, X } from 'lucide-react'
+import { Archive, BookOpenText, CreditCard, History, Loader2, X } from 'lucide-react'
+import { journalMonthlySubscription } from '@/lib/stripe'
 import BackButton from '@/components/BackButton'
 import Starfield from '@/components/Starfield'
 import JournalBubbleTailSvg from '@/components/JournalBubbleTailSvg'
@@ -83,6 +84,8 @@ function journalGuildHeaderRowClass(compact?: boolean): string {
 
 export default function JournalPilotClient() {
   const [authGate, setAuthGate] = useState<'loading' | 'authenticated' | 'unauthenticated'>('loading')
+  const [subscriptionStatus, setSubscriptionStatus] = useState<'unknown' | 'active' | 'required'>('unknown')
+  const [checkoutLoading, setCheckoutLoading] = useState(false)
 
   const [loading, setLoading] = useState(true)
   const [sendingEntry, setSendingEntry] = useState(false)
@@ -183,6 +186,18 @@ export default function JournalPilotClient() {
         return
       }
 
+      const subRes = await fetch('/api/journal/subscription', { credentials: 'include' })
+      const subJson = await subRes.json().catch(() => ({}))
+      if (!subRes.ok) {
+        throw new Error(subJson?.error || 'Erreur abonnement')
+      }
+      if (!subJson.subscribed) {
+        setSubscriptionStatus('required')
+        setLoading(false)
+        return
+      }
+      setSubscriptionStatus('active')
+
       const chatRes = await fetch('/api/journal/chat', { credentials: 'include' })
       const chatJson = await chatRes.json()
       if (!chatRes.ok) throw new Error(chatJson?.error || 'Erreur clavardage')
@@ -230,6 +245,58 @@ export default function JournalPilotClient() {
     fetchProfileAndChat()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authGate])
+
+  useEffect(() => {
+    if (authGate !== 'authenticated' || typeof window === 'undefined') return
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('subscribed') !== 'true') return
+
+    let cancelled = false
+    async function confirmSubscription() {
+      for (let i = 0; i < 8 && !cancelled; i++) {
+        const res = await fetch('/api/journal/subscription', { credentials: 'include' })
+        const data = await res.json().catch(() => ({}))
+        if (data.subscribed) {
+          setSubscriptionStatus('active')
+          window.history.replaceState({}, '', '/journal-pilot')
+          void fetchProfileAndChat()
+          return
+        }
+        await new Promise((r) => setTimeout(r, 1500))
+      }
+    }
+    void confirmSubscription()
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authGate])
+
+  async function startJournalCheckout() {
+    setCheckoutLoading(true)
+    setError(null)
+    try {
+      const res = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ productId: 'journal-monthly' }),
+      })
+      const data = await res.json()
+      if (!res.ok || data.error) {
+        throw new Error(data.error || 'Impossible de démarrer le paiement.')
+      }
+      if (data.url) {
+        window.location.href = data.url
+        return
+      }
+      throw new Error('URL de paiement manquante.')
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Erreur de paiement')
+    } finally {
+      setCheckoutLoading(false)
+    }
+  }
 
   const scrollThreadToBottom = useCallback((behavior: ScrollBehavior = 'auto') => {
     requestAnimationFrame(() => {
@@ -400,7 +467,38 @@ export default function JournalPilotClient() {
           <div className="mt-4 p-3 rounded-lg border border-red-400/40 bg-red-900/20 text-red-100">{error}</div>
         ) : null}
 
-        {profileComplete ? (
+        {profileComplete && subscriptionStatus === 'required' ? (
+          <div className="mt-8 rounded-xl border border-cosmic-gold/35 bg-cosmic-purple/50 p-6 sm:p-8">
+            <h2 className="text-xl font-bold text-cosmic-gold mb-2">Abonnement Journal pilote</h2>
+            <p className="text-cosmic-gold/85 text-sm sm:text-base mb-4">
+              Le clavardage avec l&apos;astrologie et la guilde nécessite un abonnement mensuel. Tu conserves ton compte et
+              ton profil natal ; active l&apos;accès pour commencer une session.
+            </p>
+            <ul className="text-sm text-cosmic-gold/80 space-y-2 mb-6 list-disc pl-5">
+              {journalMonthlySubscription.features?.map((f) => (
+                <li key={f}>{f}</li>
+              ))}
+            </ul>
+            <p className="text-2xl font-bold text-cosmic-gold mb-6">
+              {journalMonthlySubscription.price} $ CAD{' '}
+              <span className="text-base font-normal text-cosmic-gold/70">/ mois</span>
+            </p>
+            <button
+              type="button"
+              onClick={() => void startJournalCheckout()}
+              disabled={checkoutLoading}
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-cosmic-gold px-6 py-3 font-semibold text-cosmic-purple hover:bg-cosmic-gold/90 disabled:opacity-50"
+            >
+              {checkoutLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <CreditCard className="h-5 w-5" />}
+              S&apos;abonner maintenant
+            </button>
+            <p className="mt-4 text-xs text-cosmic-gold/60">
+              Paiement sécurisé par Stripe. Annulation possible depuis le portail client après souscription.
+            </p>
+          </div>
+        ) : null}
+
+        {profileComplete && subscriptionStatus === 'active' ? (
           <>
             {/* Fil descendant continu : pas de « boîte » autour du dialogue — la zone de saisie prolonge le fil */}
             <section className="mt-8 flex flex-col pb-40 sm:pb-44">

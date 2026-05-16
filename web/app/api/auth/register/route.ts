@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { parseNormalizedAuthEmail, isAuthPasswordLongEnough } from '@/lib/auth/validation'
 import { getSupabaseAdmin } from '@/lib/supabase'
 import { hashPassword } from '@/lib/password'
 
@@ -8,15 +9,15 @@ export async function POST(request: NextRequest) {
   try {
     const { email, password, name } = await request.json()
 
-    const normalizedEmail = String(email || '').toLowerCase().trim()
+    const normalizedEmail = parseNormalizedAuthEmail(email)
     const rawPassword = String(password || '')
     const displayName = String(name || '').trim()
 
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+    if (!normalizedEmail) {
       return NextResponse.json({ error: 'Adresse courriel invalide.' }, { status: 400 })
     }
 
-    if (rawPassword.length < 8) {
+    if (!isAuthPasswordLongEnough(rawPassword)) {
       return NextResponse.json({ error: 'Le mot de passe doit contenir au moins 8 caractères.' }, { status: 400 })
     }
 

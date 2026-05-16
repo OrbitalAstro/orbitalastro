@@ -117,28 +117,26 @@ export const getOneTimeProducts = (): Product[] => {
 // Produits à la pièce (pour compatibilité, mais utiliser getOneTimeProducts() de préférence)
 export const oneTimeProducts: Product[] = getOneTimeProducts()
 
-// Abonnements (pour plus tard)
-export const subscriptions: Product[] = [
-  {
-    id: 'monthly',
-    name: 'Abonnement Mensuel',
-    description: 'Accès complet à toutes les fonctionnalités astrologiques.',
-    price: 12.99,
-    currency: 'cad',
-    stripePriceId: '', // ⬅️ À REMPLIR avec votre Price ID Stripe
-    type: 'subscription',
-    interval: 'month',
-    features: [
-      'Lectures astrologiques illimitées',
-      'Suivi des transits en temps réel',
-      'Dialogues Avant l\'atterrissage',
-      'Calculs de thème natal avancés',
-      'Progressions et retours solaires',
-      'Export PDF de vos analyses',
-      'Support prioritaire',
-    ],
-  },
-]
+// Abonnement Journal pilote (Price ID résolu côté serveur au checkout)
+export const journalMonthlySubscription: Product = {
+  id: 'journal-monthly',
+  name: 'Journal pilote',
+  description: 'Clavardage astrologique personnalisé, archives et mémoire — accès illimité.',
+  price: 19.99,
+  currency: 'cad',
+  stripePriceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_JOURNAL_MONTHLY || 'server-configured',
+  type: 'subscription',
+  interval: 'month',
+  features: [
+    'Conversations avec les guildes (astrologie, planètes, etc.)',
+    'Contexte natal intégré à chaque échange',
+    'Archives de vos fils de discussion',
+    'Mémoire longue durée de votre journal',
+    'Renouvellement mensuel — annulable à tout moment',
+  ],
+}
+
+export const subscriptions: Product[] = [journalMonthlySubscription]
 
 // Tous les produits (pour affichage)
 export const allProducts: Product[] = [...oneTimeProducts, ...subscriptions]

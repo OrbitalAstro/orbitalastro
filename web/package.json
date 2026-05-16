@@ -10,6 +10,8 @@
     "build:vercel": "next build",
     "start": "next start",
     "lint": "next lint",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "lint:journal": "eslint \"app/journal-pilot/**/*.{ts,tsx}\" \"app/api/journal/**/*.ts\" \"lib/journal-*.ts\"",
     "postinstall": "echo 'Dependencies installed'"
   },
@@ -43,6 +45,7 @@
     "eslint-config-next": "^14.0.0",
     "postcss": "^8.4.0",
     "tailwindcss": "^3.3.0",
-    "typescript": "^5.2.0"
+    "typescript": "^5.2.0",
+    "vitest": "^2.1.9"
   }
 }

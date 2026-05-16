@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { headers } from 'next/headers'
+import {
+  extendJournalAccess,
+  isJournalSubscriptionProduct,
+  revokeJournalAccess,
+} from '@/lib/journal-subscription'
 
 function getStripe() {
   const secretKey = process.env.STRIPE_SECRET_KEY
@@ -111,6 +116,60 @@ async function recordPayment(session: Stripe.Checkout.Session) {
   }
 }
 
+async function customerEmailFromStripe(
+  stripe: Stripe,
+  customer: string | Stripe.Customer | Stripe.DeletedCustomer | null,
+): Promise<string | null> {
+  if (!customer) return null
+  if (typeof customer === 'object' && 'email' in customer && customer.email) {
+    return customer.email
+  }
+  if (typeof customer === 'string') {
+    try {
+      const c = await stripe.customers.retrieve(customer)
+      if (!c.deleted && 'email' in c && c.email) return c.email
+    } catch {
+      return null
+    }
+  }
+  return null
+}
+
+async function handleInvoicePaid(stripe: Stripe, invoice: Stripe.Invoice) {
+  let resolvedProduct = invoice.lines?.data?.[0]?.metadata?.productId as string | undefined
+
+  const subId = typeof invoice.subscription === 'string' ? invoice.subscription : invoice.subscription?.id
+  if (subId) {
+    try {
+      const sub = await stripe.subscriptions.retrieve(subId)
+      resolvedProduct = resolvedProduct || sub.metadata?.productId
+    } catch {
+      /* ignore */
+    }
+  }
+
+  if (!isJournalSubscriptionProduct(resolvedProduct)) return
+
+  const email =
+    invoice.customer_email ||
+    (await customerEmailFromStripe(stripe, invoice.customer ?? null))
+  if (!email) return
+
+  await extendJournalAccess(email, { months: 1 })
+  console.log('[webhook/stripe] Journal access extended (invoice.paid):', email)
+}
+
+async function handleSubscriptionDeleted(stripe: Stripe, subscription: Stripe.Subscription) {
+  const productId = subscription.metadata?.productId
+  if (!isJournalSubscriptionProduct(productId)) return
+
+  const email = await customerEmailFromStripe(stripe, subscription.customer)
+  if (!email) return
+
+  await revokeJournalAccess(email)
+  console.log('[webhook/stripe] Journal access revoked:', email)
+}
+
 export async function POST(request: NextRequest) {
   try {
     const stripe = getStripe()
@@ -142,6 +201,18 @@ export async function POST(request: NextRequest) {
       case 'payment_intent.succeeded': {
         // Optionnel : gérer les paiements directs
         console.log('Payment intent succeeded:', event.data.object)
+        break
+      }
+
+      case 'invoice.paid': {
+        const invoice = event.data.object as Stripe.Invoice
+        await handleInvoicePaid(stripe, invoice)
+        break
+      }
+
+      case 'customer.subscription.deleted': {
+        const subscription = event.data.object as Stripe.Subscription
+        await handleSubscriptionDeleted(stripe, subscription)
         break
       }
 
