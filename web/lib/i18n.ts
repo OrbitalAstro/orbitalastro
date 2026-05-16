@@ -79,6 +79,8 @@ export const translations = {
       privacy: "Privacy",
       beginJourney: "Begin Journey",
       sourceCode: "Source code",
+      signOut: "Sign out",
+      more: "More",
     },
     home: {
       heroTitle1: "Your Cosmic Blueprint",
@@ -552,6 +554,8 @@ export const translations = {
       privacy: "Confidentialité",
       beginJourney: "Commencer",
       sourceCode: "Code source",
+      signOut: "Déconnexion",
+      more: "Plus",
     },
     home: {
       heroTitle1: "Votre Plan Cosmique",
@@ -1004,6 +1008,8 @@ export const translations = {
       privacy: "Privacidad",
       beginJourney: "Comenzar",
       sourceCode: "Código fuente",
+      signOut: "Cerrar sesión",
+      more: "Más",
     },
     home: {
       heroTitle1: "Tu Plan Cósmico",
