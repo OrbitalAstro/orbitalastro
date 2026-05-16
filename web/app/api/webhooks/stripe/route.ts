@@ -48,36 +48,31 @@ async function recordPayment(session: Stripe.Checkout.Session) {
   
   try {
     const supabase = getSupabaseAdmin()
-    const productId = session.metadata?.productId || 'unknown'
+    const productIdsRaw = session.metadata?.productIds || session.metadata?.productId || 'unknown'
+    const productIdList = productIdsRaw.split(',').map((id) => id.trim()).filter(Boolean)
     const amount = session.amount_total ? session.amount_total / 100 : 0 // Convertir de centimes
     const currency = session.currency || 'cad'
     const customerEmail = session.customer_email || session.customer_details?.email || ''
     const stripeCustomerId = typeof session.customer === 'string' ? session.customer : null
 
     // Enregistrer le paiement
-    const { data: payment, error: paymentError } = await supabase
-      .from('payments')
-      .upsert(
+    for (const pid of productIdList.length > 0 ? productIdList : ['unknown']) {
+      const share = productIdList.length > 1 ? amount / productIdList.length : amount
+      const { error: paymentError } = await supabase.from('payments').upsert(
         {
-          stripe_session_id: session.id,
+          stripe_session_id: `${session.id}:${pid}`,
           stripe_customer_id: stripeCustomerId,
           customer_email: customerEmail,
-          product_id: productId,
-          amount_paid: amount,
+          product_id: pid,
+          amount_paid: share,
           currency: currency,
           status: session.payment_status === 'paid' ? 'paid' : 'pending',
         },
-        {
-          onConflict: 'stripe_session_id',
-          ignoreDuplicates: false,
-        }
+        { onConflict: 'stripe_session_id', ignoreDuplicates: false },
       )
-      .select()
-      .single()
-
-    if (paymentError) {
-      console.error('[webhook/stripe] Failed to record payment:', paymentError)
-      return
+      if (paymentError) {
+        console.error('[webhook/stripe] Failed to record payment:', paymentError, pid)
+      }
     }
 
     // Le trigger automatique créera le subscriber, mais on peut aussi le faire manuellement pour être sûr
@@ -107,9 +102,8 @@ async function recordPayment(session: Stripe.Checkout.Session) {
 
     console.log('[webhook/stripe] Payment recorded:', {
       sessionId: session.id,
-      productId,
+      productIds: productIdList,
       email: customerEmail,
-      paymentId: payment?.id,
     })
   } catch (error) {
     console.error('[webhook/stripe] Error recording payment:', error)

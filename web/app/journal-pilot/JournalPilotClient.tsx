@@ -3,9 +3,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { getSession } from 'next-auth/react'
 import { motion } from 'framer-motion'
-import { Archive, BookOpenText, CreditCard, History, Loader2, X } from 'lucide-react'
+import { Archive, BookOpenText, History, Loader2, X } from 'lucide-react'
 import { journalMonthlySubscription } from '@/lib/stripe'
 import BackButton from '@/components/BackButton'
+import CheckoutConsentCheckboxes from '@/components/CheckoutConsentCheckboxes'
 import Starfield from '@/components/Starfield'
 import JournalBubbleBlockActions from '@/components/JournalBubbleBlockActions'
 import JournalGuildSpeechBubble from '@/components/JournalGuildSpeechBubble'
@@ -67,7 +68,6 @@ const JOURNAL_GUILD_HEADING_GLYPH = 'Astrologie'
 export default function JournalPilotClient() {
   const [authGate, setAuthGate] = useState<'loading' | 'authenticated' | 'unauthenticated'>('loading')
   const [subscriptionStatus, setSubscriptionStatus] = useState<'unknown' | 'active' | 'required'>('unknown')
-  const [checkoutLoading, setCheckoutLoading] = useState(false)
 
   const [loading, setLoading] = useState(true)
   const [sendingEntry, setSendingEntry] = useState(false)
@@ -276,32 +276,6 @@ export default function JournalPilotClient() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authGate])
 
-  async function startJournalCheckout() {
-    setCheckoutLoading(true)
-    setError(null)
-    try {
-      const res = await fetch('/api/stripe/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ productId: 'journal-monthly' }),
-      })
-      const data = await res.json()
-      if (!res.ok || data.error) {
-        throw new Error(data.error || 'Impossible de démarrer le paiement.')
-      }
-      if (data.url) {
-        window.location.href = data.url
-        return
-      }
-      throw new Error('URL de paiement manquante.')
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Erreur de paiement')
-    } finally {
-      setCheckoutLoading(false)
-    }
-  }
-
   const scrollThreadToBottom = useCallback((behavior: ScrollBehavior = 'auto') => {
     requestAnimationFrame(() => {
       window.scrollTo({ top: document.documentElement.scrollHeight, behavior })
@@ -500,17 +474,18 @@ export default function JournalPilotClient() {
               {journalMonthlySubscription.price} $ CAD{' '}
               <span className="text-base font-normal text-cosmic-gold/70">/ mois</span>
             </p>
-            <button
-              type="button"
-              onClick={() => void startJournalCheckout()}
-              disabled={checkoutLoading}
-              className="inline-flex items-center justify-center gap-2 rounded-lg bg-cosmic-gold px-6 py-3 font-semibold text-cosmic-purple hover:bg-cosmic-gold/90 disabled:opacity-50"
-            >
-              {checkoutLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <CreditCard className="h-5 w-5" />}
-              S&apos;abonner maintenant
-            </button>
-            <p className="mt-4 text-xs text-cosmic-gold/60">
-              Paiement sécurisé par Stripe. Annulation possible depuis le portail client après souscription.
+            <AddToCartButton
+              productId="journal-monthly"
+              label="Ajouter au panier"
+              goToCheckout
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-cosmic-gold px-6 py-3 font-semibold text-cosmic-purple hover:bg-cosmic-gold/90"
+            />
+            <p className="mt-4 text-sm text-cosmic-gold/70">
+              Ou{' '}
+              <Link href="/checkout" className="underline hover:text-cosmic-gold">
+                ouvrir le panier
+              </Link>{' '}
+              pour finaliser l&apos;abonnement (naissance, confirmations et paiement).
             </p>
           </div>
         ) : null}

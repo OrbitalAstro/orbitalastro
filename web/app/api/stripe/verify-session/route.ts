@@ -30,26 +30,26 @@ export async function GET(request: NextRequest) {
 
     if (session.payment_status === 'paid') {
       const productId = session.metadata?.productId || 'unknown'
-      
-      // Calculer la quantité totale achetée
-      let quantity = 1 // Par défaut, 1 unité
+      const productIdsRaw = session.metadata?.productIds || productId
+      const productIds = productIdsRaw
+        .split(',')
+        .map((id) => id.trim())
+        .filter(Boolean)
+
+      let quantity = 1
       if (session.line_items && 'data' in session.line_items) {
-        // Si line_items est une liste
         quantity = session.line_items.data.reduce((sum, item) => sum + (item.quantity || 1), 0)
-      } else if (session.line_items && Array.isArray(session.line_items)) {
-        // Si line_items est un tableau
-        quantity = session.line_items.reduce((sum: number, item: any) => sum + (item.quantity || 1), 0)
       }
-      
-      // Récupérer le nombre de générations depuis les métadonnées
+
       const generationsUsed = parseInt(session.metadata?.generationsUsed || '0', 10)
-      
+
       return NextResponse.json({
         paid: true,
         productId,
+        productIds: productIds.length > 0 ? productIds : [productId],
         customerEmail: session.customer_email,
-        quantity, // Nombre d'unités achetées
-        generationsUsed, // Nombre de générations déjà effectuées
+        quantity,
+        generationsUsed,
         sessionId: session.id,
       })
     }

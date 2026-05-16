@@ -24,6 +24,7 @@ import { useEffect, useRef, useState } from 'react'
 import { signOut } from 'next-auth/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Logo from './Logo'
+import CartNavLink from './CartNavLink'
 import { useTranslation } from '@/lib/useTranslation'
 import { useAuth } from '@/lib/useAuth'
 
@@ -180,6 +181,7 @@ export default function Navigation() {
 
             {/* Actions — ancrées à droite */}
             <div className="absolute right-0 flex items-center gap-1 z-10">
+              <CartNavLink className="hidden xl:inline-flex p-2 rounded-lg hover:bg-white/10" />
               <Link
                 href="/settings"
                 className={`hidden xl:block p-2 rounded-lg transition-all ${isActive('/settings') ? 'bg-white/10 text-white' : 'text-white/70 hover:text-white hover:bg-white/10'}`}

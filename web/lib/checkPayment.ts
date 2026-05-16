@@ -56,7 +56,12 @@ export async function checkProductAccess(
       const data = await response.json()
       console.log(`[checkPayment] Réponse Stripe:`, data)
 
-      if (data.paid && data.productId === productId) {
+      const ids: string[] = Array.isArray(data.productIds)
+        ? data.productIds
+        : data.productId
+          ? [data.productId]
+          : []
+      if (data.paid && ids.includes(productId)) {
         const quantityPurchased = data.quantity || 1
         const quantityUsed = data.generationsUsed || 0
         const quantityRemaining = quantityPurchased - quantityUsed

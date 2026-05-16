@@ -184,7 +184,7 @@ export default function SaintValentinPage() {
       const access = await checkAccessFromURL('valentine-2026')
       if (!access.hasAccess) {
         // Rediriger vers la page de tarification
-        router.push('/pricing?redirect=valentine-2026')
+        router.push('/checkout?add=valentine-2026')
         return
       }
     } else {
