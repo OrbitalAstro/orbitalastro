@@ -1,11 +1,13 @@
 'use client'
 
 import { Suspense, useState } from 'react'
+import Link from 'next/link'
 import { getSession, signIn } from 'next-auth/react'
 import { useSearchParams } from 'next/navigation'
 import { Mail, Lock, Loader2, ArrowRight } from 'lucide-react'
 import Logo from '@/components/Logo'
 import Starfield from '@/components/Starfield'
+import { useTranslation } from '@/lib/useTranslation'
 
 /** Évite les redirections ouvertes (callbackUrl externe). */
 function safeCallbackPath(raw: string | null): string {
@@ -27,6 +29,7 @@ async function waitForClientSession(maxMs = 2500): Promise<boolean> {
 }
 
 function SignInContent() {
+  const t = useTranslation()
   const searchParams = useSearchParams()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -135,6 +138,15 @@ function SignInContent() {
                   disabled={loading}
                 />
               </div>
+            </div>
+
+            <div className="text-right -mt-2">
+              <Link
+                href="/auth/forgot-password"
+                className="text-sm text-cosmic-gold hover:underline font-medium"
+              >
+                {t.authPasswordReset.forgotLink}
+              </Link>
             </div>
 
             <button

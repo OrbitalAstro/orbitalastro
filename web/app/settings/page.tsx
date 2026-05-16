@@ -3,7 +3,8 @@
 export const dynamic = 'force-dynamic'
 
 import { motion } from 'framer-motion'
-import { Globe, Settings as SettingsIcon } from 'lucide-react'
+import { Globe, Settings as SettingsIcon, KeyRound } from 'lucide-react'
+import Link from 'next/link'
 import BackButton from '@/components/BackButton'
 import { useSettingsStore } from '@/lib/store'
 import { useTranslation } from '@/lib/useTranslation'
@@ -45,6 +46,20 @@ export default function Settings() {
               <option value="es">Español</option>
             </select>
             <p className="mt-2 text-sm text-white/60">{t.settings.languageDescription}</p>
+          </section>
+
+          <section className="mt-10 pt-8 border-t border-white/15">
+            <h2 className="text-xl font-semibold text-white mb-4 flex items-center">
+              <KeyRound className="h-5 w-5 mr-2 text-yellow-400" />
+              {t.settings.accountPasswordSection}
+            </h2>
+            <p className="text-white/70 text-sm mb-4">{t.authPasswordReset.settingsIntro}</p>
+            <Link
+              href="/auth/forgot-password"
+              className="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-cosmic-gold/20 border border-cosmic-gold/40 text-cosmic-gold font-medium text-sm hover:bg-cosmic-gold/30 transition"
+            >
+              {t.authPasswordReset.settingsCta}
+            </Link>
           </section>
         </motion.div>
       </div>
