@@ -25,7 +25,13 @@ export default function ForgotPasswordPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
       })
-      if (!res.ok) throw new Error('network')
+      const data = (await res.json().catch(() => ({}))) as { ok?: boolean; code?: string }
+      if (!res.ok || data.ok === false) {
+        if (data.code === 'RESET_DB') setError(p.errorResetUnavailable)
+        else if (data.code === 'EMAIL_SEND') setError(p.errorEmailSendFailed)
+        else setError(p.errorServer)
+        return
+      }
       setSent(true)
     } catch {
       setError(p.errorServer)

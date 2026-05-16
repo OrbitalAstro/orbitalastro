@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { randomBytes } from 'crypto'
 import { getSupabaseAdmin } from '@/lib/supabase'
 import { hashResetToken } from '@/lib/password-reset-token'
+import { passwordResetPublicOrigin } from '@/lib/password-reset-origin'
 import { sendPasswordResetEmail } from '@/lib/send-password-reset-email'
-import { PUBLIC_SITE_URL } from '@/lib/site'
 
 export const runtime = 'nodejs'
 
@@ -34,8 +34,8 @@ function normalizeEmail(raw: unknown): string | null {
   return s
 }
 
-function siteBaseUrl(): string {
-  return PUBLIC_SITE_URL.replace(/\/+$/, '')
+function siteBaseUrl(request: NextRequest): string {
+  return passwordResetPublicOrigin(request)
 }
 
 export async function POST(request: NextRequest) {
@@ -60,43 +60,49 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: true })
   }
 
-  const supabase = getSupabaseAdmin()
-  const { data: user, error: userErr } = await supabase
-    .from('auth_users')
-    .select('id, email')
-    .eq('email', email)
-    .maybeSingle()
-
-  if (userErr || !user?.id) {
-    return NextResponse.json({ ok: true })
-  }
-
-  const rawToken = randomBytes(TOKEN_BYTES).toString('base64url')
-  const tokenHash = hashResetToken(rawToken)
-  const expiresAt = new Date(Date.now() + EXPIRY_MS).toISOString()
-
-  await supabase.from('auth_password_reset_tokens').delete().eq('user_id', user.id)
-
-  const { error: insErr } = await supabase.from('auth_password_reset_tokens').insert({
-    user_id: user.id,
-    token_hash: tokenHash,
-    expires_at: expiresAt,
-  })
-
-  if (insErr) {
-    console.error('[forgot-password] insert token', insErr)
-    return NextResponse.json({ ok: true })
-  }
-
-  const base = siteBaseUrl()
-  const resetUrl = `${base}/auth/reset-password?token=${encodeURIComponent(rawToken)}`
-
   try {
-    await sendPasswordResetEmail({ to: email, resetUrl })
-  } catch (e) {
-    console.error('[forgot-password] email', e)
-    await supabase.from('auth_password_reset_tokens').delete().eq('token_hash', tokenHash)
-  }
+    const supabase = getSupabaseAdmin()
+    const { data: user, error: userErr } = await supabase
+      .from('auth_users')
+      .select('id, email')
+      .eq('email', email)
+      .maybeSingle()
 
-  return NextResponse.json({ ok: true })
+    if (userErr || !user?.id) {
+      return NextResponse.json({ ok: true })
+    }
+
+    const rawToken = randomBytes(TOKEN_BYTES).toString('base64url')
+    const tokenHash = hashResetToken(rawToken)
+    const expiresAt = new Date(Date.now() + EXPIRY_MS).toISOString()
+
+    await supabase.from('auth_password_reset_tokens').delete().eq('user_id', user.id)
+
+    const { error: insErr } = await supabase.from('auth_password_reset_tokens').insert({
+      user_id: user.id,
+      token_hash: tokenHash,
+      expires_at: expiresAt,
+    })
+
+    if (insErr) {
+      console.error('[forgot-password] insert token', insErr)
+      return NextResponse.json({ ok: false, code: 'RESET_DB' }, { status: 503 })
+    }
+
+    const base = siteBaseUrl(request)
+    const resetUrl = `${base}/auth/reset-password?token=${encodeURIComponent(rawToken)}`
+
+    try {
+      await sendPasswordResetEmail({ to: email, resetUrl })
+    } catch (e) {
+      console.error('[forgot-password] email', e)
+      await supabase.from('auth_password_reset_tokens').delete().eq('token_hash', tokenHash)
+      return NextResponse.json({ ok: false, code: 'EMAIL_SEND' }, { status: 503 })
+    }
+
+    return NextResponse.json({ ok: true })
+  } catch (e) {
+    console.error('[forgot-password] unexpected', e)
+    return NextResponse.json({ ok: false, code: 'SERVER' }, { status: 503 })
+  }
 }

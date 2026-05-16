@@ -15,3 +15,6 @@ CREATE INDEX IF NOT EXISTS idx_auth_password_reset_user_id
 
 CREATE INDEX IF NOT EXISTS idx_auth_password_reset_expires
   ON auth_password_reset_tokens(expires_at);
+
+-- Si les insertions échouent depuis l’app : vérifier dans Supabase que la table est bien
+-- dans le schéma **public** (pas seulement un fichier SQL local exécuté ailleurs).

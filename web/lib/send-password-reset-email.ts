@@ -15,6 +15,13 @@ ${args.resetUrl}
 Si tu n’es pas à l’origine de cette demande, ignore ce message : ton mot de passe actuel reste inchangé.
   `.trim()
 
+  const safeHref = args.resetUrl.replace(/&/g, '&amp;').replace(/"/g, '&quot;')
+  const html = `
+<p>Tu as demandé à réinitialiser ton mot de passe Orbital Astro.</p>
+<p><a href="${safeHref}">Réinitialiser mon mot de passe</a> (lien valide environ 1 heure)</p>
+<p>Si tu n’es pas à l’origine de cette demande, ignore ce message : ton mot de passe actuel reste inchangé.</p>
+  `.trim()
+
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: {
@@ -26,6 +33,7 @@ Si tu n’es pas à l’origine de cette demande, ignore ce message : ton mot de
       to: [args.to],
       subject: 'Réinitialisation de ton mot de passe — Orbital Astro',
       text,
+      html,
     }),
   })
 

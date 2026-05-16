@@ -33,6 +33,8 @@ export const translations = {
       errorInvalid: "Invalid or expired link. Request a new reset email.",
       errorServer: "Something went wrong. Please try again later.",
       errorMissingToken: "This page needs a valid link from your email. Open the link from the message or request a new reset.",
+      errorResetUnavailable: "The reset link could not be created (database). Try again later or contact support.",
+      errorEmailSendFailed: "The reset email could not be sent. Try again later or contact support if this continues.",
       forgotLink: "Forgot password?",
       settingsIntro:
         "If you forgot your password, request a secure link by email — you do not need to be signed in.",
@@ -504,6 +506,8 @@ export const translations = {
       errorInvalid: "Lien invalide ou expiré. Demande un nouveau courriel de réinitialisation.",
       errorServer: "Une erreur s’est produite. Réessaie plus tard.",
       errorMissingToken: "Cette page nécessite un lien valide reçu par courriel. Ouvre le lien du message ou demande une nouvelle réinitialisation.",
+      errorResetUnavailable: "Impossible de créer le lien de réinitialisation (base de données). Réessaie plus tard ou contacte le support.",
+      errorEmailSendFailed: "Impossible d’envoyer le courriel de réinitialisation. Réessaie plus tard ou contacte le support si ça continue.",
       forgotLink: "Mot de passe oublié ?",
       settingsIntro:
         "Si tu as oublié ton mot de passe, demande un lien sécurisé par courriel — tu n’as pas besoin d’être connecté·e.",
@@ -954,6 +958,8 @@ export const translations = {
       errorInvalid: "Enlace inválido o caducado. Solicita un nuevo correo de restablecimiento.",
       errorServer: "Algo salió mal. Inténtalo más tarde.",
       errorMissingToken: "Esta página necesita un enlace válido del correo. Abre el enlace del mensaje o solicita un nuevo restablecimiento.",
+      errorResetUnavailable: "No se pudo crear el enlace de restablecimiento (base de datos). Inténtalo más tarde o contacta con soporte.",
+      errorEmailSendFailed: "No se pudo enviar el correo de restablecimiento. Inténtalo más tarde o contacta con soporte si continúa.",
       forgotLink: "¿Olvidaste tu contraseña?",
       settingsIntro:
         "Si olvidaste tu contraseña, solicita un enlace seguro por correo — no necesitas haber iniciado sesión.",
