@@ -1,8 +1,14 @@
 import type { NextAuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import { buildSessionCookieOverride } from '@/lib/auth/session-cookie'
+import { sanitizePublicUrl } from '@/lib/sanitize-public-url'
 import { getSupabaseAdmin } from '@/lib/supabase'
 import { verifyPassword } from '@/lib/password'
+
+const cleanedAuthUrl = sanitizePublicUrl(process.env.NEXTAUTH_URL)
+if (cleanedAuthUrl) {
+  process.env.NEXTAUTH_URL = cleanedAuthUrl
+}
 
 const sessionCookies = buildSessionCookieOverride(process.env)
 

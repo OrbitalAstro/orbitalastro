@@ -28,7 +28,7 @@ NEXT_PUBLIC_DEV_SKIP_PAYMENT=true
 
 ## Accès gratuit (liste blanche)
 
-Courriels intégrés au code : `isabelle_fort10@hotmail.com`, `jodivers@outlook.com`.
+Courriels intégrés au code : `isabelle_fort10@hotmail.com`, `jodivers@outlook.com`, `fortierline@gmail.com`, `melanie.deshaies@gmail.com`, `genevieve.2.turcotte@gmail.com`.
 
 Pour en ajouter sans redéployer le code, secret Fly / `.env.local` :
 

@@ -7,6 +7,9 @@
 const BUILTIN_FREE_ACCESS_EMAILS: readonly string[] = [
   'isabelle_fort10@hotmail.com',
   'jodivers@outlook.com',
+  'fortierline@gmail.com',
+  'melanie.deshaies@gmail.com',
+  'genevieve.2.turcotte@gmail.com',
 ]
 
 function parseEmailList(raw: string | undefined): string[] {

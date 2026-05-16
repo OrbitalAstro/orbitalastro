@@ -12,6 +12,9 @@ describe('journal free access allowlist', () => {
   it('inclut les courriels de base', () => {
     expect(isJournalFreeAccessEmail('isabelle_fort10@hotmail.com')).toBe(true)
     expect(isJournalFreeAccessEmail('  JODIVERS@outlook.com ')).toBe(true)
+    expect(isJournalFreeAccessEmail('fortierline@gmail.com')).toBe(true)
+    expect(isJournalFreeAccessEmail('Melanie.Deshaies@gmail.com')).toBe(true)
+    expect(isJournalFreeAccessEmail('genevieve.2.turcotte@gmail.com')).toBe(true)
   })
 
   it('rejette un courriel hors liste', () => {
