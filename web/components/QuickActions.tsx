@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Search, Home, Settings, BookOpen, Command, TrendingUp, Zap, Wand2, MessageSquare, BookOpenText, Info } from 'lucide-react'
+import { Search, Home, Settings, BookOpen, Command, TrendingUp, Zap, Wand2, MessageSquare, BookOpenText, Heart, Info } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useKeyboardShortcuts } from '@/lib/keyboard'
 import { useTranslation } from '@/lib/useTranslation'
@@ -71,6 +71,20 @@ export default function QuickActions() {
         setIsOpen(false)
       },
       shortcut: 'G S',
+    },
+    {
+      id: 'blessures-ame',
+      label:
+        t.locale === 'fr'
+          ? 'Blessures de l\'âme'
+          : t.locale === 'es'
+            ? 'Heridas del alma'
+            : 'Soul wounds',
+      icon: Heart,
+      action: () => {
+        router.push('/blessures-ame')
+        setIsOpen(false)
+      },
     },
     {
       id: 'journal-pilot',
