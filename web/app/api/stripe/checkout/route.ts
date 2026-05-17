@@ -2,10 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import Stripe from 'stripe'
 import { authOptions } from '@/lib/auth-options'
-import { validateCheckoutConsent } from '@/lib/checkout-consent'
-import { cartIsMixed, type CartLine } from '@/lib/cart-rules'
+import { cartIsMixed, isRecipientComplete, type CartLine } from '@/lib/cart-rules'
 import { getProductById } from '@/lib/stripe-catalog'
 import { getPriceIdForProduct, isSubscriptionProductId } from '@/lib/stripe-price-ids'
+import { cartLinesToStripeMetadata } from '@/lib/cart-stripe-metadata'
+import type { CartRecipientProfile } from '@/lib/cart-types'
 
 function getStripe() {
   const secretKey = process.env.STRIPE_SECRET_KEY
@@ -29,51 +30,55 @@ function resolveBaseUrl(request: NextRequest): string {
   return baseUrl
 }
 
-function normalizeItems(body: {
-  items?: unknown
-  productId?: string
-  quantity?: number
-}): CartLine[] | { error: string } {
-  if (Array.isArray(body.items) && body.items.length > 0) {
-    const lines: CartLine[] = []
-    for (const raw of body.items) {
-      if (!raw || typeof raw !== 'object') continue
-      const productId = (raw as { productId?: string }).productId
-      const quantity = Number((raw as { quantity?: number }).quantity) || 1
-      if (!productId || !getProductById(productId)) {
-        return { error: `Produit invalide dans le panier.` }
-      }
-      lines.push({ productId, quantity: Math.max(1, Math.min(quantity, 10)) })
+function parseRecipient(raw: unknown): CartRecipientProfile | null {
+  if (!raw || typeof raw !== 'object') return null
+  const r = raw as Record<string, unknown>
+  const recipient: CartRecipientProfile = {
+    label: String(r.label || r.display_name || 'Destinataire'),
+    display_name: String(r.display_name || ''),
+    birth_date: String(r.birth_date || ''),
+    birth_time: String(r.birth_time || ''),
+    birth_place: String(r.birth_place || ''),
+    latitude: Number(r.latitude) || 0,
+    longitude: Number(r.longitude) || 0,
+    timezone: String(r.timezone || 'UTC'),
+    email: typeof r.email === 'string' ? r.email : undefined,
+  }
+  if (!recipient.label) return null
+  return isRecipientComplete(recipient) ? recipient : null
+}
+
+function normalizeCartLines(body: { cartLines?: unknown }): CartLine[] | { error: string } {
+  if (!Array.isArray(body.cartLines) || body.cartLines.length === 0) {
+    return {
+      error:
+        'Panier vide. Configurez un produit depuis sa page (informations de naissance), puis ajoutez au panier.',
     }
-    if (lines.length === 0) return { error: 'Panier vide.' }
-    return lines
   }
 
-  if (body.productId && getProductById(body.productId)) {
-    return [{ productId: body.productId, quantity: Math.max(1, Number(body.quantity) || 1) }]
+  const lines: CartLine[] = []
+  for (const raw of body.cartLines) {
+    if (!raw || typeof raw !== 'object') continue
+    const o = raw as Record<string, unknown>
+    const id = typeof o.id === 'string' ? o.id : ''
+    const productId = typeof o.productId === 'string' ? o.productId : ''
+    const recipient = parseRecipient(o.recipient)
+    if (!id || !productId || !getProductById(productId) || !recipient) {
+      return { error: 'Une ligne du panier est incomplète ou invalide.' }
+    }
+    lines.push({ id, productId, recipient })
   }
 
-  return { error: 'Panier vide ou produit invalide.' }
+  if (lines.length === 0) return { error: 'Panier vide.' }
+  return lines
 }
 
 export async function POST(request: NextRequest) {
-  let productIdsLabel = ''
   try {
     const body = await request.json()
-    const {
-      priceId: priceIdFromClient,
-      email,
-      promoCode,
-      acceptTerms,
-      confirmBirthData,
-    } = body
+    const { priceId: priceIdFromClient, email, promoCode } = body
 
-    const consentError = validateCheckoutConsent({ acceptTerms, confirmBirthData })
-    if (consentError) {
-      return NextResponse.json({ error: consentError }, { status: 400 })
-    }
-
-    const normalized = normalizeItems(body)
+    const normalized = normalizeCartLines(body)
     if ('error' in normalized) {
       return NextResponse.json({ error: normalized.error }, { status: 400 })
     }
@@ -83,7 +88,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error:
-            'Les abonnements et les achats à la pièce doivent être payés séparément. Videz le panier ou retirez un type de produit.',
+            'Les abonnements et les achats à la pièce doivent être payés séparément.',
         },
         { status: 400 },
       )
@@ -110,12 +115,8 @@ export async function POST(request: NextRequest) {
           { status: 400 },
         )
       }
-      lineItems.push({ price: actualPriceId, quantity: line.quantity })
+      lineItems.push({ price: actualPriceId, quantity: 1 })
     }
-
-    const productIds = lines.map((l) => l.productId)
-    productIdsLabel = productIds.join(',')
-    const primaryProductId = productIds[0]
 
     const baseUrl = resolveBaseUrl(request)
     const stripe = getStripe()
@@ -123,6 +124,8 @@ export async function POST(request: NextRequest) {
     for (const item of lineItems) {
       if (item.price) await stripe.prices.retrieve(String(item.price))
     }
+
+    const recipientMeta = cartLinesToStripeMetadata(lines)
 
     const sessionConfig: Stripe.Checkout.SessionCreateParams = {
       mode: isSubscription ? 'subscription' : 'payment',
@@ -132,17 +135,19 @@ export async function POST(request: NextRequest) {
       success_url: `${baseUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${baseUrl}/checkout?canceled=1`,
       metadata: {
-        productId: primaryProductId,
-        productIds: productIdsLabel,
+        ...recipientMeta,
         promoCode: promoCode || '',
-        acceptTerms: 'true',
-        confirmBirthData: 'true',
-        consentAt: new Date().toISOString(),
+      },
+      consent_collection: {
+        terms_of_service: 'required',
       },
       custom_text: {
-        submit: {
+        terms_of_service_acceptance: {
           message:
-            '⚠️ Ce paiement est final et définitif.\n\n📅 Votre date et heure de naissance exactes sont requises pour utiliser nos services astrologiques.',
+            'J’accepte les conditions générales d’OrbitalAstro (termes et politique de confidentialité).',
+        },
+        submit: {
+          message: '⚠️ Paiement final. Vérifiez vos informations de carte avant de confirmer.',
         },
       },
       ...(checkoutEmail && !isSubscription
@@ -157,29 +162,45 @@ export async function POST(request: NextRequest) {
           sessionConfig.discounts = [{ promotion_code: promotionCodes.data[0].id }]
         }
       } catch {
-        // ignore promo errors
+        // ignore
       }
     }
 
     if (isSubscription) {
       sessionConfig.allow_promotion_codes = true
       sessionConfig.subscription_data = {
-        metadata: { productId: primaryProductId, productIds: productIdsLabel },
+        metadata: { productId: lines[0].productId, productIds: lines.map((l) => l.productId).join(',') },
       }
     }
 
-    const session = await stripe.checkout.sessions.create(sessionConfig)
+    let session: Stripe.Checkout.Session
+    try {
+      session = await stripe.checkout.sessions.create(sessionConfig)
+    } catch (stripeErr) {
+      const msg = stripeErr instanceof Error ? stripeErr.message : ''
+      if (msg.includes('terms of service') || msg.includes('Terms of Service')) {
+        return NextResponse.json(
+          {
+            error:
+              'Configurez l’URL des termes et conditions dans le tableau de bord Stripe (Paramètres publics → Conditions d’utilisation), par ex. https://www.orbitalastro.ca/terms',
+          },
+          { status: 400 },
+        )
+      }
+      throw stripeErr
+    }
+
     return NextResponse.json({ sessionId: session.id, url: session.url })
   } catch (error) {
     console.error('Stripe checkout error:', error)
-    let errorMessage = "Une erreur est survenue lors de l'initialisation du paiement."
-    if (error instanceof Error) {
-      if (error.message.includes('No such price')) {
-        errorMessage = `Un produit du panier n'est pas correctement configuré. Contactez le support.`
-      } else {
-        errorMessage = error.message
-      }
-    }
-    return NextResponse.json({ error: errorMessage }, { status: 500 })
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Une erreur est survenue lors de l'initialisation du paiement.",
+      },
+      { status: 500 },
+    )
   }
 }

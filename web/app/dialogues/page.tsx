@@ -371,7 +371,7 @@ export default function Dialogues() {
         } else {
           alert('Accès non autorisé. Veuillez commander votre accès.')
         }
-        router.push('/checkout?add=dialogue')
+        router.push('/commander/dialogue')
         return
       }
 
@@ -624,7 +624,7 @@ export default function Dialogues() {
                 )}
               </div>
               <button
-                onClick={() => router.push('/checkout?add=dialogue')}
+                onClick={() => router.push('/commander/dialogue')}
                 className="w-full px-6 py-3 bg-gradient-to-r from-cosmic-gold via-rose-gold to-cosmic-gold text-cosmic-purple rounded-lg font-semibold hover:shadow-lg hover:shadow-cosmic-gold/50 transition transform hover:scale-105"
               >
                 {accessInfo && accessInfo.quantityPurchased > 0 ? 'Commander à nouveau - 9,99$ CAD' : 'Commander maintenant - 9,99$ CAD'}

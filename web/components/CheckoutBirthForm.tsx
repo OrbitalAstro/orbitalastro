@@ -34,12 +34,12 @@ export default function CheckoutBirthForm({ value, onChange, showDisplayName = f
     <div className="space-y-4">
       {showDisplayName ? (
         <div>
-          <label className="mb-1 block text-sm text-cosmic-silver">Prénom</label>
+          <label className="mb-1 block text-sm text-cosmic-silver">Prénom ou surnom</label>
           <input
             value={value.display_name}
             onChange={(e) => onChange({ ...value, display_name: e.target.value })}
             className="w-full rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-white"
-            placeholder="Votre prénom"
+            placeholder="Prénom ou surnom"
           />
         </div>
       ) : null}

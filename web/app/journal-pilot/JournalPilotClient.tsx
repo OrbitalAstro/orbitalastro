@@ -3,10 +3,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { getSession } from 'next-auth/react'
 import { motion } from 'framer-motion'
-import { Archive, BookOpenText, History, Loader2, X } from 'lucide-react'
+import { Archive, BookOpenText, ChevronLeft, History, Loader2, X } from 'lucide-react'
 import { journalMonthlySubscription } from '@/lib/stripe'
 import BackButton from '@/components/BackButton'
-import CheckoutConsentCheckboxes from '@/components/CheckoutConsentCheckboxes'
+import AddToCartButton from '@/components/AddToCartButton'
+import Link from 'next/link'
 import Starfield from '@/components/Starfield'
 import JournalBubbleBlockActions from '@/components/JournalBubbleBlockActions'
 import JournalGuildSpeechBubble from '@/components/JournalGuildSpeechBubble'
@@ -430,6 +431,20 @@ export default function JournalPilotClient() {
     }
   }
 
+  const closeHistoryDrawer = useCallback(() => {
+    setShowHistoryDrawer(false)
+    setSelectedArchive(null)
+  }, [])
+
+  const backToArchiveList = useCallback(() => {
+    setSelectedArchive(null)
+  }, [])
+
+  const selectedArchiveMeta = useMemo(
+    () => (selectedArchive ? archivedThreads.find((t) => t.id === selectedArchive.id) : null),
+    [archivedThreads, selectedArchive],
+  )
+
   if (authGate === 'loading' || authGate === 'unauthenticated' || loading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-cosmic-purple to-magenta-purple flex items-center justify-center text-cosmic-gold">
@@ -476,8 +491,7 @@ export default function JournalPilotClient() {
             </p>
             <AddToCartButton
               productId="journal-monthly"
-              label="Ajouter au panier"
-              goToCheckout
+              label="Configurer et ajouter au panier"
               className="inline-flex items-center justify-center gap-2 rounded-lg bg-cosmic-gold px-6 py-3 font-semibold text-cosmic-purple hover:bg-cosmic-gold/90"
             />
             <p className="mt-4 text-sm text-cosmic-gold/70">
@@ -736,12 +750,12 @@ export default function JournalPilotClient() {
         ) : null}
       </div>
       {showHistoryDrawer ? (
-        <div className="fixed inset-0 z-30 flex">
+        <div className="fixed inset-0 z-30 flex justify-end">
           <button
             type="button"
-            className="min-h-0 flex-1 bg-black/55"
+            className="hidden min-h-0 flex-1 bg-black/55 sm:block"
             aria-label="Fermer l’historique"
-            onClick={() => setShowHistoryDrawer(false)}
+            onClick={closeHistoryDrawer}
           />
           <aside
             className="flex h-full w-full max-w-md shrink-0 flex-col border-l border-cosmic-gold/35 bg-gradient-to-b from-cosmic-purple to-magenta-purple shadow-2xl"
@@ -749,20 +763,48 @@ export default function JournalPilotClient() {
             aria-modal="true"
             aria-labelledby="journal-history-title"
           >
-            <div className="flex items-center justify-between gap-2 border-b border-cosmic-gold/25 px-4 py-3">
-              <h2 id="journal-history-title" className="text-lg font-semibold text-cosmic-gold">
-                Historique
-              </h2>
-              <button
-                type="button"
-                onClick={() => setShowHistoryDrawer(false)}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-cosmic-gold/35 text-cosmic-gold hover:bg-cosmic-gold/10 transition"
-                aria-label="Fermer le panneau"
-              >
-                <X className="h-4 w-4" />
-              </button>
+            <div className="sticky top-0 z-10 shrink-0 border-b border-cosmic-gold/25 bg-gradient-to-b from-cosmic-purple to-magenta-purple px-3 py-3 sm:px-4">
+              {selectedArchive ? (
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={backToArchiveList}
+                    className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-cosmic-gold/35 text-cosmic-gold hover:bg-cosmic-gold/10 transition"
+                    aria-label="Retour à la liste des conversations"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </button>
+                  <h2 id="journal-history-title" className="min-w-0 flex-1 truncate text-base font-semibold text-cosmic-gold sm:text-lg">
+                    {selectedArchiveMeta?.archive_title?.trim() || 'Conversation archivée'}
+                  </h2>
+                  <button
+                    type="button"
+                    onClick={closeHistoryDrawer}
+                    className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-cosmic-gold/35 text-cosmic-gold hover:bg-cosmic-gold/10 transition"
+                    aria-label="Fermer l’historique"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between gap-2">
+                  <h2 id="journal-history-title" className="text-lg font-semibold text-cosmic-gold">
+                    Historique
+                  </h2>
+                  <button
+                    type="button"
+                    onClick={closeHistoryDrawer}
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-cosmic-gold/35 text-cosmic-gold hover:bg-cosmic-gold/10 transition"
+                    aria-label="Fermer le panneau"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
             </div>
             <div className="min-h-0 flex-1 overflow-y-auto px-3 py-3 sm:px-4 flex flex-col gap-3">
+              {!selectedArchive ? (
+                <>
               <p className="text-xs text-cosmic-gold/70">
                 Conversations archivées (compte ou cet appareil). Touche une entrée pour relire le fil.
               </p>
@@ -799,14 +841,17 @@ export default function JournalPilotClient() {
                   </div>
                 )}
               </div>
-              {selectedArchive ? (
-                <div className="journal-thread max-h-[min(50vh,380px)] overflow-y-auto rounded-xl border border-cosmic-gold/25 bg-black/20 p-3">
-                  <p className="journal-thread__meta mb-3 uppercase tracking-wide">
-                    Historique ouvert ·{' '}
-                    {new Date(
-                      archivedThreads.find((t) => t.id === selectedArchive.id)?.archived_at || '',
-                    ).toLocaleString('fr-CA')}
-                  </p>
+                </>
+              ) : (
+                <motion.div className="journal-thread flex flex-col gap-3 pb-2">
+                  {selectedArchiveMeta?.archived_at || selectedArchiveMeta?.updated_at ? (
+                    <p className="journal-thread__meta mb-1 uppercase tracking-wide">
+                      Archivée le{' '}
+                      {new Date(
+                        selectedArchiveMeta.archived_at || selectedArchiveMeta.updated_at || '',
+                      ).toLocaleString('fr-CA')}
+                    </p>
+                  ) : null}
                   {selectedArchive.messages.map((m) =>
                     m.role === 'user' ? (
                       <div key={m.id} className="journal-thread__turn">
@@ -851,7 +896,16 @@ export default function JournalPilotClient() {
                     ),
                   )}
                 </div>
-              ) : null}
+              )}
+            </div>
+            <div className="shrink-0 border-t border-cosmic-gold/25 bg-gradient-to-b from-cosmic-purple to-magenta-purple px-3 py-3 sm:px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+              <button
+                type="button"
+                onClick={closeHistoryDrawer}
+                className="w-full rounded-lg bg-cosmic-gold px-4 py-2.5 text-sm font-semibold text-cosmic-purple hover:bg-cosmic-gold/90 transition"
+              >
+                Revenir au journal courant
+              </button>
             </div>
           </aside>
         </div>

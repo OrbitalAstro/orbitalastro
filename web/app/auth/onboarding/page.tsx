@@ -160,12 +160,12 @@ function OnboardingContent() {
           {!confirmed ? (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block mb-1 text-sm text-cosmic-silver">Prénom</label>
+                <label className="block mb-1 text-sm text-cosmic-silver">Prénom ou surnom</label>
                 <input
                   value={form.display_name}
                   onChange={(e) => setForm((p) => ({ ...p, display_name: e.target.value }))}
                   className="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-white"
-                  placeholder="Votre prénom"
+                  placeholder="Prénom ou surnom"
                 />
               </div>
 

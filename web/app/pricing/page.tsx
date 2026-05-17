@@ -15,7 +15,10 @@ export default function PricingPage() {
           <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-cosmic-gold to-cosmic-purple bg-clip-text text-transparent">
             Nos Services
           </h1>
-          <p className="text-xl text-cosmic-silver mb-6">Ajoutez au panier, puis payez en une seule étape.</p>
+          <p className="text-xl text-cosmic-silver mb-6">
+            Choisissez un service, entrez les informations de naissance, puis payez depuis le panier.
+            Vous pouvez commander le même produit pour plusieurs personnes.
+          </p>
           <Link
             href="/checkout"
             className="inline-flex items-center gap-2 rounded-lg border border-cosmic-gold/50 bg-cosmic-gold/10 px-5 py-2.5 text-cosmic-gold font-semibold hover:bg-cosmic-gold/20 transition"
@@ -75,7 +78,7 @@ export default function PricingPage() {
                     Bientôt disponible
                   </button>
                 ) : (
-                  <AddToCartButton productId={product.id} className="mt-6" />
+                  <AddToCartButton productId={product.id} className="mt-6" label="Commander" />
                 )}
               </div>
             ))}
@@ -114,7 +117,7 @@ export default function PricingPage() {
                   ) : null}
                   <AddToCartButton
                     productId={subscription.id}
-                    label="Ajouter l'abonnement au panier"
+                    label="Configurer l'abonnement"
                     className="w-full py-3 px-6 bg-cosmic-purple hover:bg-cosmic-purple/90 text-white font-semibold rounded-lg"
                   />
                 </div>

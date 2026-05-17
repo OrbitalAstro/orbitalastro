@@ -236,7 +236,7 @@ export default function Reading2026Page() {
         } else {
           alert('Accès non autorisé. Veuillez effectuer un paiement pour générer une lecture.')
         }
-        router.push('/checkout?add=reading-2026')
+        router.push('/commander/reading-2026')
         return
       }
     }
@@ -557,7 +557,7 @@ export default function Reading2026Page() {
                 )}
               </div>
               <button
-                onClick={() => router.push('/checkout?add=reading-2026')}
+                onClick={() => router.push('/commander/reading-2026')}
                 className="w-full px-6 py-3 bg-gradient-to-r from-cosmic-gold via-rose-gold to-cosmic-gold text-cosmic-purple rounded-lg font-semibold hover:shadow-lg hover:shadow-cosmic-gold/50 transition transform hover:scale-105"
               >
                 {accessInfo && accessInfo.quantityPurchased > 0 ? 'Commander à nouveau - 9,99$ CAD' : 'Commander maintenant - 9,99$ CAD'}

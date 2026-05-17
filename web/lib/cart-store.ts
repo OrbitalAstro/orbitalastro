@@ -2,13 +2,17 @@
 
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { mergeCartLine, validateAddToCart, type CartLine } from '@/lib/cart-rules'
+import {
+  createCartLineId,
+  type CartLine,
+  type CartRecipientProfile,
+} from '@/lib/cart-types'
+import { validateAddCartLine } from '@/lib/cart-rules'
 
 type CartState = {
   lines: CartLine[]
-  addProduct: (productId: string) => string | null
-  setQuantity: (productId: string, quantity: number) => void
-  removeProduct: (productId: string) => void
+  addConfiguredLine: (productId: string, recipient: CartRecipientProfile) => string | null
+  removeLine: (lineId: string) => void
   clear: () => void
   itemCount: () => number
 }
@@ -17,29 +21,23 @@ export const useCartStore = create<CartState>()(
   persist(
     (set, get) => ({
       lines: [],
-      addProduct: (productId) => {
-        const err = validateAddToCart(get().lines, productId)
+      addConfiguredLine: (productId, recipient) => {
+        const err = validateAddCartLine(get().lines, productId)
         if (err) return err
-        set({ lines: mergeCartLine(get().lines, productId) })
+        const line: CartLine = {
+          id: createCartLineId(),
+          productId,
+          recipient,
+        }
+        set({ lines: [...get().lines, line] })
         return null
       },
-      setQuantity: (productId, quantity) => {
-        if (quantity < 1) {
-          set({ lines: get().lines.filter((l) => l.productId !== productId) })
-          return
-        }
-        set({
-          lines: get().lines.map((l) =>
-            l.productId === productId ? { ...l, quantity } : l,
-          ),
-        })
-      },
-      removeProduct: (productId) => {
-        set({ lines: get().lines.filter((l) => l.productId !== productId) })
+      removeLine: (lineId) => {
+        set({ lines: get().lines.filter((l) => l.id !== lineId) })
       },
       clear: () => set({ lines: [] }),
-      itemCount: () => get().lines.reduce((n, l) => n + l.quantity, 0),
+      itemCount: () => get().lines.length,
     }),
-    { name: 'orbitalastro_cart_v1' },
+    { name: 'orbitalastro_cart_v2' },
   ),
 )
