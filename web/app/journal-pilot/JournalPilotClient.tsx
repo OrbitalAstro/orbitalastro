@@ -895,7 +895,7 @@ export default function JournalPilotClient() {
                       </div>
                     ),
                   )}
-                </div>
+                </motion.div>
               )}
             </div>
             <div className="shrink-0 border-t border-cosmic-gold/25 bg-gradient-to-b from-cosmic-purple to-magenta-purple px-3 py-3 sm:px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
