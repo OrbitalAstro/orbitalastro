@@ -3,8 +3,6 @@
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import {
-  MessageSquare,
-  Calendar,
   BookOpenText,
   Users,
   CreditCard,
@@ -61,8 +59,6 @@ export default function Navigation() {
   }> = [
     { href: '/about', label: t.nav.about, icon: Info },
     { href: '/univers', label: t.nav.univers, icon: Orbit },
-    { href: '/dialogues', label: t.nav.dialogues, icon: MessageSquare },
-    { href: '/reading-2026', label: t.nav.reading2026, icon: Calendar },
     { href: '/journal-pilot', label: t.nav.journalPilot, icon: BookOpenText },
     { href: '/saint-valentin', label: t.nav.valentine, icon: Users },
     { href: '/pricing', label: t.nav.pricing, icon: CreditCard },

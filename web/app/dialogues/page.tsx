@@ -23,6 +23,7 @@ import { pdf } from '@react-pdf/renderer'
 import DialoguePdf from './DialoguePdf'
 import TextNarrationControls from '@/components/TextNarrationControls'
 import { checkAccessFromURL, markProductAsPaid, recordGeneration, checkProductAccess, type AccessResult } from '@/lib/checkPayment'
+import { getNoAccessPurchasePath } from '@/lib/product-navigation'
 import { isDevTestBypass, DEV_TEST_ACCESS_RESULT } from '@/lib/devTestMode'
 import { useRouter } from 'next/navigation'
 
@@ -371,7 +372,7 @@ export default function Dialogues() {
         } else {
           alert('Accès non autorisé. Veuillez commander votre accès.')
         }
-        router.push('/commander/dialogue')
+        router.push(getNoAccessPurchasePath())
         return
       }
 
@@ -624,7 +625,7 @@ export default function Dialogues() {
                 )}
               </div>
               <button
-                onClick={() => router.push('/commander/dialogue')}
+                onClick={() => router.push(getNoAccessPurchasePath())}
                 className="w-full px-6 py-3 bg-gradient-to-r from-cosmic-gold via-rose-gold to-cosmic-gold text-cosmic-purple rounded-lg font-semibold hover:shadow-lg hover:shadow-cosmic-gold/50 transition transform hover:scale-105"
               >
                 {accessInfo && accessInfo.quantityPurchased > 0 ? 'Commander à nouveau - 9,99$ CAD' : 'Commander maintenant - 9,99$ CAD'}

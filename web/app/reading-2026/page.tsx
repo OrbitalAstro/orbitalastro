@@ -16,6 +16,7 @@ import { useTranslation } from '@/lib/useTranslation'
 import { pdf } from '@react-pdf/renderer'
 import Reading2026Pdf from './Reading2026Pdf'
 import { checkAccessFromURL, checkProductAccess, markProductAsPaid, recordGeneration, type AccessResult } from '@/lib/checkPayment'
+import { getNoAccessPurchasePath } from '@/lib/product-navigation'
 import { isDevTestBypass, DEV_TEST_ACCESS_RESULT } from '@/lib/devTestMode'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
@@ -236,7 +237,7 @@ export default function Reading2026Page() {
         } else {
           alert('Accès non autorisé. Veuillez effectuer un paiement pour générer une lecture.')
         }
-        router.push('/commander/reading-2026')
+        router.push(getNoAccessPurchasePath())
         return
       }
     }
@@ -557,7 +558,7 @@ export default function Reading2026Page() {
                 )}
               </div>
               <button
-                onClick={() => router.push('/commander/reading-2026')}
+                onClick={() => router.push(getNoAccessPurchasePath())}
                 className="w-full px-6 py-3 bg-gradient-to-r from-cosmic-gold via-rose-gold to-cosmic-gold text-cosmic-purple rounded-lg font-semibold hover:shadow-lg hover:shadow-cosmic-gold/50 transition transform hover:scale-105"
               >
                 {accessInfo && accessInfo.quantityPurchased > 0 ? 'Commander à nouveau - 9,99$ CAD' : 'Commander maintenant - 9,99$ CAD'}
