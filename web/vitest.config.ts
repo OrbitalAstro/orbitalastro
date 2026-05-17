@@ -6,6 +6,7 @@ export default defineConfig({
     environment: 'node',
     include: ['**/*.auth-regression.test.ts'],
     pool: 'forks',
+    setupFiles: ['./vitest.setup.regression.ts'],
   },
   resolve: {
     alias: {

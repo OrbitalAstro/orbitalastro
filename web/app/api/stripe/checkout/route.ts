@@ -2,11 +2,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import Stripe from 'stripe'
 import { authOptions } from '@/lib/auth-options'
-import { cartIsMixed, isRecipientComplete, type CartLine } from '@/lib/cart-rules'
-import { getProductById } from '@/lib/stripe-catalog'
-import { getPriceIdForProduct, isSubscriptionProductId } from '@/lib/stripe-price-ids'
+import { normalizeCartLines } from '@/lib/cart-checkout-normalize'
+import {
+  buildSubscriptionCheckoutMetadata,
+  getStripeCheckoutMode,
+  resolveCheckoutPriceIds,
+  validateCheckoutAuth,
+} from '@/lib/cart-checkout-plan'
 import { cartLinesToStripeMetadata } from '@/lib/cart-stripe-metadata'
-import type { CartRecipientProfile } from '@/lib/cart-types'
 
 function getStripe() {
   const secretKey = process.env.STRIPE_SECRET_KEY
@@ -30,49 +33,6 @@ function resolveBaseUrl(request: NextRequest): string {
   return baseUrl
 }
 
-function parseRecipient(raw: unknown): CartRecipientProfile | null {
-  if (!raw || typeof raw !== 'object') return null
-  const r = raw as Record<string, unknown>
-  const recipient: CartRecipientProfile = {
-    label: String(r.label || r.display_name || 'Destinataire'),
-    display_name: String(r.display_name || ''),
-    birth_date: String(r.birth_date || ''),
-    birth_time: String(r.birth_time || ''),
-    birth_place: String(r.birth_place || ''),
-    latitude: Number(r.latitude) || 0,
-    longitude: Number(r.longitude) || 0,
-    timezone: String(r.timezone || 'UTC'),
-    email: typeof r.email === 'string' ? r.email : undefined,
-  }
-  if (!recipient.label) return null
-  return isRecipientComplete(recipient) ? recipient : null
-}
-
-function normalizeCartLines(body: { cartLines?: unknown }): CartLine[] | { error: string } {
-  if (!Array.isArray(body.cartLines) || body.cartLines.length === 0) {
-    return {
-      error:
-        'Panier vide. Configurez un produit depuis sa page (informations de naissance), puis ajoutez au panier.',
-    }
-  }
-
-  const lines: CartLine[] = []
-  for (const raw of body.cartLines) {
-    if (!raw || typeof raw !== 'object') continue
-    const o = raw as Record<string, unknown>
-    const id = typeof o.id === 'string' ? o.id : ''
-    const productId = typeof o.productId === 'string' ? o.productId : ''
-    const recipient = parseRecipient(o.recipient)
-    if (!id || !productId || !getProductById(productId) || !recipient) {
-      return { error: 'Une ligne du panier est incomplète ou invalide.' }
-    }
-    lines.push({ id, productId, recipient })
-  }
-
-  if (lines.length === 0) return { error: 'Panier vide.' }
-  return lines
-}
-
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
@@ -84,39 +44,24 @@ export async function POST(request: NextRequest) {
     }
     const lines = normalized
 
-    if (cartIsMixed(lines)) {
-      return NextResponse.json(
-        {
-          error:
-            'Les abonnements et les achats à la pièce doivent être payés séparément.',
-        },
-        { status: 400 },
-      )
-    }
-
     const sessionAuth = await getServerSession(authOptions)
     const checkoutEmail =
       (typeof email === 'string' && email.trim()) || sessionAuth?.user?.email || undefined
 
-    const isSubscription = lines.some((l) => isSubscriptionProductId(l.productId))
-    if (isSubscription && !sessionAuth?.user?.email) {
-      return NextResponse.json(
-        { error: 'Connectez-vous pour souscrire au Journal pilote.' },
-        { status: 401 },
-      )
+    const authError = validateCheckoutAuth(lines, sessionAuth?.user?.email)
+    if (authError) {
+      return NextResponse.json({ error: authError }, { status: 401 })
     }
 
-    const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = []
-    for (const line of lines) {
-      const actualPriceId = getPriceIdForProduct(line.productId) || priceIdFromClient
-      if (!actualPriceId) {
-        return NextResponse.json(
-          { error: `Le produit « ${line.productId} » n'est pas configuré dans Stripe.` },
-          { status: 400 },
-        )
-      }
-      lineItems.push({ price: actualPriceId, quantity: 1 })
+    const priceResult = resolveCheckoutPriceIds(lines, priceIdFromClient)
+    if ('error' in priceResult) {
+      return NextResponse.json({ error: priceResult.error }, { status: 400 })
     }
+
+    const checkoutMode = getStripeCheckoutMode(lines)
+    const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = priceResult.priceIds.map(
+      (price) => ({ price, quantity: 1 }),
+    )
 
     const baseUrl = resolveBaseUrl(request)
     const stripe = getStripe()
@@ -128,7 +73,7 @@ export async function POST(request: NextRequest) {
     const recipientMeta = cartLinesToStripeMetadata(lines)
 
     const sessionConfig: Stripe.Checkout.SessionCreateParams = {
-      mode: isSubscription ? 'subscription' : 'payment',
+      mode: checkoutMode,
       payment_method_types: ['card'],
       line_items: lineItems,
       customer_email: checkoutEmail,
@@ -150,12 +95,12 @@ export async function POST(request: NextRequest) {
           message: '⚠️ Paiement final. Vérifiez vos informations de carte avant de confirmer.',
         },
       },
-      ...(checkoutEmail && !isSubscription
+      ...(checkoutEmail && checkoutMode === 'payment'
         ? { payment_intent_data: { receipt_email: checkoutEmail } }
         : {}),
     }
 
-    if (!isSubscription && promoCode) {
+    if (checkoutMode === 'payment' && promoCode) {
       try {
         const promotionCodes = await stripe.promotionCodes.list({ code: promoCode, limit: 1 })
         if (promotionCodes.data.length > 0) {
@@ -166,10 +111,10 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    if (isSubscription) {
+    if (checkoutMode === 'subscription') {
       sessionConfig.allow_promotion_codes = true
       sessionConfig.subscription_data = {
-        metadata: { productId: lines[0].productId, productIds: lines.map((l) => l.productId).join(',') },
+        metadata: buildSubscriptionCheckoutMetadata(lines),
       }
     }
 

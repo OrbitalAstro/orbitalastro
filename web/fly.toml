@@ -1,5 +1,6 @@
 # Configuration Fly.io pour OrbitalAstro Web (Next.js)
-# Déployer depuis le dossier `web/` avec: fly deploy
+# Déployer depuis le dossier `web/` avec: npm run deploy:fly
+# (lance d'abord vitest; le Dockerfile exécute aussi `npm run test` avant le build)
 
 app = "orbitalastro-web"
 primary_region = "yyz"

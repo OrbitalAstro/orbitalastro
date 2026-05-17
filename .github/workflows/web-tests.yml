@@ -1,4 +1,4 @@
-# Tests Vitest du module `web/` (auth-regression, etc.) avant merge / aligné avec le build Docker Fly.
+# Tests Vitest du module `web/` (auth, panier, checkout Stripe) avant merge — même gate que `npm run predeploy` / Docker Fly.
 name: Web tests
 
 on:
@@ -36,5 +36,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run Vitest (auth regression suite)
-        run: npm run test
+      - name: Run Vitest (régression auth + panier + checkout)
+        run: npm run test:regression
+
+      - name: Run Vitest (suite panier / checkout)
+        run: npm run test:cart

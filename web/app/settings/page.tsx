@@ -2,10 +2,13 @@
 
 export const dynamic = 'force-dynamic'
 
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Globe, Settings as SettingsIcon, KeyRound } from 'lucide-react'
 import Link from 'next/link'
+import { getSession } from 'next-auth/react'
 import BackButton from '@/components/BackButton'
+import ChangePasswordForm from '@/components/ChangePasswordForm'
 import { useSettingsStore } from '@/lib/store'
 import { useTranslation } from '@/lib/useTranslation'
 import Starfield from '@/components/Starfield'
@@ -13,6 +16,15 @@ import Starfield from '@/components/Starfield'
 export default function Settings() {
   const settings = useSettingsStore()
   const t = useTranslation()
+  const [sessionEmail, setSessionEmail] = useState<string | null>(null)
+  const [sessionChecked, setSessionChecked] = useState(false)
+
+  useEffect(() => {
+    getSession().then((s) => {
+      setSessionEmail(s?.user?.email ?? null)
+      setSessionChecked(true)
+    })
+  }, [])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-cosmic-purple via-magenta-purple to-cosmic-purple relative">
@@ -53,13 +65,41 @@ export default function Settings() {
               <KeyRound className="h-5 w-5 mr-2 text-yellow-400" />
               {t.settings.accountPasswordSection}
             </h2>
-            <p className="text-white/70 text-sm mb-4">{t.authPasswordReset.settingsIntro}</p>
-            <Link
-              href="/auth/forgot-password"
-              className="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-cosmic-gold/20 border border-cosmic-gold/40 text-cosmic-gold font-medium text-sm hover:bg-cosmic-gold/30 transition"
-            >
-              {t.authPasswordReset.settingsCta}
-            </Link>
+
+            {sessionChecked && sessionEmail ? (
+              <>
+                <p className="text-white/60 text-sm mb-4">
+                  {t.authPasswordReset.settingsSignedInAs}{' '}
+                  <span className="text-cosmic-gold">{sessionEmail}</span>
+                </p>
+                <ChangePasswordForm />
+                <p className="mt-6 text-white/50 text-xs">{t.authPasswordReset.settingsForgotHint}</p>
+                <Link
+                  href="/auth/forgot-password"
+                  className="mt-2 inline-block text-sm text-cosmic-gold/90 underline hover:text-cosmic-gold"
+                >
+                  {t.authPasswordReset.settingsCta}
+                </Link>
+              </>
+            ) : sessionChecked ? (
+              <>
+                <p className="text-white/70 text-sm mb-4">{t.authPasswordReset.settingsIntro}</p>
+                <Link
+                  href={`/auth/signin?callbackUrl=${encodeURIComponent('/settings')}`}
+                  className="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-cosmic-gold/20 border border-cosmic-gold/40 text-cosmic-gold font-medium text-sm hover:bg-cosmic-gold/30 transition mr-3"
+                >
+                  {t.authPasswordReset.settingsSignInCta}
+                </Link>
+                <Link
+                  href="/auth/forgot-password"
+                  className="inline-flex items-center justify-center px-4 py-2 rounded-lg border border-white/25 text-white/90 font-medium text-sm hover:bg-white/10 transition"
+                >
+                  {t.authPasswordReset.settingsCta}
+                </Link>
+              </>
+            ) : (
+              <p className="text-white/50 text-sm">{t.authPasswordReset.settingsLoadingSession}</p>
+            )}
           </section>
         </motion.div>
       </div>

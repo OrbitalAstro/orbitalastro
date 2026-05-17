@@ -3,6 +3,7 @@ import { isAuthPasswordLongEnough } from '@/lib/auth/validation'
 import { getSupabaseAdmin } from '@/lib/supabase'
 import { hashPassword } from '@/lib/password'
 import { hashResetToken } from '@/lib/password-reset-token'
+import { sendPasswordChangedEmail } from '@/lib/send-password-changed-email'
 
 export const runtime = 'nodejs'
 
@@ -52,6 +53,20 @@ export async function POST(request: NextRequest) {
     }
 
     await supabase.from('auth_password_reset_tokens').delete().eq('user_id', row.user_id)
+
+    const { data: userRow } = await supabase
+      .from('auth_users')
+      .select('email')
+      .eq('id', row.user_id)
+      .maybeSingle()
+
+    if (userRow?.email) {
+      try {
+        await sendPasswordChangedEmail({ to: userRow.email.toLowerCase().trim() })
+      } catch (emailErr) {
+        console.error('[reset-password] notification email failed', emailErr)
+      }
+    }
 
     return NextResponse.json({ ok: true })
   } catch (e) {

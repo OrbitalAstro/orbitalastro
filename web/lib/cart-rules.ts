@@ -40,12 +40,6 @@ export function validateAddCartLine(lines: CartLine[], productId: string): strin
   if (!product) return 'Produit introuvable.'
   if (product.id === 'valentine-2026') return 'Ce produit n’est pas encore disponible à l’achat.'
 
-  const next = [...lines, { id: '_new', productId, recipient: {} as CartRecipientProfile }]
-
-  if (cartIsMixed(next)) {
-    return 'Les abonnements et les achats à la pièce ne peuvent pas être dans le même panier. Payez d’abord l’un ou l’autre.'
-  }
-
   if (product.type === 'subscription') {
     const existingSub = lines.some((l) => getProductById(l.productId)?.type === 'subscription')
     if (existingSub) return 'L’abonnement Journal est déjà dans votre panier.'

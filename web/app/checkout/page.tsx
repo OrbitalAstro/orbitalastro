@@ -7,7 +7,7 @@ import { getSession } from 'next-auth/react'
 import { CreditCard, Loader2, Trash2 } from 'lucide-react'
 import Starfield from '@/components/Starfield'
 import { useCartStore } from '@/lib/cart-store'
-import { cartHasSubscription, cartLineTotal, linesWithProducts } from '@/lib/cart-rules'
+import { cartHasSubscription, cartIsMixed, cartLineTotal, linesWithProducts } from '@/lib/cart-rules'
 import { formatRecipientSummary } from '@/lib/cart-types'
 
 function CheckoutContent() {
@@ -25,6 +25,7 @@ function CheckoutContent() {
   const enriched = useMemo(() => linesWithProducts(lines), [lines])
   const total = cartLineTotal(lines)
   const needsAuth = cartHasSubscription(lines)
+  const isMixedCart = cartIsMixed(lines)
   useEffect(() => {
     if (searchParams.get('canceled') === '1') {
       setError('Paiement annulé. Votre panier est conservé.')
@@ -142,6 +143,12 @@ function CheckoutContent() {
           )}
           {enriched.length > 0 ? (
             <p className="text-right text-lg font-bold text-cosmic-gold">Total : {total.toFixed(2)} $ CAD</p>
+          ) : null}
+          {isMixedCart ? (
+            <p className="text-xs text-cosmic-silver">
+              Abonnement et achats à la pièce : tout est facturé ensemble aujourd&apos;hui sur Stripe ; seul
+              l&apos;abonnement se renouvellera ensuite chaque mois.
+            </p>
           ) : null}
         </section>
 

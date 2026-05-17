@@ -39,6 +39,18 @@ export const translations = {
       settingsIntro:
         "If you forgot your password, request a secure link by email — you do not need to be signed in.",
       settingsCta: "Email reset link",
+      currentPasswordLabel: "Current password",
+      submitChange: "Update password",
+      successChangeMessage: "Your password has been updated. A confirmation email has been sent to you.",
+      errorWrongCurrent: "Current password is incorrect.",
+      errorSamePassword: "Choose a password different from your current one.",
+      errorChangeUnauthorized: "Sign in to change your password.",
+      settingsChangeIntro:
+        "You know your password? Enter your current password, then your new one twice.",
+      settingsSignedInAs: "Signed in as",
+      settingsForgotHint: "Forgot your current password?",
+      settingsSignInCta: "Sign in",
+      settingsLoadingSession: "Checking session…",
     },
     narration: {
       listen: "Listen (browser audio)",
@@ -514,6 +526,18 @@ export const translations = {
       settingsIntro:
         "Si tu as oublié ton mot de passe, demande un lien sécurisé par courriel — tu n’as pas besoin d’être connecté·e.",
       settingsCta: "Réinitialiser par courriel",
+      currentPasswordLabel: "Mot de passe actuel",
+      submitChange: "Changer le mot de passe",
+      successChangeMessage: "Ton mot de passe a été mis à jour. Un courriel de confirmation t’a été envoyé.",
+      errorWrongCurrent: "Le mot de passe actuel est incorrect.",
+      errorSamePassword: "Choisis un mot de passe différent de l’actuel.",
+      errorChangeUnauthorized: "Connecte-toi pour changer ton mot de passe.",
+      settingsChangeIntro:
+        "Tu te souviens de ton mot de passe ? Saisis l’actuel, puis le nouveau deux fois.",
+      settingsSignedInAs: "Connecté·e en tant que",
+      settingsForgotHint: "Tu ne te souviens plus de ton mot de passe actuel ?",
+      settingsSignInCta: "Se connecter",
+      settingsLoadingSession: "Vérification de la session…",
     },
     narration: {
       listen: "Écouter (audio navigateur)",
@@ -968,6 +992,18 @@ export const translations = {
       settingsIntro:
         "Si olvidaste tu contraseña, solicita un enlace seguro por correo — no necesitas haber iniciado sesión.",
       settingsCta: "Restablecer por correo",
+      currentPasswordLabel: "Contraseña actual",
+      submitChange: "Cambiar contraseña",
+      successChangeMessage: "Tu contraseña se ha actualizado. Te hemos enviado un correo de confirmación.",
+      errorWrongCurrent: "La contraseña actual no es correcta.",
+      errorSamePassword: "Elige una contraseña distinta de la actual.",
+      errorChangeUnauthorized: "Inicia sesión para cambiar tu contraseña.",
+      settingsChangeIntro:
+        "¿Recuerdas tu contraseña? Escribe la actual y luego la nueva dos veces.",
+      settingsSignedInAs: "Sesión iniciada como",
+      settingsForgotHint: "¿Olvidaste tu contraseña actual?",
+      settingsSignInCta: "Iniciar sesión",
+      settingsLoadingSession: "Comprobando sesión…",
     },
     narration: {
       listen: "Escuchar (audio del navegador)",

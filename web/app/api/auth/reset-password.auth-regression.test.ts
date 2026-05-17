@@ -6,7 +6,12 @@ vi.mock('@/lib/supabase', () => ({
   getSupabaseAdmin: vi.fn(),
 }))
 
+vi.mock('@/lib/send-password-changed-email', () => ({
+  sendPasswordChangedEmail: vi.fn(),
+}))
+
 import { getSupabaseAdmin } from '@/lib/supabase'
+import { sendPasswordChangedEmail } from '@/lib/send-password-changed-email'
 import { POST } from '@/app/api/auth/reset-password/route'
 
 function postReset(body: unknown) {
@@ -19,9 +24,12 @@ function postReset(body: unknown) {
 
 describe('POST /api/auth/reset-password', () => {
   const admin = vi.mocked(getSupabaseAdmin)
+  const sendChangedEmail = vi.mocked(sendPasswordChangedEmail)
 
   beforeEach(() => {
     admin.mockReset()
+    sendChangedEmail.mockReset()
+    sendChangedEmail.mockResolvedValue(undefined)
   })
 
   it('400 INVALID si jeton absent ou trop court', async () => {
@@ -130,6 +138,14 @@ describe('POST /api/auth/reset-password', () => {
                 eq: async () => ({ error: null }),
               }
             },
+            select: () => ({
+              eq: () => ({
+                maybeSingle: async () => ({
+                  data: { email: 'user@example.com' },
+                  error: null,
+                }),
+              }),
+            }),
           }
         }
         throw new Error(table)
@@ -141,5 +157,6 @@ describe('POST /api/auth/reset-password', () => {
     expect(await res.json()).toEqual({ ok: true })
     expect(userUpdates[0]).toMatchObject({ password_hash: expect.any(String) })
     expect(tokenDeletes.some((args) => args[0] === 'user_id' && args[1] === 'u1')).toBe(true)
+    expect(sendChangedEmail).toHaveBeenCalledWith({ to: 'user@example.com' })
   })
 })
