@@ -128,7 +128,6 @@ export default function LandingPage() {
               <h3 className="font-semibold mb-4 text-cosmic-gold">{t.home.footerServices}</h3>
               <ul className="space-y-2 text-cosmic-gold/80">
                 <li><Link href="/pricing" className="hover:text-cosmic-gold transition text-base">{t.nav.pricing}</Link></li>
-                <li><Link href="/saint-valentin" className="hover:text-cosmic-gold transition text-base">{t.valentine.title}</Link></li>
               </ul>
             </div>
 

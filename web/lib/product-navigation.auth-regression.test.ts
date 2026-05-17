@@ -6,6 +6,7 @@ import {
   getNoAccessPurchasePath,
   PRODUCT_CATALOG_PATH,
   REMOVED_MARKETING_COMMANDER_PATHS,
+  REMOVED_MARKETING_PRODUCT_PATHS,
 } from '@/lib/product-navigation'
 
 const webRoot = join(__dirname, '..')
@@ -23,18 +24,36 @@ describe('product-navigation', () => {
   it('conserve les destinations post-achat pour la génération', () => {
     expect(getProductDestination('dialogue')).toBe('/dialogues?purchased=true')
     expect(getProductDestination('reading-2026')).toBe('/reading-2026?purchased=true')
+    expect(getProductDestination('valentine-2026')).toBe('/saint-valentin?purchased=true')
     expect(getProductDestination('journal-monthly')).toBe('/journal-pilot?subscribed=true')
     expect(getProductDestination('unknown')).toBe('/pricing')
   })
 })
 
-describe('marketing surfaces — pas de commander direct dialogue / révolution', () => {
+describe('marketing surfaces — pas de liens produits redondants', () => {
+  const navSources = [
+    ['components', 'Navigation.tsx'],
+    ['components', 'MobileMenu.tsx'],
+    ['components', 'QuickActions.tsx'],
+  ] as const
+
   it('page d’accueil : hero et footer sans liens commander retirés', () => {
     const source = readSource('app', 'page.tsx')
     for (const path of REMOVED_MARKETING_COMMANDER_PATHS) {
       expect(source).not.toContain(path)
     }
+    for (const path of REMOVED_MARKETING_PRODUCT_PATHS) {
+      expect(source).not.toContain(`href="${path}"`)
+    }
     expect(source).toContain(`href="${PRODUCT_CATALOG_PATH}"`)
+  })
+
+  it.each(navSources)('%s : pas d’onglets produits retirés', (...segments) => {
+    const source = readSource(...segments)
+    for (const path of REMOVED_MARKETING_PRODUCT_PATHS) {
+      expect(source).not.toContain(`href: '${path}'`)
+      expect(source).not.toContain(`router.push('${path}')`)
+    }
   })
 
   it('dialogues : redirection achat vers le catalogue', () => {
@@ -46,6 +65,12 @@ describe('marketing surfaces — pas de commander direct dialogue / révolution'
   it('reading-2026 : redirection achat vers le catalogue', () => {
     const source = readSource('app', 'reading-2026', 'page.tsx')
     expect(source).not.toContain('/commander/reading-2026')
+    expect(source).toContain('getNoAccessPurchasePath')
+  })
+
+  it('saint-valentin : redirection achat vers le catalogue', () => {
+    const source = readSource('app', 'saint-valentin', 'page.tsx')
+    expect(source).not.toContain('/checkout?add=valentine-2026')
     expect(source).toContain('getNoAccessPurchasePath')
   })
 })

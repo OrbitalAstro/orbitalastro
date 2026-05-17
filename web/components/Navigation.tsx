@@ -4,7 +4,6 @@ import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import {
   BookOpenText,
-  Users,
   CreditCard,
   Orbit,
   Settings,
@@ -60,7 +59,6 @@ export default function Navigation() {
     { href: '/about', label: t.nav.about, icon: Info },
     { href: '/univers', label: t.nav.univers, icon: Orbit },
     { href: '/journal-pilot', label: t.nav.journalPilot, icon: BookOpenText },
-    { href: '/saint-valentin', label: t.nav.valentine, icon: Users },
     { href: '/pricing', label: t.nav.pricing, icon: CreditCard },
   ]
 

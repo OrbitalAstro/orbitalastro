@@ -17,6 +17,7 @@ import { pdf } from '@react-pdf/renderer'
 import { generateValentinePrompt } from './generateValentinePrompt'
 import ValentinePdf from './ValentinePdf'
 import { checkAccessFromURL, markProductAsPaid } from '@/lib/checkPayment'
+import { getNoAccessPurchasePath } from '@/lib/product-navigation'
 import { isDevTestBypass } from '@/lib/devTestMode'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
@@ -184,7 +185,7 @@ export default function SaintValentinPage() {
       const access = await checkAccessFromURL('valentine-2026')
       if (!access.hasAccess) {
         // Rediriger vers la page de tarification
-        router.push('/checkout?add=valentine-2026')
+        router.push(getNoAccessPurchasePath())
         return
       }
     } else {

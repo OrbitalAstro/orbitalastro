@@ -10,6 +10,13 @@ export const REMOVED_MARKETING_COMMANDER_PATHS = [
   '/commander/reading-2026',
 ] as const
 
+/** Product pages removed from nav / footer; access via /pricing only. */
+export const REMOVED_MARKETING_PRODUCT_PATHS = [
+  '/dialogues',
+  '/reading-2026',
+  '/saint-valentin',
+] as const
+
 /** Where to send users who must purchase before generating content. */
 export function getNoAccessPurchasePath(): string {
   return PRODUCT_CATALOG_PATH
