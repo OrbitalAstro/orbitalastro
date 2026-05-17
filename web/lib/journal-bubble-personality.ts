@@ -1,6 +1,6 @@
 /**
  * Personnalité des bulles guilde (planète / signe) pour le journal pilote.
- * Le rendu visuel (contours, queues) est dans `globals.css` (classes `.journal-guild-bubble*`).
+ * Le rendu visuel est dans `globals.css` (classes `.journal-guild-bubble*`).
  */
 
 export type JournalBubbleKind =

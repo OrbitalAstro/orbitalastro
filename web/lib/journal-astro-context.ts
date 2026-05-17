@@ -8,6 +8,7 @@ import {
 } from '@/lib/journal-next-exact-cache'
 import { journalMessageWantsNextExactDates } from '@/lib/journal-timing-intent'
 import { parseJournalLunarIntent } from '@/lib/journal-lunar-intent'
+import { buildJournalPersonalityProfile } from '@/lib/journal-personality-profile'
 import { withJournalTransitBasisCache } from '@/lib/journal-transit-basis-cache'
 
 export type JournalUserForAstro = {
@@ -56,6 +57,35 @@ const ZODIAC_FR = [
   'Poissons',
 ] as const
 
+const SIGN_EN_TO_FR: Record<string, string> = {
+  Aries: 'Bélier',
+  Taurus: 'Taureau',
+  Gemini: 'Gémeaux',
+  Cancer: 'Cancer',
+  Leo: 'Lion',
+  Virgo: 'Vierge',
+  Libra: 'Balance',
+  Scorpio: 'Scorpion',
+  Sagittarius: 'Sagittaire',
+  Capricorn: 'Capricorne',
+  Aquarius: 'Verseau',
+  Pisces: 'Poissons',
+}
+
+/** Planètes pour lesquelles le bloc doit donner signe + maison transit (étiquettes guilde). */
+const JOURNAL_TRANSIT_PLACEMENT_KEYS = [
+  'sun',
+  'moon',
+  'mercury',
+  'venus',
+  'mars',
+  'jupiter',
+  'saturn',
+  'uranus',
+  'neptune',
+  'pluto',
+] as const
+
 export const JOURNAL_BODY_FR: Record<string, string> = {
   sun: 'Soleil',
   moon: 'Lune',
@@ -100,6 +130,12 @@ function longitudeToSignFr(longitude: number): { sign: string; degInSign: number
   const idx = Math.min(11, Math.floor(lon / 30))
   const degInSign = Math.round((lon - idx * 30) * 10) / 10
   return { sign: ZODIAC_FR[idx], degInSign }
+}
+
+function signLabelFr(sign?: string, longitude?: number): string {
+  if (typeof longitude === 'number') return longitudeToSignFr(longitude).sign
+  if (!sign) return ''
+  return SIGN_EN_TO_FR[sign] || sign
 }
 
 function houseFromLongitude(longitude: number, houses: Record<string, number> | undefined): number | null {
@@ -193,7 +229,7 @@ export function formatJournalNextExactLine(hit: JournalNextExactHit, timeZone: s
 
 export async function fetchJournalLunarLinesFromBackend(
   fromIso: string,
-  intent: { event: 'full_moon' | 'new_moon'; moon_sign?: string },
+  intent: { event: 'full_moon' | 'new_moon'; moon_sign?: string; timing?: 'current' | 'next' },
 ): Promise<string[]> {
   try {
     const res = await fetch(`${getJournalApiBaseUrl()}/api/transits/next-lunar-event`, {
@@ -204,6 +240,7 @@ export async function fetchJournalLunarLinesFromBackend(
         event: intent.event,
         moon_sign: intent.moon_sign,
         max_moons_to_scan: 36,
+        prefer_current: intent.timing === 'current',
       }),
     })
     if (!res.ok) return []
@@ -338,20 +375,34 @@ function buildNatalSummary(natal: NatalResponse): string {
       : undefined
 
   const parts = [
-    sun?.sign ? `Soleil ${sun.sign} maison ${sun.house}` : null,
-    moon?.sign ? `Lune ${moon.sign} maison ${moon.house}` : null,
-    venus?.sign ? `Vénus ${venus.sign} maison ${venus.house}` : null,
-    mars?.sign ? `Mars ${mars.sign} maison ${mars.house}` : null,
-    jupiter?.sign ? `Jupiter ${jupiter.sign} maison ${jupiter.house}` : null,
-    saturn?.sign ? `Saturne ${saturn.sign} maison ${saturn.house}` : null,
-    ascendantSign ? `Ascendant ${ascendantSign}` : null,
+    sun?.sign || typeof sun?.longitude === 'number'
+      ? `Soleil ${signLabelFr(sun?.sign, sun?.longitude)}${sun?.house ? ` maison ${sun.house}` : ''}`
+      : null,
+    moon?.sign || typeof moon?.longitude === 'number'
+      ? `Lune ${signLabelFr(moon?.sign, moon?.longitude)}${moon?.house ? ` maison ${moon.house}` : ''}`
+      : null,
+    venus?.sign || typeof venus?.longitude === 'number'
+      ? `Vénus ${signLabelFr(venus?.sign, venus?.longitude)}${venus?.house ? ` maison ${venus.house}` : ''}`
+      : null,
+    mars?.sign || typeof mars?.longitude === 'number'
+      ? `Mars ${signLabelFr(mars?.sign, mars?.longitude)}${mars?.house ? ` maison ${mars.house}` : ''}`
+      : null,
+    jupiter?.sign || typeof jupiter?.longitude === 'number'
+      ? `Jupiter ${signLabelFr(jupiter?.sign, jupiter?.longitude)}${jupiter?.house ? ` maison ${jupiter.house}` : ''}`
+      : null,
+    saturn?.sign || typeof saturn?.longitude === 'number'
+      ? `Saturne ${signLabelFr(saturn?.sign, saturn?.longitude)}${saturn?.house ? ` maison ${saturn.house}` : ''}`
+      : null,
+    ascendantSign
+      ? `Ascendant ${signLabelFr(ascendantSign, typeof natal.ascendant === 'number' ? natal.ascendant : natal.ascendant?.longitude)}`
+      : null,
   ].filter(Boolean)
 
   const extrasFromPlanets = JOURNAL_EXTRA_FOCUS_KEYS.map((k) => {
     const p = planets[k]
     if (!p?.sign && typeof p?.longitude !== 'number') return null
-    if (p?.sign) return `${bodyLabelFr(k)} ${p.sign}${p.house ? ` maison ${p.house}` : ''}`
-    return formatPlacementFromLongitude(k, p.longitude as number, houses)
+    const sign = signLabelFr(p.sign, p.longitude)
+    return `${bodyLabelFr(k)} ${sign}${p.house ? ` maison ${p.house}` : ''}`
   }).filter(Boolean)
 
   const extrasFromObjects = JOURNAL_EXTRA_FOCUS_KEYS.map((k) => {
@@ -370,54 +421,17 @@ function buildNatalSummary(natal: NatalResponse): string {
 }
 
 function buildCommunicationProfile(natal: NatalResponse): string[] {
-  const planets = natal.planets || {}
-  const mercury = planets.mercury
-  const moon = planets.moon
-  const asc =
-    typeof natal.ascendant === 'object' && natal.ascendant?.sign
-      ? natal.ascendant.sign
-      : undefined
+  const lines = buildJournalPersonalityProfile(natal)
   const house3 = natal.houses?.['3']
   const house4 = natal.houses?.['4']
   const maison3Sign =
     typeof house3 === 'number' && typeof house4 === 'number' ? longitudeToSignFr(house3).sign : undefined
-
-  const bullets: string[] = []
-
-  if (mercury?.sign || mercury?.house) {
-    bullets.push(
-      `Canal mental principal : Mercure${mercury?.sign ? ` en ${mercury.sign}` : ''}${
-        mercury?.house ? ` (maison ${mercury.house})` : ''
-      }.`,
-    )
-  }
-  if (moon?.sign || moon?.house) {
-    bullets.push(
-      `Filtre émotionnel : Lune${moon?.sign ? ` en ${moon.sign}` : ''}${moon?.house ? ` (maison ${moon.house})` : ''}.`,
-    )
-  }
-  if (asc) {
-    bullets.push(`Style relationnel perçu : Ascendant ${asc}.`)
-  }
   if (maison3Sign || typeof house3 === 'number') {
-    bullets.push(
-      `Voie d'expression quotidienne : maison 3${maison3Sign ? ` en ${maison3Sign}` : ''} (cuspide ${Math.round(
-        ((house3 as number) % 360) * 10,
-      ) / 10}°).`,
+    lines.push(
+      `Expression quotidienne (maison 3${maison3Sign ? ` en ${maison3Sign}` : ''}) : calibre le vocabulaire et le rythme de tes phrases sur ce registre.`,
     )
   }
-
-  const adaptationHints = [
-    'Adapte la forme du message avant le fond : clarté, rythme, vocabulaire et niveau de concret selon ce profil.',
-    'Si le profil montre une dominante émotionnelle, commence par valider le ressenti puis propose une action.',
-    'Si le profil montre une dominante mentale/pratique, donne rapidement une structure claire (priorité, timing, action).',
-  ]
-
-  return bullets.length > 0
-    ? [...bullets, ...adaptationHints]
-    : [
-        "Profil de réception non déterminé précisément avec les données actuelles ; adopte un style clair, empathique et concret, puis ajuste selon la réponse de la personne.",
-      ]
+  return lines
 }
 
 /** Aspects classés conservés pour indices next-exact (au-delà des lignes affichées). */
@@ -688,6 +702,15 @@ export async function fetchJournalAstroContext(
     return `- ${bodyLabelFr(body)} : ~${degInSign}° ${sign} (à la date de référence ci-dessous)`
   })
 
+  const transitHouses = transitsPayload.houses as Record<string, number> | undefined
+  const transitPlacementLines = JOURNAL_TRANSIT_PLACEMENT_KEYS.map((body) => {
+    const lon = sky?.[body]
+    if (typeof lon !== 'number') return null
+    const { sign } = longitudeToSignFr(lon)
+    const house = houseFromLongitude(lon, transitHouses)
+    return `- ${bodyLabelFr(body)} transit : ${sign}${house ? `, maison ${house}` : ''}`
+  }).filter(Boolean)
+
   const extraTransitSkyLines = JOURNAL_EXTRA_FOCUS_KEYS.map((body) => {
     const lon = sky?.[body]
     if (typeof lon !== 'number') return null
@@ -698,8 +721,9 @@ export async function fetchJournalAstroContext(
   const natalExtraLines = JOURNAL_EXTRA_FOCUS_KEYS.map((key) => {
     const fromPlanets = natalData.planets?.[key]
     if (fromPlanets?.sign || typeof fromPlanets?.longitude === 'number') {
-      if (fromPlanets.sign) {
-        return `- ${bodyLabelFr(key)} natal : ${fromPlanets.sign}${fromPlanets.house ? `, maison ${fromPlanets.house}` : ''}`
+      if (fromPlanets.sign || typeof fromPlanets.longitude === 'number') {
+        const sign = signLabelFr(fromPlanets.sign, fromPlanets.longitude)
+        return `- ${bodyLabelFr(key)} natal : ${sign}${fromPlanets.house ? `, maison ${fromPlanets.house}` : ''}`
       }
       return `- ${formatPlacementFromLongitude(key, fromPlanets.longitude as number, natalData.houses)} natal`
     }
@@ -741,7 +765,7 @@ export async function fetchJournalAstroContext(
         : 'Prochains passages à l’orbe minimale : calcul indisponible ou vide ; ne pas inventer de dates — la personne peut relancer le calcul côté app ou coller un résultat dans le fil.'
 
   const astroTimingBlock = [
-    'PROFIL DE RÉCEPTION / COMMUNICATION (à appliquer en premier dans la formulation) :',
+    'PROFIL PERSONNEL — ADAPTATION (personnalité, sensibilité, énergie — à appliquer AVANT de rédiger, surtout pour « Astrologie ») :',
     communicationProfileLines.map((l) => `- ${l}`).join('\n'),
     '',
     'RÉFÉRENCE TEMPORELLE (ancre pour toute prévision ou « temps » astrologique)',
@@ -750,6 +774,11 @@ export async function fetchJournalAstroContext(
     '',
     'Ciel à cet instant (corps impliqués dans les aspects listés) :',
     skyLines.length > 0 ? skyLines.join('\n') : '- (positions non fournies)',
+    '',
+    'Placements transits (référence — utiliser pour les étiquettes Natal + Transit des planètes) :',
+    transitPlacementLines.length > 0
+      ? transitPlacementLines.join('\n')
+      : '- (non calculés — latitude/longitude de naissance requises pour les maisons transit)',
     extraTransitSkyLines.length > 0
       ? ['Points complémentaires à cet instant (nœuds, Lilith, Chiron, astéroïdes, Vertex, Parts) :', ...extraTransitSkyLines].join('\n')
       : '',

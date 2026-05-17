@@ -19,7 +19,12 @@ const createConfig = (phase) => {
   return {
     // Avoid Windows dev crashes by isolating dev artifacts from `next build` output.
     // Running `next build` while `next dev` is running can corrupt `.next` and cause missing server chunks.
-    distDir: isDevServer ? '.next-dev' : '.next',
+    // Deux `next dev` en parallèle : port 3001 → cache isolé (évite chunks webpack corrompus).
+    distDir: isDevServer
+      ? process.env.PORT === '3001'
+        ? '.next-dev-3001'
+        : '.next-dev'
+      : '.next',
     reactStrictMode: true,
     eslint: {
       // Warning: This allows production builds to successfully complete even if

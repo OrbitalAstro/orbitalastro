@@ -19,7 +19,7 @@ from astro.julian import datetime_to_julian_day
 from astro.master_prompt_builder import build_natal_reading_prompt
 from astro.chart_utils import build_chart_payload_for_narrative
 from astro.transit_exact_search import find_next_exacts_for_hints
-from astro.lunar_events import next_lunar_event_utc, normalize_moon_sign_token
+from astro.lunar_events import lunar_event_relevant_utc, normalize_moon_sign_token
 from api.schemas import NarrativeConfig
 
 router = APIRouter(prefix="/api", tags=["transits"])
@@ -73,6 +73,10 @@ class NextLunarEventRequest(BaseModel):
         description="Signe de la Lune souhaité (ex. scorpio, scorpion) ; optionnel",
     )
     max_moons_to_scan: int = Field(36, ge=1, le=48)
+    prefer_current: bool = Field(
+        False,
+        description="Si true : lunaison la plus proche de from_date (en cours), pas seulement la suivante",
+    )
 
 
 class NextLunarEventHitModel(BaseModel):
@@ -280,11 +284,12 @@ async def next_lunar_event(request: NextLunarEventRequest):
         raise HTTPException(status_code=400, detail="event doit être full_moon ou new_moon")
 
     wanted = normalize_moon_sign_token(request.moon_sign) if request.moon_sign else None
-    hit, scanned = next_lunar_event_utc(
+    hit, scanned, phase_mismatch = lunar_event_relevant_utc(
         from_dt,
         ev,
         moon_sign_en=wanted,
         max_moons_to_scan=request.max_moons_to_scan,
+        prefer_current=request.prefer_current,
     )
 
     def fmt(h) -> str:
@@ -296,6 +301,21 @@ async def next_lunar_event(request: NextLunarEventRequest):
         )
 
     lines_fr: List[str] = []
+    if hit and request.prefer_current:
+        lines_fr.append(
+            "- Sélection : lunaison la plus proche de l'instant de référence "
+            "(demande « en cours » / actuelle), et non la suivante dans le futur."
+        )
+    if hit and phase_mismatch:
+        asked = "pleine lune" if ev == "full_moon" else "nouvelle lune"
+        actual = "nouvelle lune" if hit.event == "new_moon" else "pleine lune"
+        lines_fr.append(
+            f"- **Phase réelle** : à cet instant c'est une **{actual}**, pas une {asked}. "
+            f"La personne a peut‑être dit « {asked} » par habitude : **réponds sur la {actual}** "
+            f"(date ci‑dessous) et **dis-le clairement** dès la première ligne Astrologie — "
+            f"**ne décris pas** une opposition Soleil–Lune si les données indiquent le même signe "
+            f"pour le Soleil et la Lune."
+        )
     if hit:
         lines_fr.append(fmt(hit))
     elif scanned:

@@ -77,11 +77,18 @@ const GLYPHS: Record<string, string> = {
   toi: '◉',
 }
 
+/** Clé du premier mot (planète / signe) pour styles ou SVG dédiés. */
+export function glyphKeyForJournalSpeaker(speaker: string): string {
+  const raw = speaker.trim()
+  if (!raw) return ''
+  return firstToken(raw)
+}
+
 export function glyphForJournalSpeaker(speaker: string): string {
   const raw = speaker.trim()
   if (!raw) return ''
 
-  const token = firstToken(raw)
+  const token = glyphKeyForJournalSpeaker(speaker)
   if (GLYPHS[token]) return GLYPHS[token]
 
   const full = normKey(raw.replace(/\s+/g, ' '))

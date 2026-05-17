@@ -7,9 +7,18 @@ import { Archive, BookOpenText, CreditCard, History, Loader2, X } from 'lucide-r
 import { journalMonthlySubscription } from '@/lib/stripe'
 import BackButton from '@/components/BackButton'
 import Starfield from '@/components/Starfield'
-import JournalBubbleTailSvg from '@/components/JournalBubbleTailSvg'
+import JournalBubbleBlockActions from '@/components/JournalBubbleBlockActions'
 import JournalGuildSpeechBubble from '@/components/JournalGuildSpeechBubble'
+import JournalSpeakerGlyph from '@/components/JournalSpeakerGlyph'
+import { OrbitalOrbitsSpinner } from '@/components/OrbitalOrbitsGraphic'
 import { parseJournalGuildReply } from '@/lib/journal-chat-parse'
+import {
+  journalConcretePathBubbleMessage,
+  journalDeepenBubbleMessage,
+  journalSuggestionsForThread,
+  journalSuggestionsSectionTitle,
+  JOURNAL_SUGGESTION_PILL_CLASS,
+} from '@/lib/journal-chat-suggestions'
 import { glyphForJournalSpeaker } from '@/lib/journal-speaker-symbols'
 
 type Profile = {
@@ -43,16 +52,6 @@ type ArchivedThread = {
 
 const parseJournalChat = parseJournalGuildReply
 
-function JournalSpeakerGlyph({ speaker }: { speaker: string }) {
-  const g = glyphForJournalSpeaker(speaker)
-  if (!g) return null
-  return (
-    <span className="mr-1 inline-block align-baseline text-[1.1rem] leading-none text-cosmic-gold/90" aria-hidden>
-      {g}
-    </span>
-  )
-}
-
 const JOURNAL_SIGNIN = '/auth/signin?callbackUrl=/journal-pilot'
 const JOURNAL_ONBOARDING = '/auth/onboarding?next=%2Fjournal-pilot'
 const LOCAL_ARCHIVE_KEY = 'journal_pilot_local_archives_v1'
@@ -61,27 +60,6 @@ const LOCAL_ARCHIVE_KEY = 'journal_pilot_local_archives_v1'
 const JOURNAL_GUILD_HEADING = "l'Astrologie"
 const JOURNAL_GUILD_HEADING_GLYPH = 'Astrologie'
 
-function isJournalAstrologySpeaker(speaker: string): boolean {
-  return speaker.trim().toLowerCase().startsWith('astrologie')
-}
-
-function journalGuildBubbleLayout(
-  bubble: { speaker: string },
-  planetAlternate: { n: number },
-): { margin: string; tail: 'left' | 'right' } {
-  if (isJournalAstrologySpeaker(bubble.speaker)) {
-    return { margin: 'mr-auto', tail: 'left' }
-  }
-  const k = planetAlternate.n++
-  if (k % 2 === 0) return { margin: 'ml-auto', tail: 'right' }
-  return { margin: 'mr-auto', tail: 'left' }
-}
-
-function journalGuildHeaderRowClass(compact?: boolean): string {
-  const size = compact ? 'text-[10px]' : 'text-[11px]'
-  return `${size} uppercase tracking-wide text-cosmic-gold/55`
-}
-
 export default function JournalPilotClient() {
   const [authGate, setAuthGate] = useState<'loading' | 'authenticated' | 'unauthenticated'>('loading')
   const [subscriptionStatus, setSubscriptionStatus] = useState<'unknown' | 'active' | 'required'>('unknown')
@@ -89,6 +67,8 @@ export default function JournalPilotClient() {
 
   const [loading, setLoading] = useState(true)
   const [sendingEntry, setSendingEntry] = useState(false)
+  /** Message utilisateur affiché tout de suite pendant l’attente de la réponse. */
+  const [pendingUserText, setPendingUserText] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const [profile, setProfile] = useState<Profile | null>(null)
@@ -159,6 +139,23 @@ export default function JournalPilotClient() {
     if (first) return `Bonjour ${first}, De quoi souhaites-tu jaser?`
     return 'Bonjour, De quoi souhaites-tu jaser?'
   }, [profile?.display_name])
+
+  const chatSuggestions = useMemo(
+    () => journalSuggestionsForThread(messages.length),
+    [messages.length],
+  )
+  const chatSuggestionsTitle = useMemo(
+    () => journalSuggestionsSectionTitle(messages.length),
+    [messages.length],
+  )
+
+  const applySuggestion = useCallback((message: string) => {
+    setEntryInput(message)
+    setError(null)
+    requestAnimationFrame(() => {
+      entryTextareaRef.current?.focus()
+    })
+  }, [])
 
   async function fetchProfileAndChat() {
     setLoading(true)
@@ -326,7 +323,7 @@ export default function JournalPilotClient() {
       setIsNearBottom(distance < 160)
     })
     return () => cancelAnimationFrame(id)
-  }, [messages, sendingEntry, entryInput])
+  }, [messages, sendingEntry, pendingUserText, entryInput])
 
   useEffect(() => {
     if (isNearBottom || sendingEntry) {
@@ -357,17 +354,19 @@ export default function JournalPilotClient() {
     return () => window.removeEventListener('resize', measure)
   }, [entryInput])
 
-  async function submitEntry(e: React.FormEvent) {
-    e.preventDefault()
-    if (!entryInput.trim()) return
+  const sendChatMessage = useCallback(async (text: string) => {
+    const message = text.trim()
+    if (!message || sendingEntry) return
     setSendingEntry(true)
+    setPendingUserText(message)
+    setEntryInput('')
     setError(null)
     try {
       const res = await fetch('/api/journal/chat', {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: entryInput.trim() }),
+        body: JSON.stringify({ message }),
       })
       const json = await res.json()
       if (!res.ok) {
@@ -376,16 +375,27 @@ export default function JournalPilotClient() {
         }
         throw new Error(json?.error || 'Erreur de génération')
       }
-      setEntryInput('')
       const added: ChatMessage[] = json.messages || []
       if (added.length > 0) {
         setMessages((prev) => [...prev, ...added])
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur inconnue')
+      const raw = err instanceof Error ? err.message : 'Erreur inconnue'
+      const friendly =
+        raw === 'fetch failed' || /failed to fetch|networkerror/i.test(raw)
+          ? 'Connexion au serveur impossible. Vérifie que Next.js (port 3001) et l’API Python (port 8000) sont démarrés, puis réessaie.'
+          : raw
+      setError(friendly)
     } finally {
       setSendingEntry(false)
+      setPendingUserText(null)
     }
+  }, [sendingEntry])
+
+  async function submitEntry(e: React.FormEvent) {
+    e.preventDefault()
+    if (!entryInput.trim()) return
+    await sendChatMessage(entryInput)
   }
 
   async function endConversation() {
@@ -519,18 +529,16 @@ export default function JournalPilotClient() {
                 </button>
               </div>
 
-              <div className="flex flex-col border-l border-cosmic-gold/15 pl-3 sm:pl-4 pr-1 sm:pr-2">
-                <div ref={threadRef} className="flex flex-col gap-7">
+              <div className="journal-thread mx-auto w-full">
+                <div ref={threadRef} className="flex flex-col">
                 {messages.length === 0 ? (
-                  <div className="max-w-prose">
-                    <p className="flex items-baseline gap-1 text-[11px] tracking-wide text-cosmic-gold/40">
+                  <motion.div className="journal-thread__turn">
+                    <p className="journal-thread__meta flex items-baseline gap-1">
                       <JournalSpeakerGlyph speaker={JOURNAL_GUILD_HEADING_GLYPH} />
                       <span>{JOURNAL_GUILD_HEADING}</span>
                     </p>
-                    <p className="mt-1 text-sm leading-relaxed text-cosmic-gold/90 whitespace-pre-wrap">
-                      {emptyThreadWelcome}
-                    </p>
-                  </div>
+                    <p className="journal-guild-bubble__body mt-2">{emptyThreadWelcome}</p>
+                  </motion.div>
                 ) : (
                   messages.map((m) =>
                     m.role === 'user' ? (
@@ -538,18 +546,15 @@ export default function JournalPilotClient() {
                         key={m.id}
                         initial={{ opacity: 0, y: 4 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="mx-auto w-full max-w-[min(100%,40rem)] text-center"
+                        className="journal-thread__turn"
                       >
-                        <p className="flex items-baseline justify-center gap-1 text-[11px] text-cosmic-gold/45">
+                        <p className="journal-thread__meta journal-thread__meta--user flex items-baseline justify-center gap-1">
                           <JournalSpeakerGlyph speaker="Toi" />
-                          Toi · {new Date(m.created_at).toLocaleString('fr-CA')}
+                          <span>Toi · {new Date(m.created_at).toLocaleString('fr-CA')}</span>
                         </p>
-                        <div className="journal-user-bubble w-full max-w-[min(100%,40rem)]">
-                          <JournalBubbleTailSvg side="center" />
+                        <div className="journal-user-bubble">
                           <div className="journal-user-bubble__frame">
-                            <p className="text-[15px] leading-7 text-cosmic-gold/95 whitespace-pre-wrap text-center">
-                              {m.content}
-                            </p>
+                            <p className="journal-user-bubble__body">{m.content}</p>
                           </div>
                         </div>
                       </motion.div>
@@ -558,62 +563,138 @@ export default function JournalPilotClient() {
                         key={m.id}
                         initial={{ opacity: 0, y: 4 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="w-full"
+                        className="journal-thread__turn"
                       >
-                        <p className="text-[11px] text-cosmic-gold/45">
+                        <p className="journal-thread__meta flex items-baseline gap-1">
                           <JournalSpeakerGlyph speaker={JOURNAL_GUILD_HEADING_GLYPH} />
-                          {JOURNAL_GUILD_HEADING} · {new Date(m.created_at).toLocaleString('fr-CA')}
+                          <span>
+                            {JOURNAL_GUILD_HEADING} · {new Date(m.created_at).toLocaleString('fr-CA')}
+                          </span>
                         </p>
-                        <div className="mt-2.5 flex w-full flex-col gap-6 sm:gap-8">
-                          {(() => {
-                            const planetAlternate = { n: 0 }
-                            return parseJournalChat(m.content).map((bubble, idx) => {
-                              const layout = journalGuildBubbleLayout(bubble, planetAlternate)
-                              return (
-                                <JournalGuildSpeechBubble
-                                  key={`${m.id}-${idx}`}
-                                  speaker={bubble.speaker}
-                                  tail={layout.tail}
-                                  colorIdx={idx}
-                                  className={`max-w-[min(100%,46rem)] sm:max-w-[min(100%,52rem)] ${layout.margin}`}
-                                >
-                                  <p className={journalGuildHeaderRowClass()}>
-                                    <JournalSpeakerGlyph speaker={bubble.speaker} />
-                                    {bubble.speaker}
-                                  </p>
-                                  <p className="mt-1 text-left text-[15px] leading-7 text-cosmic-gold/95 whitespace-pre-wrap">
-                                    {bubble.body}
-                                  </p>
-                                </JournalGuildSpeechBubble>
-                              )
-                            })
-                          })()}
+                        <div className="journal-thread__blocks">
+                          {parseJournalChat(m.content).map((bubble, idx) => (
+                            <div key={`${m.id}-${idx}`} className="journal-thread__block">
+                              <JournalGuildSpeechBubble speaker={bubble.speaker} colorIdx={idx}>
+                                <p className="journal-guild-bubble__speaker">
+                                  <JournalSpeakerGlyph speaker={bubble.speaker} />
+                                  {bubble.speaker}
+                                </p>
+                                <p className="journal-guild-bubble__body">{bubble.body}</p>
+                              </JournalGuildSpeechBubble>
+                              <JournalBubbleBlockActions
+                                align="left"
+                                disabled={sendingEntry}
+                                onDeepen={() =>
+                                  void sendChatMessage(
+                                    journalDeepenBubbleMessage(bubble.speaker, bubble.body),
+                                  )
+                                }
+                                onConcretePath={() =>
+                                  void sendChatMessage(
+                                    journalConcretePathBubbleMessage(bubble.speaker, bubble.body),
+                                  )
+                                }
+                              />
+                            </div>
+                          ))}
                         </div>
                       </motion.div>
                     )
                   )
                 )}
+                {pendingUserText ? (
+                  <motion.div
+                    initial={{ opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="journal-thread__turn"
+                  >
+                    <p className="journal-thread__meta journal-thread__meta--user flex items-baseline justify-center gap-1">
+                      <JournalSpeakerGlyph speaker="Toi" />
+                      <span>Toi · {new Date().toLocaleString('fr-CA')}</span>
+                    </p>
+                    <div className="journal-user-bubble">
+                      <div className="journal-user-bubble__frame">
+                        <p className="journal-user-bubble__body">{pendingUserText}</p>
+                      </div>
+                    </div>
+                  </motion.div>
+                ) : null}
+                </div>
               </div>
 
-              <form
-                id="journal-compose-form"
-                onSubmit={submitEntry}
-                className={`${messages.length === 0 ? 'mt-3' : 'mt-8'} w-full shrink-0 pb-2 ${messages.length === 0 ? 'max-w-prose' : 'max-w-[min(100%,46rem)]'}`}
-              >
-                <label htmlFor="journal-entry-input" className="sr-only">
-                  Message pour la guilde
-                </label>
-                <textarea
-                  ref={entryTextareaRef}
-                  id="journal-entry-input"
-                  value={entryInput}
-                  onChange={(e) => setEntryInput(e.target.value)}
-                  rows={6}
-                  className="w-full resize-none min-h-0 max-h-none border-0 bg-transparent px-0 py-2 text-[15px] leading-relaxed text-cosmic-gold placeholder:text-cosmic-gold/60 outline-none ring-0 transition focus:outline-none focus:ring-0"
-                  placeholder="Écris la suite du fil ici…"
-                  maxLength={4000}
-                />
-              </form>
+              {sendingEntry ? (
+                <motion.div
+                  className="journal-loading-stage"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  aria-live="polite"
+                  aria-busy="true"
+                >
+                  <div className="journal-loading-stage__backdrop" aria-hidden />
+                  <div className="journal-loading-stage__content">
+                    <OrbitalOrbitsSpinner
+                      size={248}
+                      label="La guilde tisse sa réponse…"
+                      align="center"
+                    />
+                  </div>
+                </motion.div>
+              ) : null}
+
+              {!sendingEntry ? (
+                <>
+                  <motion.div
+                    className={`journal-thread mx-auto w-full shrink-0 pb-2 ${messages.length === 0 ? 'mt-4' : 'mt-8'}`}
+                  >
+                    <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-cosmic-gold/55">
+                      {chatSuggestionsTitle}
+                    </p>
+                    <motion.div
+                      className="flex flex-wrap gap-2"
+                      initial={false}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      {chatSuggestions.map((s) => (
+                        <button
+                          key={s.id}
+                          type="button"
+                          disabled={sendingEntry}
+                          onClick={() => applySuggestion(s.message)}
+                          title={s.message}
+                          className={`${JOURNAL_SUGGESTION_PILL_CLASS} text-left`}
+                        >
+                          {s.label}
+                        </button>
+                      ))}
+                    </motion.div>
+                  </motion.div>
+
+                  <form
+                    id="journal-compose-form"
+                    onSubmit={submitEntry}
+                    className="journal-thread mx-auto mt-4 w-full shrink-0 pb-2"
+                  >
+                    <label htmlFor="journal-entry-input" className="sr-only">
+                      Message pour la guilde
+                    </label>
+                    <textarea
+                      ref={entryTextareaRef}
+                      id="journal-entry-input"
+                      value={entryInput}
+                      onChange={(e) => setEntryInput(e.target.value)}
+                      rows={6}
+                      className="w-full resize-none min-h-0 max-h-none border-0 bg-transparent px-0 py-2 text-[15px] leading-relaxed text-cosmic-gold placeholder:text-cosmic-gold/60 outline-none ring-0 transition focus:outline-none focus:ring-0"
+                      placeholder={
+                        messages.length === 0
+                          ? 'Écris ta question ici, ou choisis une suggestion…'
+                          : 'Écris la suite du fil ici…'
+                      }
+                      maxLength={4000}
+                    />
+                  </form>
+                </>
+              ) : null}
 
               <div
                 className="fixed bottom-0 left-0 right-0 z-20 border-t border-cosmic-gold/30 bg-cosmic-purple/93 backdrop-blur-md shadow-[0_-10px_36px_rgba(0,0,0,0.38)]"
@@ -655,7 +736,6 @@ export default function JournalPilotClient() {
                   </button>
                 </div>
               ) : null}
-              </div>
             </section>
           </>
         ) : null}
@@ -725,8 +805,8 @@ export default function JournalPilotClient() {
                 )}
               </div>
               {selectedArchive ? (
-                <div className="p-3 rounded-xl border border-cosmic-gold/25 bg-black/20 max-h-[min(50vh,380px)] overflow-y-auto flex flex-col gap-2">
-                  <p className="text-xs uppercase tracking-wide text-cosmic-gold/65">
+                <div className="journal-thread max-h-[min(50vh,380px)] overflow-y-auto rounded-xl border border-cosmic-gold/25 bg-black/20 p-3">
+                  <p className="journal-thread__meta mb-3 uppercase tracking-wide">
                     Historique ouvert ·{' '}
                     {new Date(
                       archivedThreads.find((t) => t.id === selectedArchive.id)?.archived_at || '',
@@ -734,49 +814,41 @@ export default function JournalPilotClient() {
                   </p>
                   {selectedArchive.messages.map((m) =>
                     m.role === 'user' ? (
-                      <div key={m.id} className="text-center">
-                        <div className="mb-1 flex justify-center text-[10px] uppercase tracking-wide text-cosmic-gold/60">
+                      <div key={m.id} className="journal-thread__turn">
+                        <p className="journal-thread__meta journal-thread__meta--user flex items-baseline justify-center gap-1">
                           <JournalSpeakerGlyph speaker="Toi" />
-                          Toi · {new Date(m.created_at).toLocaleString('fr-CA')}
-                        </div>
-                        <div className="journal-user-bubble w-full max-w-[min(100%,38rem)]">
-                          <JournalBubbleTailSvg side="center" />
+                          <span>Toi · {new Date(m.created_at).toLocaleString('fr-CA')}</span>
+                        </p>
+                        <div className="journal-user-bubble">
                           <div className="journal-user-bubble__frame">
-                            <p className="text-sm text-cosmic-gold whitespace-pre-wrap">{m.content}</p>
+                            <p className="journal-user-bubble__body">{m.content}</p>
                           </div>
                         </div>
                       </div>
                     ) : (
-                      <div key={m.id} className="rounded-lg border border-cosmic-gold/15 bg-black/15 px-2 py-2">
-                        <div className="mb-1 text-[10px] tracking-wide text-cosmic-gold/60">
+                      <div key={m.id} className="journal-thread__turn">
+                        <p className="journal-thread__meta flex items-baseline gap-1">
                           <JournalSpeakerGlyph speaker={JOURNAL_GUILD_HEADING_GLYPH} />
-                          {JOURNAL_GUILD_HEADING} · {new Date(m.created_at).toLocaleString('fr-CA')}
-                        </div>
-                        <div className="mt-1 flex w-full flex-col gap-5 sm:gap-6">
-                          {(() => {
-                            const planetAlternate = { n: 0 }
-                            return parseJournalChat(m.content).map((bubble, idx) => {
-                              const layout = journalGuildBubbleLayout(bubble, planetAlternate)
-                              return (
-                                <JournalGuildSpeechBubble
-                                  key={`${m.id}-${idx}`}
-                                  speaker={bubble.speaker}
-                                  tail={layout.tail}
-                                  colorIdx={idx}
-                                  compact
-                                  className={`max-w-[min(100%,40rem)] sm:max-w-[min(100%,46rem)] ${layout.margin}`}
-                                >
-                                  <p className={journalGuildHeaderRowClass(true)}>
-                                    <JournalSpeakerGlyph speaker={bubble.speaker} />
-                                    {bubble.speaker}
-                                  </p>
-                                  <p className="mt-0.5 text-left text-sm leading-snug text-cosmic-gold whitespace-pre-wrap">
-                                    {bubble.body}
-                                  </p>
-                                </JournalGuildSpeechBubble>
-                              )
-                            })
-                          })()}
+                          <span>
+                            {JOURNAL_GUILD_HEADING} · {new Date(m.created_at).toLocaleString('fr-CA')}
+                          </span>
+                        </p>
+                        <div className="journal-thread__blocks">
+                          {parseJournalChat(m.content).map((bubble, idx) => (
+                            <div key={`${m.id}-${idx}`} className="journal-thread__block">
+                              <JournalGuildSpeechBubble
+                                speaker={bubble.speaker}
+                                colorIdx={idx}
+                                compact
+                              >
+                                <p className="journal-guild-bubble__speaker">
+                                  <JournalSpeakerGlyph speaker={bubble.speaker} />
+                                  {bubble.speaker}
+                                </p>
+                                <p className="journal-guild-bubble__body">{bubble.body}</p>
+                              </JournalGuildSpeechBubble>
+                            </div>
+                          ))}
                         </div>
                       </div>
                     ),

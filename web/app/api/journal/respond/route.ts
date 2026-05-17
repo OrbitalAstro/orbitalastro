@@ -5,6 +5,11 @@ import { assertJournalSubscription } from '@/lib/journal-subscription'
 import { getSupabaseAdmin } from '@/lib/supabase'
 import { fetchJournalAstroContext } from '@/lib/journal-astro-context'
 import { buildJournalGuildSystemInstruction } from '@/lib/journal-guild-prompt'
+import {
+  detectJournalResponseMode,
+  journalResponseModeUserHint,
+} from '@/lib/journal-response-mode'
+import { sanitizeJournalGuildReply } from '@/lib/journal-guild-reply-sanitize'
 import { loadJournalChatMemory, mergeJournalMemoryAfterTurn } from '@/lib/journal-chat-memory'
 
 export const runtime = 'nodejs'
@@ -92,21 +97,28 @@ export async function POST(request: NextRequest) {
     }
 
     const journalDate = new Date().toLocaleDateString('fr-CA')
+    const hasLunarPhenomena = astroTimingBlock.includes('PHÉNOMÈNES LUNAIRES')
+    const responseMode = detectJournalResponseMode(entryText, { hasLunarPhenomena })
+    const modeHint = journalResponseModeUserHint(responseMode)
+
     const systemInstruction = buildJournalGuildSystemInstruction({
       displayName: user.display_name || 'Client',
       natalSummary,
       astroTimingBlock,
       journalDate,
       longTermMemory,
+      responseMode,
     })
 
     const prompt = `Message du journal :
 """${entryText}"""
 
-Réponds en **français**, au **même format messagerie** que la consigne système : lignes **Astrologie :** et planètes / points avec **étiquette (Natal: … + Transit: …)** puis texte à la ligne — **pas** d’article en 6 sections, **pas** de titres de chapitres, **pas** de pavé de 700+ mots.
+Réponds en **français**, au format de la consigne système : lignes **Astrologie :** et planètes / points avec **étiquette (Natal: … + Transit: …)** puis texte à la ligne — **pas** d’article en 6 sections, **pas** de titres de chapitres, **pas** de pavé de 700+ mots.
+
+${modeHint}
 
 Exigences :
-- **Synthèse** : **3 à 5 tours de parole** au total en général ; **1 à 2 planètes** (ou points) après une première **Astrologie :** qui cadre ; **1 à 2 phrases** par intervention sauf si un bloc doit regrouper des **dates** du bloc (timing / lunaison).
+- Respecte le **mode** indiqué (messagerie fragmentée vs exploratoire touffu vs ciblé).
 - **Utile** : faits du bloc quand ils servent + interprétation + **une** piste concrète ou une **question** courte en fin — sans répéter la mémoire pour rien.
 - Si **quand / pic / timing / énergie** : dates et phases du bloc en priorité, **sans orbes en degrés** dans la prose.
 - Ton : chaleureux, précis, jamais fataliste.
@@ -132,13 +144,18 @@ Interdit :
     }
 
     const aiData = await aiResponse.json()
-    let replyText = String(aiData?.content || '').trim()
+    let replyText = sanitizeJournalGuildReply(String(aiData?.content || '').trim())
     if (!replyText) {
       return NextResponse.json({ error: 'Réponse IA vide.' }, { status: 502 })
     }
 
+    const minChars = responseMode === 'exploratory' ? 520 : GENEROUS_MIN_CHARS
+    const minWords = responseMode === 'exploratory' ? 90 : GENEROUS_MIN_WORDS
+    const tooShort =
+      replyText.length < minChars || countWords(replyText) < minWords
+
     // Si le modèle reste trop bref, on force une seconde passe d'enrichissement.
-    if (isTooShortGenerousReply(replyText)) {
+    if (tooShort) {
       const enrichPrompt = `La réponse ci-dessous est trop courte ou trop vague pour une entrée de journal. Réécris **au même format messagerie** (étiquettes Astrologie / planètes comme dans la consigne système).
 
 --- Réponse actuelle ---
@@ -168,10 +185,12 @@ Mêmes données astrologiques : n’invente aucun transit ni date absente du blo
         const enrichData = await enrichResponse.json()
         const enrichedText = String(enrichData?.content || '').trim()
         if (enrichedText) {
-          replyText = enrichedText
+          replyText = sanitizeJournalGuildReply(enrichedText)
         }
       }
     }
+
+    replyText = sanitizeJournalGuildReply(replyText)
 
     const { data: savedEntry, error: saveError } = await supabase
       .from('journal_entries')

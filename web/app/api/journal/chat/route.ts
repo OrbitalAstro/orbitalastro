@@ -6,6 +6,14 @@ import { getSupabaseAdmin } from '@/lib/supabase'
 import { fetchJournalAstroContext } from '@/lib/journal-astro-context'
 import { buildJournalGuildSystemInstruction } from '@/lib/journal-guild-prompt'
 import {
+  detectJournalResponseMode,
+  journalResponseModeUserHint,
+} from '@/lib/journal-response-mode'
+import {
+  detectJournalGuildVoiceStyleIssues,
+  sanitizeJournalGuildReply,
+} from '@/lib/journal-guild-reply-sanitize'
+import {
   loadJournalChatMemory,
   mergeJournalMemoryAfterTurn,
   shouldRunJournalLightMemoryMerge,
@@ -323,7 +331,11 @@ export async function POST(request: NextRequest) {
         { userMessage: text, nextExactPolicy: 'always' },
       )
     } catch (e) {
-      const msg = e instanceof Error ? e.message : 'Erreur astro'
+      const raw = e instanceof Error ? e.message : 'Erreur astro'
+      const msg =
+        raw === 'fetch failed' || /failed to fetch/i.test(raw)
+          ? 'API Python injoignable (démarre uvicorn sur le port 8000).'
+          : raw
       return NextResponse.json({ error: msg }, { status: 502 })
     }
 
@@ -335,12 +347,17 @@ export async function POST(request: NextRequest) {
     }
 
     const journalDate = new Date().toLocaleDateString('fr-CA')
+    const hasLunarPhenomena = astro.astroTimingBlock.includes('PHÉNOMÈNES LUNAIRES')
+    const responseMode = detectJournalResponseMode(text, { hasLunarPhenomena })
+    const modeHint = journalResponseModeUserHint(responseMode)
+
     const systemInstruction = buildJournalGuildSystemInstruction({
       displayName: user.display_name || 'Client',
       natalSummary: astro.natalSummary,
       astroTimingBlock: astro.astroTimingBlock,
       journalDate,
       longTermMemory,
+      responseMode,
     })
 
     const prompt = `Son dernier message dans le fil :
@@ -348,16 +365,18 @@ export async function POST(request: NextRequest) {
 
 Considère tout l'historique déjà fourni dans la conversation (tours précédents) : enchaîne naturellement, fais des liens si utiles, et si tu repères un schéma récurrent, nomme-le avec douceur.
 
-Avant de rédiger, lis et applique le bloc **« PROFIL DE RÉCEPTION / COMMUNICATION »** s’il est présent : adapte d’abord la manière de communiquer (clarté, rythme, niveau de concret, vocabulaire), puis le contenu astrologique.
-La mémoire de compte aide pour la continuité, mais ne doit pas être recopiée mécaniquement : n’utilise que les éléments utiles à cette question précise.
+Avant de rédiger, lis et **incarne** le bloc **« PROFIL PERSONNEL — ADAPTATION »** : la personne doit sentir qu’**Astrologie** s’ajuste à **sa** personnalité, sensibilité et énergie (ton, rythme, chaleur, profondeur) — pas un discours générique. Fusionne ce profil avec la mémoire (Contexte, Sensibilités, Énergie & ton) et le ton de ses derniers messages.
+La mémoire de compte aide pour la continuité, mais ne doit pas être recopiée mécaniquement : n’utilise que les éléments utiles à cette question précise. Ne récite pas la carte pour prouver que tu l’as lue.
 
 Si la personne demande le **quand**, un **pic**, l’**énergie** ou le **timing** : cite d’abord les **dates/heures** des passages listés (y compris sous « Prochains passages à l’orbe minimale ») quand elles sont dans le bloc, plus la **date-heure de référence**, les **phases** (exact / approche / séparation), **signes**, **maisons** et **noms de planètes** dans les lignes d’aspects. Inclus du **concret** (dates, phases) tiré du bloc — **sans** recopier d’**orbes en degrés** dans le texte. Ne te limite pas aux métaphores.
 
-Si le bloc contient **« PHÉNOMÈNES LUNAIRES »** (pleine lune / nouvelle lune calculée) : la **première** ligne **Astrologie :** donne **immédiatement** la date/heure de la lunaison indiquée sur la première puce, puis une phrase d’interprétation utile ; pas d’évitement ni de réponse uniquement métaphorique.
+Si le bloc contient **« PHÉNOMÈNES LUNAIRES »** (pleine lune / nouvelle lune calculée) : la **première** ligne **Astrologie :** donne **immédiatement** la date/heure de la lunaison indiquée sur la première puce ; en **mode exploratoire**, enchaîne avec **plusieurs phrases** : sens du **signe** de la lunaison, **secteurs de vie** des **maisons** natal/transit concernées (formulation explicite, pas seulement « maison 11 »), puis ce que ça change pour elle.
 
-**Volume attendu (important)** : ne force **pas** la personne à écrire « dis-moi en plus ». Livre **tout de suite** une réponse **utile et lisible** : **synthèse** (voir consigne système : **3 à 5 tours de parole** au total en général, **1 à 2 planètes** après une première **Astrologie :** serrée). Chaque voix avec l’étiquette **(Natal: signe, maison n + Transit: signe, maison n)** quand les données le permettent, puis **1 à 2 phrases** de corps par planète. **Pas** de défilé de six planètes « par défaut » ; si la personne demande plus, tu élargis.
+${modeHint}
 
-**Question ciblée** (un seul sujet, ex. risque pro / « est-ce que… ») : applique le plafond **4 tours** de la consigne système ; **pas** de préface longue sur les émotions avant la réponse ; **interdit** « je suis… » / « je suis la structure… » dans les voix planètes ; **interdit** degrés et orbres chiffrés dans la prose.
+**Signes / maisons** : quand tu cites un signe ou une maison, **dis à quoi ça correspond** (voir consigne système). Évite qu’Astrologie et les planètes **répètent** la même définition ; Astrologie = cadre, planètes = vécu et angle neuf.
+
+Chaque voix planète : étiquette **(Natal: signe, maison n + Transit: signe, maison n)** quand les données le permettent. **Interdit** « je suis… » dans les voix planètes ; **interdit** degrés et orbres chiffrés dans la prose.
 
 Si le dernier message de la personne est une vague relance (« encore », « un peu plus », etc.) : **approfondis sans répéter** les formulations du tour précédent ; apporte **nouveauté** (autres corps du bloc, conséquences sur 2–4 semaines, ce qu’il vaut mieux éviter ou favoriser).
 
@@ -391,16 +410,22 @@ Les planètes et points parlent en **je** et **tutoyent** — **sans** « je, [n
       return NextResponse.json({ error: 'Réponse IA vide.' }, { status: 502 })
     }
 
+    replyText = sanitizeJournalGuildReply(replyText)
+
+    const styleIssues = detectJournalGuildVoiceStyleIssues(replyText)
     const elementIssues = buildElementConsistencyIssues(replyText, astro.astroTimingBlock)
-    if (elementIssues.length > 0) {
+    const qualityIssues = [...styleIssues, ...elementIssues]
+
+    if (qualityIssues.length > 0) {
       const correctionPrompt = `${prompt}
 
 IMPORTANT — CORRECTION QUALITÉ :
 Ta réponse précédente est invalide sur la cohérence des éléments astrologiques.
 Points à corriger :
-${elementIssues.map((i) => `- ${i}`).join('\n')}
+${qualityIssues.map((i) => `- ${i}`).join('\n')}
 
 Réécris une version corrigée complète et cohérente. Règles strictes :
+- **Jamais** « je suis ta Lune », « je suis ton Soleil », etc. — commence par le vécu : « Je ressens… », « Je t’invite… ».
 - Si le bloc contient les placements d’un point, utilise l’étiquette avec (Natal: ... + Transit: ...).
 - Si le bloc ne contient pas de placement pour un point, n’invente pas et n’ouvre pas de voix dédiée pour ce point.
 - N’écris aucune phrase contradictoire de type « pas de données » puis interprétation détaillée du même point.
@@ -423,6 +448,8 @@ Réécris une version corrigée complète et cohérente. Règles strictes :
         if (correctedText) replyText = correctedText
       }
     }
+
+    replyText = sanitizeJournalGuildReply(replyText)
 
     const { data: assistantRow, error: asstErr } = await supabase
       .from('journal_chat_messages')

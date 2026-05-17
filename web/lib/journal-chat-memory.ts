@@ -126,6 +126,9 @@ FORMAT DE SORTIE OBLIGATOIRE (titres exacts, dans cet ordre) :
 ### Contexte
 (1–3 phrases : pourquoi la personne utilise le journal, ton général observé.)
 
+### Énergie & ton qui lui convient
+(Puces : comment elle aime qu’on lui parle — direct ou doux, concret ou symbolique, court ou développé, besoin de validation émotionnelle ou de structure ; « vide » si rien d’observable.)
+
 ### Thèmes & questions récurrents
 (Puces ; sujets qui reviennent, questions ouvertes qu’elle pose souvent.)
 
@@ -141,6 +144,10 @@ FORMAT DE SORTIE OBLIGATOIRE (titres exacts, dans cet ordre) :
 Exemple de forme (contenu 100 % fictif — ne pas recopier) :
 ### Contexte
 La personne revient pour des questions de timing autour de la Lune ; ton direct et pressé quand elle est stressée.
+
+### Énergie & ton qui lui convient
+- Répond bien à un ton chaleureux mais structuré ; n’aime pas le flou quand elle est anxieuse
+- Apprécie qu’on valide le ressenti avant les dates
 
 ### Thèmes & questions récurrents
 - Besoin de dates concrètes avant l’interprétation
@@ -172,6 +179,7 @@ Règles :
 
 Même FORMAT DE SORTIE que la fusion légère (titres ### identiques dans le même ordre) :
 ### Contexte
+### Énergie & ton qui lui convient
 ### Thèmes & questions récurrents
 ### Faits ou préférences explicites
 ### Astrologie / timing (faits cités)
