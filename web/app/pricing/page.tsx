@@ -1,6 +1,6 @@
 'use client'
 
-import { Sparkles, Calendar, Gift, Check, Users, Infinity, ShoppingBag } from 'lucide-react'
+import { Sparkles, Calendar, Gift, Check, Users, BookOpenText, ShoppingBag } from 'lucide-react'
 import { getOneTimeProducts, subscriptions } from '@/lib/stripe'
 import Link from 'next/link'
 import Starfield from '@/components/Starfield'
@@ -97,7 +97,7 @@ export default function PricingPage() {
                   className="rounded-2xl p-8 bg-gradient-to-br from-cosmic-purple/20 to-cosmic-gold/20 border-2 border-cosmic-purple"
                 >
                   <div className="text-center mb-6">
-                    <Infinity className="h-12 w-12 text-cosmic-purple mx-auto mb-4" />
+                    <BookOpenText className="h-12 w-12 text-cosmic-purple mx-auto mb-4" />
                     <h3 className="text-2xl font-bold mb-2">{subscription.name}</h3>
                     <p className="text-cosmic-silver text-sm mb-4">{subscription.description}</p>
                     <div className="flex items-baseline justify-center">

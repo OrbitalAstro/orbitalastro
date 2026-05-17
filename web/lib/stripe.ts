@@ -121,7 +121,7 @@ export const oneTimeProducts: Product[] = getOneTimeProducts()
 export const journalMonthlySubscription: Product = {
   id: 'journal-monthly',
   name: 'Journal pilote',
-  description: 'Clavardage astrologique personnalisé, archives et mémoire — accès illimité.',
+  description: 'Clavardage astrologique personnalisé, archives et mémoire — selon votre forfait.',
   price: 19.99,
   currency: 'cad',
   stripePriceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_JOURNAL_MONTHLY || 'server-configured',
@@ -129,6 +129,7 @@ export const journalMonthlySubscription: Product = {
   interval: 'month',
   features: [
     'Conversations avec les guildes (astrologie, planètes, etc.)',
+    'Volume de clavardage selon le forfait choisi',
     'Contexte natal intégré à chaque échange',
     'Archives de vos fils de discussion',
     'Mémoire longue durée de votre journal',
