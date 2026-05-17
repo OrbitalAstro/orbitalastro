@@ -10,6 +10,10 @@ import {
   journalResponseModeUserHint,
 } from '@/lib/journal-response-mode'
 import {
+  isJournalTouchedReactionMessage,
+  journalTouchedReactionUserHint,
+} from '@/lib/journal-touched-reaction'
+import {
   detectJournalGuildVoiceStyleIssues,
   sanitizeJournalGuildReply,
 } from '@/lib/journal-guild-reply-sanitize'
@@ -348,8 +352,13 @@ export async function POST(request: NextRequest) {
 
     const journalDate = new Date().toLocaleDateString('fr-CA')
     const hasLunarPhenomena = astro.astroTimingBlock.includes('PHÉNOMÈNES LUNAIRES')
-    const responseMode = detectJournalResponseMode(text, { hasLunarPhenomena })
-    const modeHint = journalResponseModeUserHint(responseMode)
+    const isTouchedReaction = isJournalTouchedReactionMessage(text)
+    const responseMode = isTouchedReaction
+      ? 'messaging'
+      : detectJournalResponseMode(text, { hasLunarPhenomena })
+    const modeHint = isTouchedReaction
+      ? `${journalTouchedReactionUserHint()}\n\n${journalResponseModeUserHint(responseMode)}`
+      : journalResponseModeUserHint(responseMode)
 
     const systemInstruction = buildJournalGuildSystemInstruction({
       displayName: user.display_name || 'Client',
@@ -389,10 +398,10 @@ Les planètes et points parlent en **je** et **tutoyent** — **sans** « je, [n
       body: JSON.stringify({
         prompt,
         system_instruction: systemInstruction,
-        temperature: 0.72,
+        temperature: isTouchedReaction ? 0.58 : 0.72,
         // Marge large : la longueur réelle est pilotée par le prompt (synthèse) ; un plafond trop bas
         // provoque des réponses coupées au milieu d’une phrase (MAX_TOKENS / budget sortie).
-        max_output_tokens: 8192,
+        max_output_tokens: isTouchedReaction ? 1024 : 8192,
         conversation_turns,
       }),
     })
@@ -416,7 +425,7 @@ Les planètes et points parlent en **je** et **tutoyent** — **sans** « je, [n
     const elementIssues = buildElementConsistencyIssues(replyText, astro.astroTimingBlock)
     const qualityIssues = [...styleIssues, ...elementIssues]
 
-    if (qualityIssues.length > 0) {
+    if (!isTouchedReaction && qualityIssues.length > 0) {
       const correctionPrompt = `${prompt}
 
 IMPORTANT — CORRECTION QUALITÉ :

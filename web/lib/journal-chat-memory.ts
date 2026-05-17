@@ -141,6 +141,9 @@ FORMAT DE SORTIE OBLIGATOIRE (titres exacts, dans cet ordre) :
 ### Sensibilités / à manier avec soin
 (Puces ; ce qu’il vaut mieux éviter comme ton ou sujet ; « vide » si rien.)
 
+### Moments où elle s’est sentie touchée
+(Puces ; quand elle a signalé être **émue / touchée** par un passage (réaction cœur ❤️) : quelle voix ou thème, en une ligne ; « vide » si rien.)
+
 Exemple de forme (contenu 100 % fictif — ne pas recopier) :
 ### Contexte
 La personne revient pour des questions de timing autour de la Lune ; ton direct et pressé quand elle est stressée.
@@ -162,6 +165,9 @@ La personne revient pour des questions de timing autour de la Lune ; ton direct 
 
 ### Sensibilités / à manier avec soin
 - Éviter de minimiser son besoin de précision chiffrée
+
+### Moments où elle s’est sentie touchée
+- Touchée par le passage sur la maison 11 lors d’une lunaison
 `
 
 /** Fusion « archive » : transcript long, consolidation plus profonde. */
@@ -184,6 +190,7 @@ Même FORMAT DE SORTIE que la fusion légère (titres ### identiques dans le mê
 ### Faits ou préférences explicites
 ### Astrologie / timing (faits cités)
 ### Sensibilités / à manier avec soin
+### Moments où elle s’est sentie touchée
 `
 
 async function callMerge(apiBase: string, userPrompt: string, mode: 'light' | 'heavy'): Promise<string> {

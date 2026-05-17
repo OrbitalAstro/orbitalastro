@@ -876,6 +876,53 @@ html::-webkit-scrollbar-thumb:hover {
   margin-top: 0.125rem;
 }
 
+.journal-bubble-heart {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(232, 196, 122, 0.35);
+  background: rgba(75, 30, 95, 0.35);
+  padding: 0.35rem 0.65rem;
+  font-size: 12px;
+  line-height: 1.2;
+  color: rgba(232, 196, 122, 0.85);
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    color 0.15s ease,
+    transform 0.12s ease;
+}
+
+.journal-bubble-heart:hover:not(:disabled) {
+  border-color: rgba(255, 140, 160, 0.55);
+  background: rgba(255, 120, 150, 0.12);
+  color: rgba(255, 190, 200, 0.95);
+  transform: scale(1.02);
+}
+
+.journal-bubble-heart--active {
+  border-color: rgba(255, 130, 155, 0.65);
+  background: rgba(255, 100, 130, 0.18);
+  color: rgba(255, 200, 210, 0.98);
+}
+
+.journal-bubble-heart:disabled {
+  cursor: default;
+  opacity: 0.85;
+}
+
+.journal-bubble-heart__icon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+
+.journal-bubble-heart__label {
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
 /* Chargement : voile + orbites centrées (rien ne transparaît derrière) */
 .journal-loading-stage {
   position: fixed;

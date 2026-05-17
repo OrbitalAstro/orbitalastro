@@ -19,6 +19,10 @@ import {
   journalSuggestionsSectionTitle,
   JOURNAL_SUGGESTION_PILL_CLASS,
 } from '@/lib/journal-chat-suggestions'
+import {
+  journalTouchedBubbleMessage,
+  journalTouchedReactionDisplayText,
+} from '@/lib/journal-touched-reaction'
 import { glyphForJournalSpeaker } from '@/lib/journal-speaker-symbols'
 
 type Profile = {
@@ -83,7 +87,10 @@ export default function JournalPilotClient() {
 
   const [showHistoryDrawer, setShowHistoryDrawer] = useState(false)
   const [isNearBottom, setIsNearBottom] = useState(true)
+  const [touchedBubbleKeys, setTouchedBubbleKeys] = useState<Set<string>>(() => new Set())
   const entryTextareaRef = useRef<HTMLTextAreaElement | null>(null)
+
+  const journalBubbleKey = (messageId: string, bubbleIdx: number) => `${messageId}:${bubbleIdx}`
 
   function readLocalArchives(): ArchivedThread[] {
     if (typeof window === 'undefined') return []
@@ -554,7 +561,9 @@ export default function JournalPilotClient() {
                         </p>
                         <div className="journal-user-bubble">
                           <div className="journal-user-bubble__frame">
-                            <p className="journal-user-bubble__body">{m.content}</p>
+                            <p className="journal-user-bubble__body">
+                              {journalTouchedReactionDisplayText(m.content)}
+                            </p>
                           </div>
                         </div>
                       </motion.div>
@@ -584,6 +593,15 @@ export default function JournalPilotClient() {
                               <JournalBubbleBlockActions
                                 align="left"
                                 disabled={sendingEntry}
+                                touched={touchedBubbleKeys.has(journalBubbleKey(m.id, idx))}
+                                onTouched={() => {
+                                  const key = journalBubbleKey(m.id, idx)
+                                  if (touchedBubbleKeys.has(key) || sendingEntry) return
+                                  setTouchedBubbleKeys((prev) => new Set(prev).add(key))
+                                  void sendChatMessage(
+                                    journalTouchedBubbleMessage(bubble.speaker, bubble.body),
+                                  )
+                                }}
                                 onDeepen={() =>
                                   void sendChatMessage(
                                     journalDeepenBubbleMessage(bubble.speaker, bubble.body),
@@ -614,7 +632,9 @@ export default function JournalPilotClient() {
                     </p>
                     <div className="journal-user-bubble">
                       <div className="journal-user-bubble__frame">
-                        <p className="journal-user-bubble__body">{pendingUserText}</p>
+                        <p className="journal-user-bubble__body">
+                          {journalTouchedReactionDisplayText(pendingUserText)}
+                        </p>
                       </div>
                     </div>
                   </motion.div>
@@ -821,7 +841,9 @@ export default function JournalPilotClient() {
                         </p>
                         <div className="journal-user-bubble">
                           <div className="journal-user-bubble__frame">
-                            <p className="journal-user-bubble__body">{m.content}</p>
+                            <p className="journal-user-bubble__body">
+                              {journalTouchedReactionDisplayText(m.content)}
+                            </p>
                           </div>
                         </div>
                       </div>
