@@ -124,7 +124,7 @@ Règles strictes :
 
 FORMAT DE SORTIE OBLIGATOIRE (titres exacts, dans cet ordre) :
 ### Contexte
-(1–3 phrases : pourquoi la personne utilise le journal, ton général observé.)
+(1–3 phrases : pourquoi la personne utilise le journal, ton général observé ; **faits de vie concrets** qu’elle a mentionnés — projets, relations, épreuves, rituels, pas seulement des thèmes astro.)
 
 ### Énergie & ton qui lui convient
 (Puces : comment elle aime qu’on lui parle — direct ou doux, concret ou symbolique, court ou développé, besoin de validation émotionnelle ou de structure ; « vide » si rien d’observable.)
@@ -134,6 +134,9 @@ FORMAT DE SORTIE OBLIGATOIRE (titres exacts, dans cet ordre) :
 
 ### Faits ou préférences explicites
 (Puces ; seulement ce qu’elle a dit clairement — « vide » sur une ligne si rien.)
+
+### Commentaires sur les interventions (bulles)
+(Puces ; précisions qu’elle a ajoutées sous une voix Astrologie/planète pour **nourrir** la guilde — « vide » si rien.)
 
 ### Astrologie / timing (faits cités)
 (Puces ; dates, signes, transits **uniquement** si mentionnés dans l’échange ou la mémoire actuelle — sinon « vide ».)
@@ -188,6 +191,7 @@ Même FORMAT DE SORTIE que la fusion légère (titres ### identiques dans le mê
 ### Énergie & ton qui lui convient
 ### Thèmes & questions récurrents
 ### Faits ou préférences explicites
+### Commentaires sur les interventions (bulles)
 ### Astrologie / timing (faits cités)
 ### Sensibilités / à manier avec soin
 ### Moments où elle s’est sentie touchée

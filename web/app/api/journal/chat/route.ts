@@ -9,6 +9,52 @@ import {
   detectJournalResponseMode,
   journalResponseModeUserHint,
 } from '@/lib/journal-response-mode'
+import { journalAstrologieReadingUserHint } from '@/lib/journal-astrologie-reading'
+import {
+  isJournalConcreteFollowUp,
+  detectJournalGuildConcreteFollowUpIssues,
+  enforceJournalConcreteFollowUpReply,
+  extractJournalConcreteTargetRole,
+  journalFollowUpSystemBlock,
+  journalFollowUpUserHint,
+  journalThreadContinuityUserHint,
+  threadHasStructuredAstroReading,
+} from '@/lib/journal-follow-up'
+import { journalGuildAerationUserHint } from '@/lib/journal-guild-aeration'
+import { journalGuildPlacementLabelsUserHint } from '@/lib/journal-guild-placement-labels'
+import {
+  isJournalAnotherVoiceMessage,
+  enforceJournalSingleVoiceReply,
+  extractJournalAnotherVoiceRole,
+  journalAnotherVoiceUserHint,
+} from '@/lib/journal-another-voice'
+import {
+  detectJournalGuildChorusIssues,
+  detectJournalGuildDeepenIssues,
+  detectJournalGuildSingleVoiceIssues,
+  journalGuildChorusUserHint,
+  resolveJournalGuildVoiceBudget,
+} from '@/lib/journal-guild-chorus'
+import {
+  enforceJournalDeepenReply,
+  extractJournalDeepenTargetRole,
+  isJournalDeepenMessage,
+  journalDeepenUserHint,
+} from '@/lib/journal-deepen'
+import {
+  detectJournalWeekTransitHorizon,
+  journalWeekTransitHorizonUserHint,
+} from '@/lib/journal-transit-horizon'
+import { journalGuildBannedOpeningsUserHint } from '@/lib/journal-guild-banned-openings'
+import { journalGuildProseUserHint } from '@/lib/journal-guild-prose'
+import {
+  detectJournalDialogueDepth,
+  formatRecentUserTurnsForAnchoring,
+  journalDialogueAnchoringFromThread,
+  journalDialogueDepthSystemNote,
+  journalDialogueUserHint,
+} from '@/lib/journal-dialogue-style'
+import { isJournalBubbleCommentMessage } from '@/lib/journal-bubble-comment'
 import {
   isJournalTouchedReactionMessage,
   journalTouchedReactionUserHint,
@@ -219,8 +265,9 @@ export async function POST(request: NextRequest) {
   if (subBlock) return subBlock
 
   try {
-    const { message } = await request.json()
-    const text = String(message || '').trim()
+    const body = await request.json()
+    const text = String(body?.message || '').trim()
+    const nourishOnlyRequested = Boolean(body?.nourishOnly)
     if (!text) {
       return NextResponse.json({ error: 'Message vide.' }, { status: 400 })
     }
@@ -321,6 +368,38 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: insertUserErr?.message || 'Sauvegarde impossible.' }, { status: 500 })
     }
 
+    const nourishOnly = nourishOnlyRequested && isJournalBubbleCommentMessage(text)
+    if (nourishOnly) {
+      await supabase
+        .from('journal_chat_threads')
+        .update({ updated_at: new Date().toISOString() })
+        .eq('id', threadId)
+
+      let priorSummary = ''
+      try {
+        priorSummary = await loadJournalChatMemory(supabase, user.id)
+      } catch {
+        priorSummary = ''
+      }
+
+      const apiBase = getApiBaseUrl()
+      void mergeJournalMemoryAfterTurn({
+        supabase,
+        apiBase,
+        userId: user.id,
+        priorSummary,
+        userMessage: text,
+        assistantMessage:
+          '(Commentaire bulle enregistré — à intégrer dans les prochaines lectures, sans réponse guilde immédiate.)',
+      }).catch(() => {})
+
+      return NextResponse.json({
+        ok: true,
+        nourishOnly: true,
+        messages: [userRow],
+      })
+    }
+
     let astro
     try {
       astro = await fetchJournalAstroContext(
@@ -353,12 +432,56 @@ export async function POST(request: NextRequest) {
     const journalDate = new Date().toLocaleDateString('fr-CA')
     const hasLunarPhenomena = astro.astroTimingBlock.includes('PHÉNOMÈNES LUNAIRES')
     const isTouchedReaction = isJournalTouchedReactionMessage(text)
+    const concreteFollowUp = !isTouchedReaction && isJournalConcreteFollowUp(text)
+    const isAnotherVoiceFollowUp =
+      !isTouchedReaction && !concreteFollowUp && isJournalAnotherVoiceMessage(text)
+    const isDeepenFollowUpEarly =
+      !isTouchedReaction &&
+      !concreteFollowUp &&
+      !isAnotherVoiceFollowUp &&
+      isJournalDeepenMessage(text)
+    const dialogueDepth =
+      isTouchedReaction || isDeepenFollowUpEarly || isAnotherVoiceFollowUp || concreteFollowUp
+        ? 'light'
+        : detectJournalDialogueDepth(text, prior)
+    const isDeepenFollowUp = isDeepenFollowUpEarly && !concreteFollowUp
+    const citedDeepenRole = isDeepenFollowUp ? extractJournalDeepenTargetRole(text) : null
+    const citedAnotherVoiceRole = isAnotherVoiceFollowUp
+      ? extractJournalAnotherVoiceRole(text)
+      : null
+    const citedConcreteRole = concreteFollowUp ? extractJournalConcreteTargetRole(text) : null
+    const priorStructuredReading = threadHasStructuredAstroReading(prior)
     const responseMode = isTouchedReaction
       ? 'messaging'
-      : detectJournalResponseMode(text, { hasLunarPhenomena })
+      : detectJournalResponseMode(text, { hasLunarPhenomena, prior })
+    const weekTransitHorizon =
+      !isTouchedReaction &&
+      !concreteFollowUp &&
+      !isDeepenFollowUp &&
+      !isAnotherVoiceFollowUp &&
+      detectJournalWeekTransitHorizon(text, astro.astroTimingBlock)
+    const voiceBudget = resolveJournalGuildVoiceBudget({
+      concreteFollowUp,
+      isAnotherVoiceFollowUp,
+      isDeepenFollowUp,
+      isTouchedReaction,
+      responseMode,
+    })
+    const followUpBlock =
+      concreteFollowUp
+        ? journalFollowUpSystemBlock(citedConcreteRole)
+        : priorStructuredReading && responseMode === 'targeted'
+          ? journalFollowUpSystemBlock()
+          : ''
     const modeHint = isTouchedReaction
-      ? `${journalTouchedReactionUserHint()}\n\n${journalResponseModeUserHint(responseMode)}`
-      : journalResponseModeUserHint(responseMode)
+      ? `${journalTouchedReactionUserHint()}\n\n${journalResponseModeUserHint(responseMode, dialogueDepth, voiceBudget)}`
+      : isDeepenFollowUp
+        ? journalDeepenUserHint(citedDeepenRole)
+        : isAnotherVoiceFollowUp
+          ? journalAnotherVoiceUserHint(citedAnotherVoiceRole)
+          : concreteFollowUp
+            ? journalFollowUpUserHint(citedConcreteRole)
+            : `${journalDialogueDepthSystemNote(dialogueDepth)}\n\n${journalResponseModeUserHint(responseMode, dialogueDepth, voiceBudget)}`
 
     const systemInstruction = buildJournalGuildSystemInstruction({
       displayName: user.display_name || 'Client',
@@ -367,29 +490,72 @@ export async function POST(request: NextRequest) {
       journalDate,
       longTermMemory,
       responseMode,
+      dialogueDepth,
+      weekTransitHorizon,
+      voiceBudget,
+      citedDeepenRole,
+      citedAnotherVoiceRole,
+    })
+    const systemWithFollowUp = followUpBlock
+      ? `${systemInstruction}\n\n${followUpBlock}`
+      : systemInstruction
+
+    const recentUserAnchors = formatRecentUserTurnsForAnchoring(prior, {
+      maxTurns: dialogueDepth === 'anchored' ? 5 : 4,
+      maxCharsPerTurn: dialogueDepth === 'anchored' ? 700 : 480,
+    })
+    const threadAnchorBlock = journalDialogueAnchoringFromThread(recentUserAnchors, {
+      deepenFollowUp: isDeepenFollowUp,
+      singleVoiceFollowUp: isAnotherVoiceFollowUp,
     })
 
-    const prompt = `Son dernier message dans le fil :
+    const prompt = `Son dernier message dans le fil (texte central — à lire entièrement) :
 """${text}"""
+${threadAnchorBlock}
 
-Considère tout l'historique déjà fourni dans la conversation (tours précédents) : enchaîne naturellement, fais des liens si utiles, et si tu repères un schéma récurrent, nomme-le avec douceur.
+Considère **tout** l’historique (tours précédents dans la conversation) : continuité, ton, ce qui a **changé** ou ce qui **revient**. Une bonne réponse **accroche** à ce qu’elle a vraiment dit — pas un texte générique.
 
-Avant de rédiger, lis et **incarne** le bloc **« PROFIL PERSONNEL — ADAPTATION »** : la personne doit sentir qu’**Astrologie** s’ajuste à **sa** personnalité, sensibilité et énergie (ton, rythme, chaleur, profondeur) — pas un discours générique. Fusionne ce profil avec la mémoire (Contexte, Sensibilités, Énergie & ton) et le ton de ses derniers messages.
-La mémoire de compte aide pour la continuité, mais ne doit pas être recopiée mécaniquement : n’utilise que les éléments utiles à cette question précise. Ne récite pas la carte pour prouver que tu l’as lue.
+**PROFIL PERSONNEL — ADAPTATION** : ton **doux, ancré, humain** si son profil/mémoire le demandent — comme un message qui **voit** où elle en est avant de conseiller.
 
-Si la personne demande le **quand**, un **pic**, l’**énergie** ou le **timing** : cite d’abord les **dates/heures** des passages listés (y compris sous « Prochains passages à l’orbe minimale ») quand elles sont dans le bloc, plus la **date-heure de référence**, les **phases** (exact / approche / séparation), **signes**, **maisons** et **noms de planètes** dans les lignes d’aspects. Inclus du **concret** (dates, phases) tiré du bloc — **sans** recopier d’**orbes en degrés** dans le texte. Ne te limite pas aux métaphores.
+${journalDialogueUserHint(dialogueDepth, voiceBudget)}
 
-Si le bloc contient **« PHÉNOMÈNES LUNAIRES »** (pleine lune / nouvelle lune calculée) : la **première** ligne **Astrologie :** donne **immédiatement** la date/heure de la lunaison indiquée sur la première puce ; en **mode exploratoire**, enchaîne avec **plusieurs phrases** : sens du **signe** de la lunaison, **secteurs de vie** des **maisons** natal/transit concernées (formulation explicite, pas seulement « maison 11 »), puis ce que ça change pour elle.
+${voiceBudget === 'chorus' ? journalGuildChorusUserHint() : ''}
+${isDeepenFollowUp ? `\n${journalDeepenUserHint(citedDeepenRole)}` : ''}
+${isAnotherVoiceFollowUp ? `\n${journalAnotherVoiceUserHint(citedAnotherVoiceRole)}` : ''}
+
+${weekTransitHorizon ? journalWeekTransitHorizonUserHint() : ''}
+
+${journalAstrologieReadingUserHint({
+      skipFullStructuredSections:
+        priorStructuredReading || isDeepenFollowUp || isAnotherVoiceFollowUp || concreteFollowUp,
+      concreteFollowUp,
+      deepenFollowUp: isDeepenFollowUp,
+      anotherVoiceFollowUp: isAnotherVoiceFollowUp,
+    })}
+
+${journalThreadContinuityUserHint(priorStructuredReading)}
 
 ${modeHint}
 
-**Signes / maisons** : quand tu cites un signe ou une maison, **dis à quoi ça correspond** (voir consigne système). Évite qu’Astrologie et les planètes **répètent** la même définition ; Astrologie = cadre, planètes = vécu et angle neuf.
+${journalGuildProseUserHint()}
 
-Chaque voix planète : étiquette **(Natal: signe, maison n + Transit: signe, maison n)** quand les données le permettent. **Interdit** « je suis… » dans les voix planètes ; **interdit** degrés et orbres chiffrés dans la prose.
+${journalGuildBannedOpeningsUserHint()}
 
-Si le dernier message de la personne est une vague relance (« encore », « un peu plus », etc.) : **approfondis sans répéter** les formulations du tour précédent ; apporte **nouveauté** (autres corps du bloc, conséquences sur 2–4 semaines, ce qu’il vaut mieux éviter ou favoriser).
+${journalGuildAerationUserHint()}
 
-Les planètes et points parlent en **je** et **tutoyent** — **sans** « je, [nom du corps/point] », **sans** « je suis… » (Lune, Soleil, structure, force, Milieu du Ciel, etc.) : l’étiquette du rôle suffit. Pas d'introduction du type « voici mon interprétation ».`
+${journalGuildPlacementLabelsUserHint()}
+
+Si des **commentaires bulle** [💬 commentaire bulle] apparaissent dans le fil : **intègre-les** dans la lecture (corrections, contexte, précisions) — ne les ignore pas.
+
+**Mémoire du compte** (bloc système) : fils de vie, sensibilités, moments touchés — **tisse**-les dans **Astrologie** quand c’est pertinent ; ne les liste pas comme fiche.
+
+Si **quand / pic / timing / énergie** : dates/phases du bloc **intégrées au récit** de sa journée — pas un paragraphe technique avant de parler d’elle.
+
+Si **PHÉNOMÈNES LUNAIRES** : date/heure **dans** le récit (pas en ouverture sèche), sens du cycle pour **sa** situation.
+
+Relance vague (« encore », « un peu plus ») : **nouveaux angles** ancrés dans le fil, pas copier le tour précédent.
+
+**Interdit** : ouvrir par une liste d’aspects/placements ; réponse interchangeable ; positivité forcée ; planète **sans** étiquette \`(Natal: … + Transit: …)\` quand le bloc fournit les données ; ${voiceBudget === 'chorus' ? '**moins de 5 planètes** après Astrologie ; **plus de 7** planètes ; ' : voiceBudget === 'deepen' ? '**plus de 2 bulles** ; chœur ; Astrologie longue avant la planète citée ; ' : voiceBudget === 'single' ? '**plus d’1 planète** ; table Astrologie 1–2–3 ; chœur ; ' : voiceBudget === 'concrete' ? '**Astrologie + planète** en piste concrète ; plus d’1 bulle ; ' : ''}« je suis ta Lune… » ; markdown \`**gras**\` ou puces \`*\` dans les bulles.`
 
     const apiBase = getApiBaseUrl()
     const aiResponse = await fetch(`${apiBase}/ai/interpret`, {
@@ -397,8 +563,14 @@ Les planètes et points parlent en **je** et **tutoyent** — **sans** « je, [n
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         prompt,
-        system_instruction: systemInstruction,
-        temperature: isTouchedReaction ? 0.58 : 0.72,
+        system_instruction: systemWithFollowUp,
+        temperature: isTouchedReaction
+          ? 0.58
+          : isDeepenFollowUp || isAnotherVoiceFollowUp || concreteFollowUp
+            ? 0.62
+            : dialogueDepth === 'anchored'
+              ? 0.82
+              : 0.76,
         // Marge large : la longueur réelle est pilotée par le prompt (synthèse) ; un plafond trop bas
         // provoque des réponses coupées au milieu d’une phrase (MAX_TOKENS / budget sortie).
         max_output_tokens: isTouchedReaction ? 1024 : 8192,
@@ -420,10 +592,34 @@ Les planètes et points parlent en **je** et **tutoyent** — **sans** « je, [n
     }
 
     replyText = sanitizeJournalGuildReply(replyText)
+    if (isDeepenFollowUp) {
+      replyText = enforceJournalDeepenReply(replyText, citedDeepenRole)
+    }
+    if (isAnotherVoiceFollowUp) {
+      replyText = enforceJournalSingleVoiceReply(replyText, citedAnotherVoiceRole)
+    }
+    if (concreteFollowUp) {
+      replyText = enforceJournalConcreteFollowUpReply(replyText, citedConcreteRole)
+    }
 
     const styleIssues = detectJournalGuildVoiceStyleIssues(replyText)
     const elementIssues = buildElementConsistencyIssues(replyText, astro.astroTimingBlock)
-    const qualityIssues = [...styleIssues, ...elementIssues]
+    const chorusIssues = detectJournalGuildChorusIssues(replyText, voiceBudget)
+    const deepenIssues = detectJournalGuildDeepenIssues(replyText, voiceBudget, citedDeepenRole)
+    const singleVoiceIssues = detectJournalGuildSingleVoiceIssues(replyText, voiceBudget)
+    const concreteIssues = detectJournalGuildConcreteFollowUpIssues(
+      replyText,
+      voiceBudget,
+      citedConcreteRole,
+    )
+    const qualityIssues = [
+      ...styleIssues,
+      ...elementIssues,
+      ...chorusIssues,
+      ...deepenIssues,
+      ...singleVoiceIssues,
+      ...concreteIssues,
+    ]
 
     if (!isTouchedReaction && qualityIssues.length > 0) {
       const correctionPrompt = `${prompt}
@@ -435,7 +631,7 @@ ${qualityIssues.map((i) => `- ${i}`).join('\n')}
 
 Réécris une version corrigée complète et cohérente. Règles strictes :
 - **Jamais** « je suis ta Lune », « je suis ton Soleil », etc. — commence par le vécu : « Je ressens… », « Je t’invite… ».
-- Si le bloc contient les placements d’un point, utilise l’étiquette avec (Natal: ... + Transit: ...).
+- Chaque planète : \`Nom (Natal: signe, maison … + Transit: signe, maison …):\` ; effets dans le corps en **je**.
 - Si le bloc ne contient pas de placement pour un point, n’invente pas et n’ouvre pas de voix dédiée pour ce point.
 - N’écris aucune phrase contradictoire de type « pas de données » puis interprétation détaillée du même point.
 - Retourne uniquement la réponse finale corrigée, au même format de conversation.`
@@ -445,7 +641,7 @@ Réécris une version corrigée complète et cohérente. Règles strictes :
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           prompt: correctionPrompt,
-          system_instruction: systemInstruction,
+          system_instruction: systemWithFollowUp,
           temperature: 0.68,
           max_output_tokens: 8192,
           conversation_turns,
@@ -459,6 +655,15 @@ Réécris une version corrigée complète et cohérente. Règles strictes :
     }
 
     replyText = sanitizeJournalGuildReply(replyText)
+    if (isDeepenFollowUp) {
+      replyText = enforceJournalDeepenReply(replyText, citedDeepenRole)
+    }
+    if (isAnotherVoiceFollowUp) {
+      replyText = enforceJournalSingleVoiceReply(replyText, citedAnotherVoiceRole)
+    }
+    if (concreteFollowUp) {
+      replyText = enforceJournalConcreteFollowUpReply(replyText, citedConcreteRole)
+    }
 
     const { data: assistantRow, error: asstErr } = await supabase
       .from('journal_chat_messages')

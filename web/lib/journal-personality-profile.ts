@@ -121,7 +121,8 @@ const SIGN_TEMPERAMENT: Record<
   Poissons: {
     energie: 'fluide, imaginative, perméable',
     sensibilite: 'très émotionnelle et intuitive ; besoin de douceur et de symboles clairs',
-    tonAstrologie: 'poétique mais ancré ; éviter le ton dur, le cynisme ou la surcharge technique',
+    tonAstrologie:
+      'poétique, doux, entretien vivant ; accueillir le mouvement intérieur avant la technique ; éviter le ton dur ou la liste de placements',
   },
 }
 
@@ -130,7 +131,7 @@ const ELEMENT_ADAPTATION: Record<Element, string> = {
   Terre:
     'Priorité : stabilité, corps, étapes concrètes. Parle posément ; une action claire vaut mieux qu’une avalanche d’images.',
   Air: 'Priorité : clarté, échange, options. Rythme vif ; laisse de la place aux questions et aux nuances.',
-  Eau: 'Priorité : ressenti, sécurité, profondeur. Commence par accueillir l’émotion ; ne précipite pas le conseil.',
+  Eau: 'Priorité : ressenti, sécurité, profondeur. Entretien **doux et fluide** ; commence par accueillir l’émotion et nommer un **mouvement intérieur** ; ne précipite pas le conseil ni la liste technique.',
 }
 
 const MODALITY_ADAPTATION: Record<Modality, string> = {

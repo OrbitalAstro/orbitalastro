@@ -6,9 +6,20 @@ import { getSupabaseAdmin } from '@/lib/supabase'
 import { fetchJournalAstroContext } from '@/lib/journal-astro-context'
 import { buildJournalGuildSystemInstruction } from '@/lib/journal-guild-prompt'
 import {
+  detectJournalDialogueDepth,
+  journalDialogueDepthSystemNote,
+  journalDialogueUserHint,
+} from '@/lib/journal-dialogue-style'
+import {
   detectJournalResponseMode,
   journalResponseModeUserHint,
 } from '@/lib/journal-response-mode'
+import { journalGuildPlacementLabelsUserHint } from '@/lib/journal-guild-placement-labels'
+import { journalGuildChorusUserHint, resolveJournalGuildVoiceBudget } from '@/lib/journal-guild-chorus'
+import {
+  detectJournalWeekTransitHorizon,
+  journalWeekTransitHorizonUserHint,
+} from '@/lib/journal-transit-horizon'
 import { sanitizeJournalGuildReply } from '@/lib/journal-guild-reply-sanitize'
 import { loadJournalChatMemory, mergeJournalMemoryAfterTurn } from '@/lib/journal-chat-memory'
 
@@ -98,8 +109,17 @@ export async function POST(request: NextRequest) {
 
     const journalDate = new Date().toLocaleDateString('fr-CA')
     const hasLunarPhenomena = astroTimingBlock.includes('PHÉNOMÈNES LUNAIRES')
+    const dialogueDepth = detectJournalDialogueDepth(entryText, [])
     const responseMode = detectJournalResponseMode(entryText, { hasLunarPhenomena })
-    const modeHint = journalResponseModeUserHint(responseMode)
+    const weekTransitHorizon = detectJournalWeekTransitHorizon(entryText, astroTimingBlock)
+    const voiceBudget = resolveJournalGuildVoiceBudget({
+      concreteFollowUp: false,
+      isAnotherVoiceFollowUp: false,
+      isDeepenFollowUp: false,
+      isTouchedReaction: false,
+      responseMode,
+    })
+    const modeHint = `${journalDialogueDepthSystemNote(dialogueDepth)}\n\n${journalResponseModeUserHint(responseMode, dialogueDepth, voiceBudget)}`
 
     const systemInstruction = buildJournalGuildSystemInstruction({
       displayName: user.display_name || 'Client',
@@ -108,18 +128,30 @@ export async function POST(request: NextRequest) {
       journalDate,
       longTermMemory,
       responseMode,
+      dialogueDepth,
+      weekTransitHorizon,
+      voiceBudget,
     })
 
     const prompt = `Message du journal :
 """${entryText}"""
 
-Réponds en **français**, au format de la consigne système : lignes **Astrologie :** et planètes / points avec **étiquette (Natal: … + Transit: …)** puis texte à la ligne — **pas** d’article en 6 sections, **pas** de titres de chapitres, **pas** de pavé de 700+ mots.
+Réponds en **français**, en **dialogue fluide** : **Astrologie** pose la table ; chaque planète avec étiquette \`(Natal: … + Transit: …)\` puis **effets** en **je** — **pas** d’article en 6 sections ni pavé de 700+ mots.
+
+${journalDialogueUserHint(dialogueDepth, voiceBudget)}
+
+${voiceBudget === 'chorus' ? journalGuildChorusUserHint() : ''}
+
+${weekTransitHorizon ? journalWeekTransitHorizonUserHint() : ''}
+
+${journalGuildPlacementLabelsUserHint()}
 
 ${modeHint}
 
 Exigences :
-- Respecte le **mode** indiqué (messagerie fragmentée vs exploratoire touffu vs ciblé).
-- **Utile** : faits du bloc quand ils servent + interprétation + **une** piste concrète ou une **question** courte en fin — sans répéter la mémoire pour rien.
+- **Ancré** : parle d’abord de **ce qu’elle écrit** (situation, ressenti) ; l’astro **éclaire**, ne remplace pas son vécu.
+- Respecte le **mode** indiqué (messagerie vs exploratoire vs ciblé).
+- **Utile** : faits du bloc quand ils servent, intégrés au récit — **une** piste concrète ou relance douce en fin.
 - Si **quand / pic / timing / énergie** : dates et phases du bloc en priorité, **sans orbes en degrés** dans la prose.
 - Ton : chaleureux, précis, jamais fataliste.
 
@@ -163,7 +195,7 @@ ${replyText}
 --- Fin ---
 
 Objectif : **un peu plus de substance** sans devenir un roman :
-- Garde **au plus 5 à 7 tours de parole** au total, **2 à 3 planètes** max si le bloc le justifie ;
+- Après **Astrologie**, **5 à 7 planètes** avec étiquettes Natal+Transit (1–2 phrases chacune) si le bloc le justifie ;
 - **2 à 3 phrases** pour la première **Astrologie :** si besoin de cadrage ou de dates ;
 - chaque planète : **2 à 4 phrases** max ;
 - une **dernière Astrologie :** d’**une phrase** pour relancer ou résumer.
