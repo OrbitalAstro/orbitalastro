@@ -162,7 +162,7 @@ export function journalResponseModeSystemBlock(
     return `
 **MODE AUTRE VOIX (ce tour — 1 planète)** : elle demande **une** autre voix qui **commente autrement** — pas une nouvelle lecture du ciel.
 
-- **1 planète** : \`Nom (Natal: … + Transit: …):\` puis **4 à 8 phrases** en **je** — angle **différent** du fil précédent.
+- **1 planète** : \`Nom (Natal: … + Transit: …):\` puis **4 à 7 phrases** en **je** — angle **différent** du fil précédent.
 - **Interdit** : Astrologie longue ; sections **1–2–3** ; chœur **${CHORUS_VOICES}** ; nommer 6 corps dans une seule bulle Astrologie.
 - **Plafond : 1 intervenant** planète (Astrologie **0** ou **2 phrases** max en clôture).
 `
@@ -172,7 +172,7 @@ export function journalResponseModeSystemBlock(
     return `
 **MODE APPROFONDIR (ce tour — conversation, pas assemblée)** : elle parlait **à une voix** ; c’est **cette voix** qui répond **au long** — les autres **se taisent** sauf **0 ou 1** courte nuance.
 
-- **Voix citée** : **4 à 8 phrases**, Natal+Transit ; angle concret ; **sans** table 1–2–3 ni recopie du tour précédent.
+- **Voix citée** : **4 à 7 phrases**, Natal+Transit ; angle concret ; **sans** table 1–2–3 ni recopie du tour précédent.
 - **0 ou 1** nuance courte (1–2 phrases) — **pas** Astrologie longue + plusieurs planètes.
 - **Interdit** : chœur **${CHORUS_VOICES}** ; tour de table ; ouvrir par **Astrologie** si la planète citée n’est pas Astrologie.
 - **Plafond : 2 bulles** (souvent **1** suffit).
@@ -193,7 +193,7 @@ export function journalResponseModeSystemBlock(
 
     return `
 
-**MODE ANCRÉ (ce tour — message riche)** : l’**architecture ancrée** du dialogue prime sur la brièveté messagerie. Ne compresse pas en 3 phrases ce qu’elle vient de partager.
+**MODE ANCRÉ (ce tour — message riche)** : architecture ancrée **mais synthétique** — **5 à 8 phrases** dans **Astrologie** (contrastes + 2–4 fils concrets + pont astro), puis chœur court.
 
 ${chorusLine}
 
@@ -223,7 +223,7 @@ ${chorusLine}
 
 **MODE CIBLÉ (ce tour)** : question **étroite** ou **relance concrète**. **Pas** de sections 1–2–3 complètes si le fil les a déjà eues.
 
-- **Astrologie** : **3–6 phrases** — réponse directe, **une** piste actionnable ; aspects nommés **au minimum** (pas de re-listing du tour précédent).
+- **Astrologie** : **2–4 phrases** — réponse directe, **une** piste actionnable ; aspects nommés **au minimum** (pas de re-listing du tour précédent).
 
 - **1 planète** max si pertinent ; clôture **Astrologie** **1–2 phrases**.
 
@@ -241,7 +241,7 @@ ${chorusLine}
 
 - **Astrologie** pose la table (sections 1–2–3 **aérées**).
 
-${chorusLine}- Clôture **Astrologie** **optionnelle** (**1–2 phrases**).
+${chorusLine}- Clôture **Astrologie** : **0 ou 1 phrase** (souvent aucune).
 
 - **Plafond** : ${voiceBudget === 'chorus' ? `${JOURNAL_GUILD_PLANET_VOICES_MIN + 1} à ${JOURNAL_GUILD_PLANET_VOICES_MAX + 2}` : '4 à 6'} tours. Accueillir le **vécu** avant le détail technique quand c’est pertinent.
 
@@ -266,11 +266,11 @@ export function journalResponseModeUserHint(
   }
 
   if (voiceBudget === 'single') {
-    return `**Autre voix** : **1 planète** (4–8 phrases) — pas table 1–2–3, pas chœur.`
+    return `**Autre voix** : **1 planète** (4–7 phrases) — pas table 1–2–3, pas chœur.`
   }
 
   if (voiceBudget === 'deepen') {
-    return `**Conversation** : **une** voix au long ; **0 ou 1** nuance — **2 bulles max**. Pas chœur, pas six planètes.`
+    return `**Conversation** : **une** voix au long (4–7 phrases) ; **0 ou 1** nuance — **2 bulles max**. Pas chœur.`
   }
 
   if (dialogueDepth === 'anchored') {

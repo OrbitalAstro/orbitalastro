@@ -47,6 +47,6 @@ Lune (Natal: Balance, maison 5 + Transit: Bélier, maison 5): Je sens.`
         isTouchedReaction: false,
         responseMode: 'messaging',
       }),
-    ).toBe('minimal')
+    ).toBe('concrete')
   })
 })

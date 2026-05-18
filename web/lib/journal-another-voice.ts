@@ -54,7 +54,7 @@ export function journalAnotherVoiceSystemBlock(selectedRole?: string | null): st
 **AUTRE VOIX (ce tour — ${who} seulement)**
 La personne a **choisi** **${who}** pour **commenter autrement** — conversation **tête-à-tête** avec cette voix, pas une assemblée.
 
-- **${who}** : \`Nom (Natal: … + Transit: …):\` puis **4 à 8 phrases** en **je** — angle **neuf** par rapport au fil (sans recopier Saturne, Vesta, etc.).
+- **${who}** : \`Nom (Natal: … + Transit: …):\` puis **4 à 7 phrases** en **je** — angle **neuf** par rapport au fil (sans recopier Saturne, Vesta, etc.).
 - **Interdit** : bulle **Astrologie** longue ; sections **1. Tensions / 2. Fond / 3. Ouvertures** ; chœur ; autres planètes.
 - **Plafond : 1 bulle** (${who} seule). Pas de clôture Astrologie sauf **2 phrases** max si indispensable.
 `
@@ -62,7 +62,7 @@ La personne a **choisi** **${who}** pour **commenter autrement** — conversatio
 
 export function journalAnotherVoiceUserHint(selectedRole?: string | null): string {
   const who = selectedRole?.trim() || 'la voix choisie'
-  return `**Autre voix** : **${who}** seule (4–8 phrases, Natal+Transit) — pas table 1–2–3, pas chœur.`
+  return `**Autre voix** : **${who}** seule (4–7 phrases, Natal+Transit) — pas table 1–2–3, pas chœur.`
 }
 
 /** Garde la voix choisie si le modèle a tout livré. */

@@ -10,8 +10,9 @@ import {
 import { parseJournalGuildReply } from '@/lib/journal-chat-parse'
 import type { JournalResponseMode } from '@/lib/journal-response-mode'
 
-export const JOURNAL_GUILD_PLANET_VOICES_MIN = 5
-export const JOURNAL_GUILD_PLANET_VOICES_MAX = 7
+/** Chœur par défaut (réduit pour limiter les coûts API). */
+export const JOURNAL_GUILD_PLANET_VOICES_MIN = 2
+export const JOURNAL_GUILD_PLANET_VOICES_MAX = 3
 
 export type JournalGuildVoiceBudget = 'chorus' | 'minimal' | 'deepen' | 'single' | 'concrete'
 
@@ -19,23 +20,23 @@ export function journalGuildChorusSystemBlock(): string {
   return `
 **CHŒUR DE LA GUILDE (après Astrologie — prioritaire sauf relance ciblée)**
 - **${JOURNAL_GUILD_PLANET_VOICES_MIN} à ${JOURNAL_GUILD_PLANET_VOICES_MAX} voix** planètes ou points **après** la bulle **Astrologie** (lecture structurée).
-- Chaque voix : étiquette \`Nom (Natal: … + Transit: …):\` puis **1 à 2 phrases** en **je** — **effet** distinct, **sans** recopier le paragraphe d’Astrologie sur le même aspect.
+- Chaque voix : étiquette \`Nom (Natal: … + Transit: …):\` puis **1 phrase** en **je** — **effet** distinct, **sans** recopier le paragraphe d’Astrologie sur le même aspect.
 - Choisis les corps **les plus actifs dans le bloc** (en approche, exact maintenant, pic proche, ou central à sa question) : ex. Lune, Soleil, Mercure, Vénus, Mars, Jupiter, Saturne, Pluton, Chiron, Vesta…
-- **Astrologie** en clôture **optionnelle** : **1 à 2 phrases** qui relient les voix (pas un second cours).
+- **Astrologie** en clôture **optionnelle** : **0 ou 1 phrase** qui relie les voix (souvent **aucune** clôture).
 - **Plafond** : 1 Astrologie + **${JOURNAL_GUILD_PLANET_VOICES_MIN}–${JOURNAL_GUILD_PLANET_VOICES_MAX} planètes** + clôture Astrologie optionnelle (**${JOURNAL_GUILD_PLANET_VOICES_MIN + 1} à ${JOURNAL_GUILD_PLANET_VOICES_MAX + 2} tours** au total).
 - **Interdit** : plus de ${JOURNAL_GUILD_PLANET_VOICES_MAX} planètes ; voix **sans** donnée dans le bloc ; répéter la même formule d’une voix à l’autre.
 `
 }
 
 export function journalGuildChorusUserHint(): string {
-  return `**Chœur guilde** : après **Astrologie**, fais parler **${JOURNAL_GUILD_PLANET_VOICES_MIN} à ${JOURNAL_GUILD_PLANET_VOICES_MAX}** planètes/points (étiquettes Natal+Transit, 1–2 phrases chacune).`
+  return `**Chœur guilde** : après **Astrologie**, **${JOURNAL_GUILD_PLANET_VOICES_MIN} à ${JOURNAL_GUILD_PLANET_VOICES_MAX}** planètes (étiquettes Natal+Transit, **1 phrase** chacune).`
 }
 
 export function journalGuildPlanetVoiceRangeLabel(): string {
   return `${JOURNAL_GUILD_PLANET_VOICES_MIN} à ${JOURNAL_GUILD_PLANET_VOICES_MAX}`
 }
 
-/** Chœur 5–7 voix sauf relance ciblée / touchée / approfondir / autre voix. */
+/** Chœur planètes par défaut sauf relance ciblée / touchée / approfondir / autre voix. */
 export function resolveJournalGuildVoiceBudget(options: {
   concreteFollowUp: boolean
   isAnotherVoiceFollowUp: boolean
@@ -62,7 +63,7 @@ export function detectJournalGuildChorusIssues(
   voiceBudget: JournalGuildVoiceBudget,
 ): string[] {
   if (voiceBudget !== 'chorus') return []
-  // deepen / minimal : pas de chœur 5–7
+  // deepen / minimal : pas de chœur multi-voix
   const n = countJournalGuildPlanetVoices(reply)
   const issues: string[] = []
   if (n < JOURNAL_GUILD_PLANET_VOICES_MIN) {

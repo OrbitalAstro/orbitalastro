@@ -4,6 +4,7 @@ import { journalGuildBannedOpeningsBlock } from '@/lib/journal-guild-banned-open
 import { journalGuildProseFormatBlock } from '@/lib/journal-guild-prose'
 import {
   journalGuildChorusSystemBlock,
+  journalGuildPlanetVoiceRangeLabel,
   type JournalGuildVoiceBudget,
 } from '@/lib/journal-guild-chorus'
 import { journalAnotherVoiceSystemBlock } from '@/lib/journal-another-voice'
@@ -18,6 +19,7 @@ import {
   journalResponseModeSystemBlock,
   type JournalResponseMode,
 } from '@/lib/journal-response-mode'
+import { journalGuildBrevitySystemBlock } from '@/lib/journal-guild-brevity'
 
 /**
  * Consigne système partagée : clavardage guilde, tutoiement des planètes (je → tu),
@@ -48,16 +50,17 @@ export function buildJournalGuildSystemInstruction(params: {
   const voiceBudget = params.voiceBudget ?? 'chorus'
   const modeBlock = journalResponseModeSystemBlock(responseMode, dialogueDepth, voiceBudget)
   const weekTransitBlock = params.weekTransitHorizon ? journalWeekTransitHorizonSystemBlock() : ''
+  const chorusLabel = journalGuildPlanetVoiceRangeLabel()
   const chorusVolumeLine =
     voiceBudget === 'chorus'
-      ? '- Après **Astrologie**, vise **5 à 7 voix** planètes (chœur) sauf relance ciblée / approfondir.\n'
+      ? `- Après **Astrologie**, vise **${chorusLabel} voix** planètes (chœur) — **1 phrase** chacune.\n`
       : voiceBudget === 'deepen'
-        ? '- **Approfondir** : **une voix principale** au long + **0–1 nuance** — **pas** de chœur 5–7 ni lecture 1–2–3.\n'
+        ? '- **Approfondir** : **une voix principale** (3–5 phrases) + **0–1 nuance** — **pas** de chœur ni lecture 1–2–3.\n'
         : voiceBudget === 'single'
-          ? '- **Autre voix** : **1 planète** seule (4–8 phrases) — **pas** de table Astrologie ni chœur.\n'
+          ? '- **Autre voix** : **1 planète** seule (3–5 phrases) — **pas** de table Astrologie ni chœur.\n'
           : voiceBudget === 'concrete'
-            ? '- **Piste concrète** : **1 voix** citée seule (4–6 phrases) — **pas** Astrologie + planète.\n'
-            : '- Relance ciblée / touchée : **pas** de chœur 5–7 ; voix limitées (voir mode).\n'
+            ? '- **Piste concrète** : **1 voix** citée seule (3–4 phrases) — **pas** Astrologie + planète.\n'
+            : `- Relance ciblée / touchée : **pas** de chœur ${chorusLabel} ; voix limitées (voir mode).\n`
   const plafondLine =
     voiceBudget === 'deepen'
       ? '- **Plafond (approfondir)** : voix principale + **0–1 nuance** (**2 bulles** max).'
@@ -66,7 +69,7 @@ export function buildJournalGuildSystemInstruction(params: {
         : voiceBudget === 'concrete'
           ? '- **Plafond (piste concrète)** : **1 bulle** (voix citée uniquement).'
           : voiceBudget === 'chorus'
-        ? '- **Plafond (défaut)** : **Astrologie** + **5 à 7 planètes** + clôture **Astrologie** optionnelle — voir **CHŒUR DE LA GUILDE**. Relance ciblée / touchée : exception (1 planète ou Astrologie seule).'
+        ? `- **Plafond (défaut)** : **Astrologie** courte + **${chorusLabel} planètes** — clôture **Astrologie** souvent absente. Voir **CHŒUR DE LA GUILDE**.`
         : '- **Plafond** : **Astrologie** brève + **1 planète** si besoin ; relance ciblée / touchée : exception.'
 
   return `Tu incarnes l'astrologue et la guilde planétaire en mode CLAVARDAGE (messagerie). Ce n'est pas une séance de « calcul de thème » figée : la personne pose des questions, lance des sujets, revient sur des thèmes.
@@ -100,6 +103,8 @@ ${journalGuildBannedOpeningsBlock()}
 ${journalGuildAerationBlock()}
 
 ${journalGuildPlacementLabelsBlock()}
+
+${journalGuildBrevitySystemBlock()}
 
 ${voiceBudget === 'chorus' ? journalGuildChorusSystemBlock() : ''}
 
@@ -155,7 +160,7 @@ Prévisions, « temps » astrologique, cycles, « quand », pic d’énergie, ti
 - Les métaphores sont **en complément** des faits chiffrés fournis, pas un substitut quand des dates sont présentes.
 
 Interdictions :
-- Pas de dissertation académique ni liste exhaustive de tout le thème. **Ne réponds pas au rabais** dans **chaque** bulle planète (1–2 phrases) ; la **table Astrologie** peut être plus développée. Pour une question **temporelle** (« quand », pic, timing), les **dates / passages** du bloc restent **prioritaires**.
+- Pas de dissertation académique ni liste exhaustive. **Bulles planètes** : **1 phrase** ; **Astrologie** : **synthèse courte** (sections 1–2–3 en **2 phrases max** chacune). Pour **quand / pic / timing**, une **date** du bloc en priorité — sans pavé.
 ${chorusVolumeLine}
 - Si la personne relance avec « encore un peu », « développe », etc. : **n’en fais pas une copie** du message précédent ; ajoute des **angles nouveaux** (autres planètes du bloc, autre lecture du même aspect, conséquences sur quelques semaines, pièges à éviter) au lieu de répéter les mêmes phrases.
 - Jamais médical, jamais fataliste. Métaphores clairement symboliques.

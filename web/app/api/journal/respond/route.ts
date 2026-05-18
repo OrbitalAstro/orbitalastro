@@ -15,7 +15,14 @@ import {
   journalResponseModeUserHint,
 } from '@/lib/journal-response-mode'
 import { journalGuildPlacementLabelsUserHint } from '@/lib/journal-guild-placement-labels'
-import { journalGuildChorusUserHint, resolveJournalGuildVoiceBudget } from '@/lib/journal-guild-chorus'
+import {
+  journalGuildChorusUserHint,
+  resolveJournalGuildVoiceBudget,
+} from '@/lib/journal-guild-chorus'
+import {
+  JOURNAL_MAX_OUTPUT_TOKENS_DEFAULT,
+  journalGuildBrevityUserHint,
+} from '@/lib/journal-guild-brevity'
 import {
   detectJournalWeekTransitHorizon,
   journalWeekTransitHorizonUserHint,
@@ -24,21 +31,6 @@ import { sanitizeJournalGuildReply } from '@/lib/journal-guild-reply-sanitize'
 import { loadJournalChatMemory, mergeJournalMemoryAfterTurn } from '@/lib/journal-chat-memory'
 
 export const runtime = 'nodejs'
-
-/** Seuil « trop court » : messagerie synthétique ; on n’exige plus un pavé type article. */
-const GENEROUS_MIN_CHARS = 320
-const GENEROUS_MIN_WORDS = 55
-
-function countWords(input: string): number {
-  return input
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean).length
-}
-
-function isTooShortGenerousReply(input: string): boolean {
-  return input.length < GENEROUS_MIN_CHARS || countWords(input) < GENEROUS_MIN_WORDS
-}
 
 function getApiBaseUrl() {
   return (process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000').replace(/\/+$/, '')
@@ -140,6 +132,8 @@ Réponds en **français**, en **dialogue fluide** : **Astrologie** pose la table
 
 ${journalDialogueUserHint(dialogueDepth, voiceBudget)}
 
+${journalGuildBrevityUserHint()}
+
 ${voiceBudget === 'chorus' ? journalGuildChorusUserHint() : ''}
 
 ${weekTransitHorizon ? journalWeekTransitHorizonUserHint() : ''}
@@ -157,7 +151,7 @@ Exigences :
 
 Interdit :
 - Réponse **vide** ou **fuyante** (que des métaphores sans lien au message ni au bloc).
-- Liste de six planètes « par habitude ».`
+- Pavé long ou six planètes « par habitude ».`
 
     const apiBase = getApiBaseUrl()
     const aiResponse = await fetch(`${apiBase}/ai/interpret`, {
@@ -167,6 +161,7 @@ Interdit :
         prompt,
         system_instruction: systemInstruction,
         temperature: 0.68,
+        max_output_tokens: JOURNAL_MAX_OUTPUT_TOKENS_DEFAULT,
       }),
     })
 
@@ -180,49 +175,6 @@ Interdit :
     if (!replyText) {
       return NextResponse.json({ error: 'Réponse IA vide.' }, { status: 502 })
     }
-
-    const minChars = responseMode === 'exploratory' ? 520 : GENEROUS_MIN_CHARS
-    const minWords = responseMode === 'exploratory' ? 90 : GENEROUS_MIN_WORDS
-    const tooShort =
-      replyText.length < minChars || countWords(replyText) < minWords
-
-    // Si le modèle reste trop bref, on force une seconde passe d'enrichissement.
-    if (tooShort) {
-      const enrichPrompt = `La réponse ci-dessous est trop courte ou trop vague pour une entrée de journal. Réécris **au même format messagerie** (étiquettes Astrologie / planètes comme dans la consigne système).
-
---- Réponse actuelle ---
-${replyText}
---- Fin ---
-
-Objectif : **un peu plus de substance** sans devenir un roman :
-- Après **Astrologie**, **5 à 7 planètes** avec étiquettes Natal+Transit (1–2 phrases chacune) si le bloc le justifie ;
-- **2 à 3 phrases** pour la première **Astrologie :** si besoin de cadrage ou de dates ;
-- chaque planète : **2 à 4 phrases** max ;
-- une **dernière Astrologie :** d’**une phrase** pour relancer ou résumer.
-
-Mêmes données astrologiques : n’invente aucun transit ni date absente du bloc. Pas de sections numérotées type article.`
-
-      const enrichResponse = await fetch(`${apiBase}/ai/interpret`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          prompt: enrichPrompt,
-          system_instruction: systemInstruction,
-          temperature: 0.7,
-          max_output_tokens: 4096,
-        }),
-      })
-
-      if (enrichResponse.ok) {
-        const enrichData = await enrichResponse.json()
-        const enrichedText = String(enrichData?.content || '').trim()
-        if (enrichedText) {
-          replyText = sanitizeJournalGuildReply(enrichedText)
-        }
-      }
-    }
-
-    replyText = sanitizeJournalGuildReply(replyText)
 
     const { data: savedEntry, error: saveError } = await supabase
       .from('journal_entries')

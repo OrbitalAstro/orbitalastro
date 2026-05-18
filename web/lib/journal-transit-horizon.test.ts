@@ -9,7 +9,7 @@ describe('detectJournalWeekTransitHorizon', () => {
 })
 
 describe('resolveJournalGuildVoiceBudget', () => {
-  it('chœur 5–7 par défaut', () => {
+  it('chœur par défaut (mode messagerie)', () => {
     expect(
       resolveJournalGuildVoiceBudget({
         concreteFollowUp: false,

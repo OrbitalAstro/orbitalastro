@@ -32,9 +32,17 @@ import {
   detectJournalGuildChorusIssues,
   detectJournalGuildDeepenIssues,
   detectJournalGuildSingleVoiceIssues,
+  JOURNAL_GUILD_PLANET_VOICES_MAX,
+  JOURNAL_GUILD_PLANET_VOICES_MIN,
   journalGuildChorusUserHint,
   resolveJournalGuildVoiceBudget,
 } from '@/lib/journal-guild-chorus'
+import {
+  JOURNAL_MAX_OUTPUT_TOKENS_CORRECTION,
+  JOURNAL_MAX_OUTPUT_TOKENS_DEFAULT,
+  JOURNAL_MAX_OUTPUT_TOKENS_TOUCHED,
+  journalGuildBrevityUserHint,
+} from '@/lib/journal-guild-brevity'
 import {
   enforceJournalDeepenReply,
   extractJournalDeepenTargetRole,
@@ -502,7 +510,7 @@ export async function POST(request: NextRequest) {
 
     const recentUserAnchors = formatRecentUserTurnsForAnchoring(prior, {
       maxTurns: dialogueDepth === 'anchored' ? 5 : 4,
-      maxCharsPerTurn: dialogueDepth === 'anchored' ? 700 : 480,
+      maxCharsPerTurn: dialogueDepth === 'anchored' ? 520 : 400,
     })
     const threadAnchorBlock = journalDialogueAnchoringFromThread(recentUserAnchors, {
       deepenFollowUp: isDeepenFollowUp,
@@ -518,6 +526,8 @@ Considère **tout** l’historique (tours précédents dans la conversation) : c
 **PROFIL PERSONNEL — ADAPTATION** : ton **doux, ancré, humain** si son profil/mémoire le demandent — comme un message qui **voit** où elle en est avant de conseiller.
 
 ${journalDialogueUserHint(dialogueDepth, voiceBudget)}
+
+${journalGuildBrevityUserHint()}
 
 ${voiceBudget === 'chorus' ? journalGuildChorusUserHint() : ''}
 ${isDeepenFollowUp ? `\n${journalDeepenUserHint(citedDeepenRole)}` : ''}
@@ -555,7 +565,7 @@ Si **PHÉNOMÈNES LUNAIRES** : date/heure **dans** le récit (pas en ouverture s
 
 Relance vague (« encore », « un peu plus ») : **nouveaux angles** ancrés dans le fil, pas copier le tour précédent.
 
-**Interdit** : ouvrir par une liste d’aspects/placements ; réponse interchangeable ; positivité forcée ; planète **sans** étiquette \`(Natal: … + Transit: …)\` quand le bloc fournit les données ; ${voiceBudget === 'chorus' ? '**moins de 5 planètes** après Astrologie ; **plus de 7** planètes ; ' : voiceBudget === 'deepen' ? '**plus de 2 bulles** ; chœur ; Astrologie longue avant la planète citée ; ' : voiceBudget === 'single' ? '**plus d’1 planète** ; table Astrologie 1–2–3 ; chœur ; ' : voiceBudget === 'concrete' ? '**Astrologie + planète** en piste concrète ; plus d’1 bulle ; ' : ''}« je suis ta Lune… » ; markdown \`**gras**\` ou puces \`*\` dans les bulles.`
+**Interdit** : ouvrir par une liste d’aspects/placements ; réponse interchangeable ; positivité forcée ; planète **sans** étiquette \`(Natal: … + Transit: …)\` quand le bloc fournit les données ; ${voiceBudget === 'chorus' ? `**moins de ${JOURNAL_GUILD_PLANET_VOICES_MIN} planètes** après Astrologie ; **plus de ${JOURNAL_GUILD_PLANET_VOICES_MAX}** planètes ; pavés longs ; ` : voiceBudget === 'deepen' ? '**plus de 2 bulles** ; chœur ; Astrologie longue avant la planète citée ; ' : voiceBudget === 'single' ? '**plus d’1 planète** ; table Astrologie 1–2–3 ; chœur ; ' : voiceBudget === 'concrete' ? '**Astrologie + planète** en piste concrète ; plus d’1 bulle ; ' : ''}« je suis ta Lune… » ; markdown \`**gras**\` ou puces \`*\` dans les bulles.`
 
     const apiBase = getApiBaseUrl()
     const aiResponse = await fetch(`${apiBase}/ai/interpret`, {
@@ -573,7 +583,11 @@ Relance vague (« encore », « un peu plus ») : **nouveaux angles** ancrés da
               : 0.76,
         // Marge large : la longueur réelle est pilotée par le prompt (synthèse) ; un plafond trop bas
         // provoque des réponses coupées au milieu d’une phrase (MAX_TOKENS / budget sortie).
-        max_output_tokens: isTouchedReaction ? 1024 : 8192,
+        max_output_tokens: isTouchedReaction
+          ? JOURNAL_MAX_OUTPUT_TOKENS_TOUCHED
+          : isDeepenFollowUp || isAnotherVoiceFollowUp || concreteFollowUp
+            ? 2048
+            : JOURNAL_MAX_OUTPUT_TOKENS_DEFAULT,
         conversation_turns,
       }),
     })
@@ -643,7 +657,7 @@ Réécris une version corrigée complète et cohérente. Règles strictes :
           prompt: correctionPrompt,
           system_instruction: systemWithFollowUp,
           temperature: 0.68,
-          max_output_tokens: 8192,
+          max_output_tokens: JOURNAL_MAX_OUTPUT_TOKENS_CORRECTION,
           conversation_turns,
         }),
       })

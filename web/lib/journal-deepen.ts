@@ -61,18 +61,18 @@ La personne **parlait à** ${isAstrologie ? '**Astrologie**' : `**${who}**`} et 
 
 **Principe** : un fil de messagerie entre elle et **une** interlocutrice ; tu **n’invites pas** toute la table à commenter.
 
-- **${who}** répond **en premier et au long** (étiquette \`Nom (Natal: … + Transit: …):\` sauf **Astrologie:**) : **4 à 8 phrases**, angle **concret** quotidien ; **sans** recopier le passage ni refaire **1. Tensions / 2. Fond / 3. Ouvertures**.
+- **${who}** répond **en premier** (étiquette \`Nom (Natal: … + Transit: …):\` sauf **Astrologie:**) : **4 à 7 phrases**, angle **concret** quotidien ; **sans** recopier le passage ni refaire **1. Tensions / 2. Fond / 3. Ouvertures**.
 - **0 ou 1** courte réplique ensuite (**optionnelle**) — **pas les deux** Astrologie **et** une planète :
   - si ${who} n’est **pas** Astrologie : au plus \`Astrologie:\` **1–2 phrases** **ou** **une** autre planète **1–2 phrases**, pas les deux ;
   - si ${who} **est** Astrologie : au plus **une** planète en **1–2 phrases**, ou **rien**.
-- **Interdit** : ouvrir par une longue **Astrologie** si la voix citée est une **planète** ; chœur **5–7** ; **toute** autre planète qui « passe son tour » ; re-lister le ciel du message précédent.
+- **Interdit** : ouvrir par une longue **Astrologie** si la voix citée est une **planète** ; chœur multi-voix ; **toute** autre planète qui « passe son tour » ; re-lister le ciel du message précédent.
 - **Plafond strict : 2 bulles** (voix principale + 0–1 nuance courte). Souvent **1 seule bulle** suffit.
 `
 }
 
 export function journalDeepenUserHint(citedRole?: string | null): string {
   const who = citedRole?.trim() || 'la voix citée'
-  return `**Conversation approfondie** : **${who}** seule au long (4–8 phrases) ; **0 ou 1** nuance courte — **2 bulles max**. Pas de chœur, pas de table Astrologie 1–2–3, pas six planètes.`
+  return `**Conversation approfondie** : **${who}** seule (4–7 phrases) ; **0 ou 1** nuance courte — **2 bulles max**. Pas de chœur, pas de table 1–2–3.`
 }
 
 /**

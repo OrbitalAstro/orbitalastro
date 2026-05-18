@@ -5,11 +5,21 @@
 import { journalSpeakerMatchesDeepenRole } from '@/lib/journal-deepen'
 import { parseJournalGuildReply } from '@/lib/journal-chat-parse'
 
+/** Apostrophe droite, typographique (U+2019) ou accent grave seul. */
+const APOS = `[''\u2019]`
+
+/** Pas de \\b en tête : « À partir » commence par une lettre accentuée. */
 const CONCRETE_FOLLOW_UP =
-  /\b(à partir de ce que|suite à ce que|en suivant ce que|d['']après ce que).{0,120}vient d['']?évoquer/i
+  new RegExp(
+    `(?:à partir de ce que|suite à ce que|en suivant ce que|d${APOS}après ce que).{0,120}vient d${APOS}?évoquer`,
+    'i',
+  )
 
 const CONCRETE_CITED_ROLE =
-  /\b(?:à partir de ce que|suite à ce que|en suivant ce que|d['']après ce que)\s+(.+?)\s+vient d['']?évoquer/i
+  new RegExp(
+    `(?:à partir de ce que|suite à ce que|en suivant ce que|d${APOS}après ce que)\\s+(.+?)\\s+vient d${APOS}?évoquer`,
+    'i',
+  )
 
 export const JOURNAL_CONCRETE_MAX_BUBBLES = 1
 

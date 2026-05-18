@@ -60,7 +60,7 @@ export function journalGuildAerationBlock(): string {
   return `
 **AÉRATION (bulle Astrologie — lecture type messagerie, comme ChatGPT)**
 - **Ligne vide** entre chaque paragraphe : tape **deux retours à la ligne** (\\n\\n) — indispensable pour l’affichage.
-- Paragraphes **courts** : **2 à 4 phrases** maximum chacun ; **jamais** un seul pavé de 6+ phrases.
+- Paragraphes **courts** : **1 à 2 phrases** maximum chacun ; **jamais** un seul pavé de 4+ phrases.
 - Chaque section numérotée sur **sa propre ligne**, avec **ligne vide avant et après** :
   (ligne vide)
   1. Tensions du moment :
@@ -68,7 +68,7 @@ export function journalGuildAerationBlock(): string {
   (paragraphe court)
   (ligne vide)
 - Phrases **courtes** et directes ; une idée principale par paragraphe.
-- Accroche initiale : **1 à 3 phrases** puis **ligne vide** avant la section 1.
+- Accroche initiale : **1 à 2 phrases** puis **ligne vide** avant la section 1.
 `
 }
 

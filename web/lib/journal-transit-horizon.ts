@@ -51,10 +51,10 @@ export function detectJournalWeekTransitHorizon(
 export function journalWeekTransitHorizonSystemBlock(): string {
   return `
 **FENÊTRE COURTE (~1 SEMAINE — ce tour)**
-Priorise dans le **chœur 5–7 voix** les corps **en approche** ou au **pic ≤ ~10 jours** listés dans le bloc — chaque voix reste **1–2 phrases**, effet distinct.
+Priorise dans le **chœur** (2–3 voix) les corps **en approche** ou au **pic ≤ ~10 jours** listés dans le bloc — chaque voix : **1 phrase**, effet distinct.
 `
 }
 
 export function journalWeekTransitHorizonUserHint(): string {
-  return `**Fenêtre ~1 semaine** : dans les **5–7 voix** après Astrologie, privilégie les corps en approche / pic proche du bloc.`
+  return `**Fenêtre ~1 semaine** : dans le **chœur** après Astrologie, privilégie les corps en approche / pic proche du bloc (**1 phrase** chacun).`
 }
