@@ -10,10 +10,21 @@ import AddToCartButton from '@/components/AddToCartButton'
 import Link from 'next/link'
 import Starfield from '@/components/Starfield'
 import JournalBubbleBlockActions from '@/components/JournalBubbleBlockActions'
+import JournalExportConversationButton from '@/components/JournalExportConversationButton'
+import JournalGuildBubbleBody from '@/components/JournalGuildBubbleBody'
+import JournalGuildBubbleSpeaker from '@/components/JournalGuildBubbleSpeaker'
 import JournalGuildSpeechBubble from '@/components/JournalGuildSpeechBubble'
 import JournalSpeakerGlyph from '@/components/JournalSpeakerGlyph'
 import { OrbitalOrbitsSpinner } from '@/components/OrbitalOrbitsGraphic'
 import { parseJournalGuildReply } from '@/lib/journal-chat-parse'
+import JournalAnotherVoicePicker, {
+  JournalAnotherVoicePill,
+} from '@/components/JournalAnotherVoicePicker'
+import {
+  isJournalAnotherVoiceMessage,
+  journalAnotherVoiceDisplayText,
+  journalAnotherVoiceMessage,
+} from '@/lib/journal-another-voice'
 import {
   journalConcretePathBubbleMessage,
   journalDeepenBubbleMessage,
@@ -21,6 +32,11 @@ import {
   journalSuggestionsSectionTitle,
   JOURNAL_SUGGESTION_PILL_CLASS,
 } from '@/lib/journal-chat-suggestions'
+import {
+  isJournalBubbleCommentMessage,
+  journalBubbleCommentMessage,
+  journalBubbleCommentDisplayText,
+} from '@/lib/journal-bubble-comment'
 import {
   journalTouchedBubbleMessage,
   journalTouchedReactionDisplayText,
@@ -89,9 +105,21 @@ export default function JournalPilotClient() {
   const [showHistoryDrawer, setShowHistoryDrawer] = useState(false)
   const [isNearBottom, setIsNearBottom] = useState(true)
   const [touchedBubbleKeys, setTouchedBubbleKeys] = useState<Set<string>>(() => new Set())
+  const [commentedBubbleKeys, setCommentedBubbleKeys] = useState<Set<string>>(() => new Set())
+  const [anotherVoicePickerOpen, setAnotherVoicePickerOpen] = useState(false)
   const entryTextareaRef = useRef<HTMLTextAreaElement | null>(null)
 
   const journalBubbleKey = (messageId: string, bubbleIdx: number) => `${messageId}:${bubbleIdx}`
+
+  function displayUserMessageContent(content: string): string {
+    if (isJournalBubbleCommentMessage(content)) {
+      return journalBubbleCommentDisplayText(content)
+    }
+    if (isJournalAnotherVoiceMessage(content)) {
+      return journalAnotherVoiceDisplayText(content)
+    }
+    return journalTouchedReactionDisplayText(content)
+  }
 
   function readLocalArchives(): ArchivedThread[] {
     if (typeof window === 'undefined') return []
@@ -336,6 +364,26 @@ export default function JournalPilotClient() {
     return () => window.removeEventListener('resize', measure)
   }, [entryInput])
 
+  const sendNourishComment = useCallback(async (text: string) => {
+    const message = text.trim()
+    if (!message || sendingEntry) return
+    setError(null)
+    const res = await fetch('/api/journal/chat', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message, nourishOnly: true }),
+    })
+    const json = await res.json()
+    if (!res.ok) {
+      throw new Error(json?.error || 'Impossible d’enregistrer le commentaire.')
+    }
+    const added: ChatMessage[] = json.messages || []
+    if (added.length > 0) {
+      setMessages((prev) => [...prev, ...added])
+    }
+  }, [sendingEntry])
+
   const sendChatMessage = useCallback(async (text: string) => {
     const message = text.trim()
     if (!message || sendingEntry) return
@@ -372,6 +420,10 @@ export default function JournalPilotClient() {
       setSendingEntry(false)
       setPendingUserText(null)
     }
+  }, [sendingEntry])
+
+  useEffect(() => {
+    if (sendingEntry) setAnotherVoicePickerOpen(false)
   }, [sendingEntry])
 
   async function submitEntry(e: React.FormEvent) {
@@ -509,6 +561,13 @@ export default function JournalPilotClient() {
             {/* Fil descendant continu : pas de « boîte » autour du dialogue — la zone de saisie prolonge le fil */}
             <section className="mt-8 flex flex-col pb-40 sm:pb-44">
               <div className="mb-2 flex shrink-0 items-center justify-end gap-2">
+                <JournalExportConversationButton
+                  messages={messages}
+                  profileName={profile?.display_name}
+                  title="Journal pilote — conversation en cours"
+                  disabled={sendingEntry}
+                  compact
+                />
                 <button
                   type="button"
                   onClick={() => setShowHistoryDrawer(true)}
@@ -550,8 +609,8 @@ export default function JournalPilotClient() {
                         </p>
                         <div className="journal-user-bubble">
                           <div className="journal-user-bubble__frame">
-                            <p className="journal-user-bubble__body">
-                              {journalTouchedReactionDisplayText(m.content)}
+                            <p className="journal-user-bubble__body whitespace-pre-wrap">
+                              {displayUserMessageContent(m.content)}
                             </p>
                           </div>
                         </div>
@@ -573,11 +632,8 @@ export default function JournalPilotClient() {
                           {parseJournalChat(m.content).map((bubble, idx) => (
                             <div key={`${m.id}-${idx}`} className="journal-thread__block">
                               <JournalGuildSpeechBubble speaker={bubble.speaker} colorIdx={idx}>
-                                <p className="journal-guild-bubble__speaker">
-                                  <JournalSpeakerGlyph speaker={bubble.speaker} />
-                                  {bubble.speaker}
-                                </p>
-                                <p className="journal-guild-bubble__body">{bubble.body}</p>
+                                <JournalGuildBubbleSpeaker speaker={bubble.speaker} />
+                                <JournalGuildBubbleBody speaker={bubble.speaker} body={bubble.body} />
                               </JournalGuildSpeechBubble>
                               <JournalBubbleBlockActions
                                 align="left"
@@ -601,6 +657,30 @@ export default function JournalPilotClient() {
                                     journalConcretePathBubbleMessage(bubble.speaker, bubble.body),
                                   )
                                 }
+                                comment={{
+                                  disabled: sendingEntry,
+                                  submitted: commentedBubbleKeys.has(journalBubbleKey(m.id, idx)),
+                                  onSubmit: async (comment) => {
+                                    const key = journalBubbleKey(m.id, idx)
+                                    if (commentedBubbleKeys.has(key) || sendingEntry) return
+                                    try {
+                                      await sendNourishComment(
+                                        journalBubbleCommentMessage(
+                                          bubble.speaker,
+                                          bubble.body,
+                                          comment,
+                                        ),
+                                      )
+                                      setCommentedBubbleKeys((prev) => new Set(prev).add(key))
+                                    } catch (err) {
+                                      setError(
+                                        err instanceof Error
+                                          ? err.message
+                                          : 'Impossible d’enregistrer le commentaire.',
+                                      )
+                                    }
+                                  },
+                                }}
                               />
                             </div>
                           ))}
@@ -621,8 +701,8 @@ export default function JournalPilotClient() {
                     </p>
                     <div className="journal-user-bubble">
                       <div className="journal-user-bubble__frame">
-                        <p className="journal-user-bubble__body">
-                          {journalTouchedReactionDisplayText(pendingUserText)}
+                        <p className="journal-user-bubble__body whitespace-pre-wrap">
+                          {displayUserMessageContent(pendingUserText)}
                         </p>
                       </div>
                     </div>
@@ -659,23 +739,39 @@ export default function JournalPilotClient() {
                       {chatSuggestionsTitle}
                     </p>
                     <motion.div
-                      className="flex flex-wrap gap-2"
                       initial={false}
                       animate={{ opacity: 1 }}
                       transition={{ duration: 0.2 }}
                     >
-                      {chatSuggestions.map((s) => (
-                        <button
-                          key={s.id}
-                          type="button"
-                          disabled={sendingEntry}
-                          onClick={() => applySuggestion(s.message)}
-                          title={s.message}
-                          className={`${JOURNAL_SUGGESTION_PILL_CLASS} text-left`}
-                        >
-                          {s.label}
-                        </button>
-                      ))}
+                      <motion.div className="flex flex-wrap gap-2">
+                        {messages.length > 0 ? (
+                          <JournalAnotherVoicePill
+                            active={anotherVoicePickerOpen}
+                            disabled={sendingEntry}
+                            onToggle={() => setAnotherVoicePickerOpen((open) => !open)}
+                          />
+                        ) : null}
+                        {chatSuggestions.map((s) => (
+                          <button
+                            key={s.id}
+                            type="button"
+                            disabled={sendingEntry}
+                            onClick={() => applySuggestion(s.message)}
+                            title={s.message}
+                            className={`${JOURNAL_SUGGESTION_PILL_CLASS} text-left`}
+                          >
+                            {s.label}
+                          </button>
+                        ))}
+                      </motion.div>
+                      <JournalAnotherVoicePicker
+                        open={anotherVoicePickerOpen && messages.length > 0}
+                        disabled={sendingEntry}
+                        onClose={() => setAnotherVoicePickerOpen(false)}
+                        onSelect={(role) => {
+                          void sendChatMessage(journalAnotherVoiceMessage(role))
+                        }}
+                      />
                     </motion.div>
                   </motion.div>
 
@@ -844,14 +940,24 @@ export default function JournalPilotClient() {
                 </>
               ) : (
                 <motion.div className="journal-thread flex flex-col gap-3 pb-2">
-                  {selectedArchiveMeta?.archived_at || selectedArchiveMeta?.updated_at ? (
-                    <p className="journal-thread__meta mb-1 uppercase tracking-wide">
-                      Archivée le{' '}
-                      {new Date(
-                        selectedArchiveMeta.archived_at || selectedArchiveMeta.updated_at || '',
-                      ).toLocaleString('fr-CA')}
-                    </p>
-                  ) : null}
+                  <motion.div className="mb-1 flex flex-wrap items-center justify-between gap-2">
+                    {selectedArchiveMeta?.archived_at || selectedArchiveMeta?.updated_at ? (
+                      <p className="journal-thread__meta uppercase tracking-wide">
+                        Archiv�e le{' '}
+                        {new Date(
+                          selectedArchiveMeta.archived_at || selectedArchiveMeta.updated_at || '',
+                        ).toLocaleString('fr-CA')}
+                      </p>
+                    ) : (
+                      <p className="journal-thread__meta uppercase tracking-wide">Historique ouvert</p>
+                    )}
+                    <JournalExportConversationButton
+                      messages={selectedArchive.messages}
+                      profileName={profile?.display_name}
+                      title="Journal pilote � conversation archiv�e"
+                      compact
+                    />
+                  </motion.div>
                   {selectedArchive.messages.map((m) =>
                     m.role === 'user' ? (
                       <div key={m.id} className="journal-thread__turn">
@@ -861,8 +967,8 @@ export default function JournalPilotClient() {
                         </p>
                         <div className="journal-user-bubble">
                           <div className="journal-user-bubble__frame">
-                            <p className="journal-user-bubble__body">
-                              {journalTouchedReactionDisplayText(m.content)}
+                            <p className="journal-user-bubble__body whitespace-pre-wrap">
+                              {displayUserMessageContent(m.content)}
                             </p>
                           </div>
                         </div>
@@ -883,11 +989,8 @@ export default function JournalPilotClient() {
                                 colorIdx={idx}
                                 compact
                               >
-                                <p className="journal-guild-bubble__speaker">
-                                  <JournalSpeakerGlyph speaker={bubble.speaker} />
-                                  {bubble.speaker}
-                                </p>
-                                <p className="journal-guild-bubble__body">{bubble.body}</p>
+                                <JournalGuildBubbleSpeaker speaker={bubble.speaker} />
+                                <JournalGuildBubbleBody speaker={bubble.speaker} body={bubble.body} />
                               </JournalGuildSpeechBubble>
                             </div>
                           ))}

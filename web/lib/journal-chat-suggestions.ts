@@ -19,7 +19,8 @@ export const JOURNAL_STARTER_SUGGESTIONS: readonly JournalChatSuggestion[] = [
   {
     id: 'transits-week',
     label: 'Transits de la semaine',
-    message: 'Quels transits me touchent le plus en ce moment, et sur quels secteurs de ma vie ?',
+    message:
+      'Quels transits me touchent le plus cette semaine (fenêtre d’environ sept jours), et sur quels secteurs de ma vie ?',
   },
   {
     id: 'energy-today',
@@ -80,18 +81,16 @@ export function journalDeepenBubbleMessage(speaker: string, body?: string): stri
   const excerpt = (body || '').replace(/\s+/g, ' ').trim().slice(0, 100)
   if (excerpt) {
     const tail = excerpt.length >= 100 ? '…' : ''
-    return `Peux-tu approfondir ce que ${role} vient d’évoquer (« ${excerpt}${tail} »), avec un angle concret pour ma vie quotidienne ?`
+    return `Réponds surtout en tant que ${role} : approfondis ce que tu viens d’évoquer (« ${excerpt}${tail} »), avec un angle concret pour ma vie quotidienne. Conversation avec ${role} seule — pas les autres planètes, pas une table Astrologie.`
   }
-  return `Peux-tu approfondir ce que ${role} vient d’évoquer, avec un angle concret pour ma vie quotidienne ?`
+  return `Réponds surtout en tant que ${role} : approfondis ce que tu viens d’évoquer, avec un angle concret pour ma vie quotidienne. Conversation avec ${role} seule — pas toute la guilde.`
 }
+
+/** Pastille « Autre voix » — menu de sélection (voir JournalAnotherVoicePicker). */
+export const JOURNAL_ANOTHER_VOICE_SUGGESTION_ID = 'another-voice'
 
 /** Fil en cours — approfondir ou changer d’angle. */
 export const JOURNAL_FOLLOWUP_SUGGESTIONS: readonly JournalChatSuggestion[] = [
-  {
-    id: 'another-voice',
-    label: 'Autre voix',
-    message: 'Une autre planète ou point de ma carte pourrait-elle commenter autrement ?',
-  },
   {
     id: 'weeks-ahead',
     label: 'Prochaines semaines',

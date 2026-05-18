@@ -835,6 +835,36 @@ html::-webkit-scrollbar-thumb:hover {
 
 /* —— Journal pilote : fil de dialogue (lisibilité, sans queue) —— */
 
+.journal-voice-picker__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr));
+  gap: 0.4rem;
+}
+
+.journal-voice-picker__item {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(228, 181, 160, 0.28);
+  background: rgba(45, 27, 78, 0.45);
+  padding: 0.4rem 0.5rem;
+  font-size: 12px;
+  line-height: 1.25;
+  color: rgba(228, 181, 160, 0.92);
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.journal-voice-picker__item:hover:not(:disabled) {
+  border-color: rgba(228, 181, 160, 0.55);
+  background: rgba(228, 181, 160, 0.1);
+}
+
+.journal-voice-picker__item:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .journal-thread {
   max-width: 42rem;
 }
@@ -872,8 +902,20 @@ html::-webkit-scrollbar-thumb:hover {
   max-width: 42rem;
 }
 
-.journal-thread__block-actions {
+.journal-thread__block-toolbar {
   margin-top: 0.125rem;
+}
+
+.journal-thread__block-toolbar-row {
+  width: 100%;
+}
+
+.journal-thread__block-actions {
+  margin: 0;
+}
+
+.journal-thread__block-actions-comment {
+  margin-left: auto;
 }
 
 .journal-bubble-heart {
@@ -921,6 +963,112 @@ html::-webkit-scrollbar-thumb:hover {
 .journal-bubble-heart__label {
   font-weight: 500;
   letter-spacing: 0.01em;
+}
+
+.journal-bubble-comment {
+  margin-top: 0;
+}
+
+.journal-thread__block-toolbar .journal-bubble-comment__form {
+  margin-top: 0.5rem;
+  width: 100%;
+}
+
+.journal-bubble-comment__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(232, 196, 122, 0.3);
+  background: rgba(40, 22, 55, 0.45);
+  padding: 0.35rem 0.65rem;
+  font-size: 12px;
+  color: rgba(232, 196, 122, 0.8);
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.journal-bubble-comment__toggle:hover:not(:disabled) {
+  border-color: rgba(180, 210, 255, 0.45);
+  background: rgba(80, 100, 180, 0.12);
+  color: rgba(210, 225, 255, 0.95);
+}
+
+.journal-bubble-comment__toggle--done {
+  border-color: rgba(160, 200, 255, 0.4);
+  color: rgba(200, 220, 255, 0.85);
+}
+
+.journal-bubble-comment__toggle:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+.journal-bubble-comment__icon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+
+.journal-bubble-comment__form {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-width: 42rem;
+}
+
+.journal-bubble-comment__input {
+  width: 100%;
+  resize: vertical;
+  min-height: 4.5rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(232, 196, 122, 0.28);
+  background: rgba(20, 8, 32, 0.55);
+  padding: 0.65rem 0.75rem;
+  font-size: 14px;
+  line-height: 1.45;
+  color: rgba(245, 235, 220, 0.95);
+}
+
+.journal-bubble-comment__input::placeholder {
+  color: rgba(232, 196, 122, 0.45);
+}
+
+.journal-bubble-comment__input:focus {
+  outline: none;
+  border-color: rgba(232, 196, 122, 0.5);
+}
+
+.journal-bubble-comment__send {
+  border-radius: 9999px;
+  border: 1px solid rgba(232, 196, 122, 0.45);
+  background: rgba(232, 196, 122, 0.12);
+  padding: 0.35rem 0.85rem;
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(232, 196, 122, 0.95);
+}
+
+.journal-bubble-comment__send:hover:not(:disabled) {
+  background: rgba(232, 196, 122, 0.2);
+}
+
+.journal-bubble-comment__send:disabled {
+  opacity: 0.5;
+}
+
+.journal-bubble-comment__cancel {
+  border-radius: 9999px;
+  padding: 0.35rem 0.75rem;
+  font-size: 12px;
+  color: rgba(232, 196, 122, 0.65);
+}
+
+.journal-bubble-comment__cancel:hover:not(:disabled) {
+  color: rgba(232, 196, 122, 0.9);
 }
 
 /* Chargement : voile + orbites centrées (rien ne transparaît derrière) */
@@ -975,14 +1123,35 @@ html::-webkit-scrollbar-thumb:hover {
 }
 
 .journal-guild-bubble__speaker {
-  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.2rem 0.35rem;
+  margin: 0 0 0.35rem;
   font-size: 0.6875rem;
   font-weight: 600;
-  line-height: 1.45;
+  line-height: 1.4;
   letter-spacing: 0.04em;
-  text-transform: uppercase;
   color: rgba(228, 181, 160, 0.72);
   word-break: break-word;
+}
+
+.journal-guild-bubble__speaker-name {
+  text-transform: uppercase;
+}
+
+.journal-guild-bubble__speaker-sep {
+  font-weight: 400;
+  color: rgba(228, 181, 160, 0.45);
+  user-select: none;
+}
+
+.journal-guild-bubble__placement {
+  font-size: 0.625rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: rgba(228, 181, 160, 0.58);
 }
 
 .journal-guild-bubble__body {
@@ -993,6 +1162,51 @@ html::-webkit-scrollbar-thumb:hover {
   color: rgba(255, 248, 242, 0.94);
   text-align: left;
   white-space: pre-wrap;
+}
+
+.journal-guild-bubble__body--aerated {
+  line-height: 1.72;
+}
+
+.journal-guild-bubble__body--stacked {
+  white-space: normal;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.journal-guild-bubble__para {
+  margin: 0 0 0.85rem;
+}
+
+.journal-guild-bubble__para:last-child {
+  margin-bottom: 0;
+}
+
+.journal-guild-bubble__section-title {
+  margin: 0.65rem 0 0.5rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+  color: rgba(228, 181, 160, 0.92);
+}
+
+.journal-guild-bubble__body--stacked > .journal-guild-bubble__section-title:first-child {
+  margin-top: 0;
+}
+
+.journal-guild-bubble__section {
+  margin-bottom: 0.85rem;
+}
+
+.journal-guild-bubble__section .journal-guild-bubble__section-title {
+  margin-top: 0.75rem;
+  margin-bottom: 0.45rem;
+}
+
+.journal-guild-bubble__section .journal-guild-bubble__para {
+  margin-bottom: 0;
 }
 
 /* Message utilisateur — centré, largeur de lecture plus courte */

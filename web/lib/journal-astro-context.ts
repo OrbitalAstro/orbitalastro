@@ -775,7 +775,7 @@ export async function fetchJournalAstroContext(
     'Ciel à cet instant (corps impliqués dans les aspects listés) :',
     skyLines.length > 0 ? skyLines.join('\n') : '- (positions non fournies)',
     '',
-    'Placements transits (référence — utiliser pour les étiquettes Natal + Transit des planètes) :',
+    'Placements transits (référence interne — traduire en effets ; ne pas répéter mot pour mot dans chaque voix) :',
     transitPlacementLines.length > 0
       ? transitPlacementLines.join('\n')
       : '- (non calculés — latitude/longitude de naissance requises pour les maisons transit)',
