@@ -943,7 +943,7 @@ export default function JournalPilotClient() {
                   <motion.div className="mb-1 flex flex-wrap items-center justify-between gap-2">
                     {selectedArchiveMeta?.archived_at || selectedArchiveMeta?.updated_at ? (
                       <p className="journal-thread__meta uppercase tracking-wide">
-                        Archivée le{' '}
+                        ArchivÃ©e le{' '}
                         {new Date(
                           selectedArchiveMeta.archived_at || selectedArchiveMeta.updated_at || '',
                         ).toLocaleString('fr-CA')}
@@ -954,7 +954,7 @@ export default function JournalPilotClient() {
                     <JournalExportConversationButton
                       messages={selectedArchive.messages}
                       profileName={profile?.display_name}
-                      title="Journal pilote — conversation archivée"
+                      title="Journal pilote â€“ conversation archivÃ©e"
                       compact
                     />
                   </motion.div>
