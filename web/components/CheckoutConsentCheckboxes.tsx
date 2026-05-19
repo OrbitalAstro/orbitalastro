@@ -32,11 +32,23 @@ export default function CheckoutConsentCheckboxes({
         />
         <span>
           J&apos;accepte les{' '}
-          <Link href="/terms" className="text-cosmic-gold underline underline-offset-2 hover:text-cosmic-gold/80">
+          <Link
+            href="/terms"
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="text-cosmic-gold underline underline-offset-2 hover:text-cosmic-gold/80"
+          >
             termes et conditions
           </Link>{' '}
           et la{' '}
-          <Link href="/privacy" className="text-cosmic-gold underline underline-offset-2 hover:text-cosmic-gold/80">
+          <Link
+            href="/privacy"
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="text-cosmic-gold underline underline-offset-2 hover:text-cosmic-gold/80"
+          >
             politique de confidentialité
           </Link>
           .

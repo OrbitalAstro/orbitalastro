@@ -212,30 +212,15 @@ export default function LocationInput({
 
     setFilteredCities(filtered.slice(0, 5)) // Limit to 5 city results
 
-    // Geocode for specific places (debounced)
+    // Géocodage en parallèle des villes locales (dès 3 caractères)
     if (geocodeTimeoutRef.current) {
       clearTimeout(geocodeTimeoutRef.current)
     }
 
-    // Only geocode if it looks like a specific place (not just a city name)
-    // or if no cities match
-    // Also geocode if the search term is longer (likely a specific address/place)
-    const shouldGeocode = filtered.length === 0 || 
-      searchTerm.length > 10 || 
-      searchTerm.includes('hospital') || 
-      searchTerm.includes('clinic') || 
-      searchTerm.includes('center') || 
-      searchTerm.includes('centre') ||
-      searchTerm.includes('street') ||
-      searchTerm.includes('avenue') ||
-      searchTerm.includes('road') ||
-      searchTerm.includes('rue') ||
-      searchTerm.includes('avenue')
-    
-    if (shouldGeocode) {
+    if (searchTerm.length >= 3) {
       geocodeTimeoutRef.current = setTimeout(() => {
         geocodePlace(value)
-      }, 800) // Increased debounce to 800ms to respect Nominatim rate limits
+      }, 400)
     } else {
       setGeocodedPlaces([])
     }
@@ -346,7 +331,7 @@ export default function LocationInput({
   }, [])
 
   return (
-    <div className="relative z-20">
+    <motion.div className="relative z-30">
       {defaultLabel && (
         <label
           className={`block text-sm font-medium mb-2 flex items-center gap-2 ${
@@ -376,7 +361,7 @@ export default function LocationInput({
           value={value}
           onChange={handleInputChange}
           onFocus={() => {
-            if (filteredCities.length > 0 && value.length > 0) {
+            if (value.trim().length > 0) {
               setIsOpen(true)
             }
           }}
@@ -422,7 +407,7 @@ export default function LocationInput({
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="absolute z-50 w-full mt-1 bg-white text-black rounded-lg border border-black/10 shadow-2xl max-h-80 overflow-y-auto"
+            className="absolute z-[200] w-full mt-1 bg-white text-black rounded-lg border border-black/10 shadow-2xl max-h-80 overflow-y-auto"
           >
             {/* Cities Section */}
             {filteredCities.length > 0 && (
@@ -519,6 +504,6 @@ export default function LocationInput({
           )}
         </motion.div>
       )}
-    </div>
+    </motion.div>
   )
 }

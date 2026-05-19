@@ -182,11 +182,16 @@ function CheckoutContent() {
         ) : null}
 
         <p className="text-xs text-cosmic-silver text-center">
-          Vous serez redirigé vers la page de paiement sécurisée Stripe. L&apos;acceptation des{' '}
-          <Link href="/terms" className="text-cosmic-gold underline">
+          Vous serez redirigé vers la page de paiement sécurisée Stripe. Juste avant de confirmer,
+          vous pourrez lire et accepter nos{' '}
+          <Link href="/terms" target="_blank" rel="noopener noreferrer" className="text-cosmic-gold underline">
             termes et conditions
           </Link>{' '}
-          s&apos;y fait juste avant de confirmer le paiement.
+          et notre{' '}
+          <Link href="/privacy" target="_blank" rel="noopener noreferrer" className="text-cosmic-gold underline">
+            politique de confidentialité
+          </Link>
+          .
         </p>
 
         <button

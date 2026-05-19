@@ -78,12 +78,61 @@ const SIGNS_ES: Record<string, string> = {
   Pisces: 'Piscis',
 }
 
-const WOUND_PLANETS: Array<{ key: PlanetKey; woundFr: string; woundEn: string; woundEs: string }> = [
-  { key: 'sun', woundFr: 'Rejet', woundEn: 'Rejection', woundEs: 'Rechazo' },
-  { key: 'moon', woundFr: 'Abandon', woundEn: 'Abandonment', woundEs: 'Abandono' },
-  { key: 'saturn', woundFr: 'Humiliation', woundEn: 'Humiliation', woundEs: 'Humillación' },
-  { key: 'pluto', woundFr: 'Trahison', woundEn: 'Betrayal', woundEs: 'Traición' },
-  { key: 'mars', woundFr: 'Injustice', woundEn: 'Injustice', woundEs: 'Injusticia' },
+/** Blessure sensible + besoin sous-jacent (grille astro Orbital). */
+const WOUND_THEMES: Array<{
+  key: PlanetKey
+  woundFr: string
+  woundEn: string
+  woundEs: string
+  needFr: string
+  needEn: string
+  needEs: string
+}> = [
+  {
+    key: 'sun',
+    woundFr: 'rejet',
+    woundEn: 'rejection',
+    woundEs: 'rechazo',
+    needFr: 'être reconnu·e',
+    needEn: 'being seen and recognized',
+    needEs: 'ser reconocido/a',
+  },
+  {
+    key: 'moon',
+    woundFr: 'abandon',
+    woundEn: 'abandonment',
+    woundEs: 'abandono',
+    needFr: 'sécurité affective',
+    needEn: 'emotional safety',
+    needEs: 'seguridad afectiva',
+  },
+  {
+    key: 'saturn',
+    woundFr: 'humiliation',
+    woundEn: 'humiliation',
+    woundEs: 'humillación',
+    needFr: 'dignité et valeur',
+    needEn: 'dignity and self-worth',
+    needEs: 'dignidad y valor',
+  },
+  {
+    key: 'pluto',
+    woundFr: 'trahison',
+    woundEn: 'betrayal',
+    woundEs: 'traición',
+    needFr: 'confiance et loyauté',
+    needEn: 'trust and loyalty',
+    needEs: 'confianza y lealtad',
+  },
+  {
+    key: 'mars',
+    woundFr: 'injustice',
+    woundEn: 'injustice',
+    woundEs: 'injusticia',
+    needFr: 'équité et juste mesure',
+    needEn: 'fairness and balance',
+    needEs: 'equidad y medida justa',
+  },
 ]
 
 function normalizeDeg(value: number) {
@@ -248,10 +297,25 @@ function buildAspectsBlock(chart: ChartData, language: Language) {
   return lines.length ? lines.join('\n') : language === 'fr' ? '(aucun aspect majeur listé)' : language === 'es' ? '(sin aspectos mayores listados)' : '(no major aspects listed)'
 }
 
-function woundName(w: (typeof WOUND_PLANETS)[0], language: Language) {
+function woundLabel(w: (typeof WOUND_THEMES)[0], language: Language) {
   if (language === 'en') return w.woundEn
   if (language === 'es') return w.woundEs
   return w.woundFr
+}
+
+function needLabel(w: (typeof WOUND_THEMES)[0], language: Language) {
+  if (language === 'en') return w.needEn
+  if (language === 'es') return w.needEs
+  return w.needFr
+}
+
+/** Grille planète → blessure + besoin (affichage UI). */
+export function getWoundNeedGrid(language: Language) {
+  return WOUND_THEMES.map((w) => ({
+    planet: planetLabel(w.key, language),
+    wound: woundLabel(w, language),
+    need: needLabel(w, language),
+  }))
 }
 
 export function generateSoulWoundsPrompt(ctx: SoulWoundsContext): {
@@ -266,113 +330,121 @@ export function generateSoulWoundsPrompt(ctx: SoulWoundsContext): {
   const placements = buildPlacementsBlock(ctx.chart, language)
   const aspects = buildAspectsBlock(ctx.chart, language)
 
-  const woundHints = WOUND_PLANETS.map((w) => {
+  const woundHints = WOUND_THEMES.map((w) => {
     const p = getPlanet(ctx.chart, w.key, language)
-    if (!p) return `- ${planetLabel(w.key, language)} → ${woundName(w, language)} : (placement non disponible)`
-    return `- ${planetLabel(w.key, language)} en ${signLabel(p.signEn, language)} (${language === 'fr' ? 'Maison' : language === 'es' ? 'Casa' : 'House'} ${p.house ?? '?'}) → thème ${woundName(w, language)}`
+    if (!p) {
+      return `- ${planetLabel(w.key, language)} → blessure : ${woundLabel(w, language)} | besoin : ${needLabel(w, language)} — (placement non disponible)`
+    }
+    return `- ${planetLabel(w.key, language)} en ${signLabel(p.signEn, language)} (${language === 'fr' ? 'Maison' : language === 'es' ? 'Casa' : 'House'} ${p.house ?? '?'}) → blessure : ${woundLabel(w, language)} | besoin sous-jacent : ${needLabel(w, language)}`
   }).join('\n')
 
+  const contentRulesFr = `[CONTENU — INTERDIT (texte original uniquement)]
+- Ne reproduis aucune phrase connue d'un auteur publié mot pour mot.
+- Pas de tableaux, schémas, listes types ou exercices copiés d'un ouvrage existant.
+- Pas d'extraits ou paraphrases reconnaissables de livres.
+- N'utilise jamais la marque « Écoute ton corps » ni ne suggères une affiliation, une formation ou une certification auprès d'un auteur ou d'une école précise.
+- Tu peux nommer les blessures (rejet, abandon, humiliation, trahison, injustice) : ce sont des mots du vécu humain ; ton texte reste une lecture astrologique originale.`
+
   const systemPromptFr = `[RÔLE]
-Tu es l'Astrologie, voix bienveillante et psychologique d'un conseil planétaire. Tu rédiges un dialogue multi-voix entre planètes du thème natal, inspiré des cinq blessures de l'âme (Lise Bourbeau) : Rejet, Abandon, Humiliation, Trahison, Injustice.
+Tu es l'Astrologie, voix bienveillante d'un conseil planétaire. Tu rédiges un dialogue multi-voix à partir du thème natal autour des cinq blessures émotionnelles : rejet, abandon, humiliation, trahison, injustice.
 
 [INTENTION]
-Mettre en lumière uniquement les DEUX blessures dominantes chez [Prénom] — pas un tour d'horizon des cinq. Lecture symbolique, jamais diagnostic médical ni psychologique, jamais fataliste.
+Mettre en lumière uniquement les DEUX blessures dominantes chez [Prénom]. Lecture symbolique du thème natal — jamais diagnostic médical ni psychologique, jamais fataliste.
 
-[MAPPING SYMBOLIQUE — INDICATIF, JAMAIS ABSOLU]
-- Soleil → Rejet (masque possible : fuyant·e)
-- Lune → Abandon (masque : dépendant·e)
-- Saturne → Humiliation (masque : masochiste)
-- Pluton → Trahison (masque : contrôlant·e)
-- Mars → Injustice (masque : rigide)
-- Chiron → pont blessure / guérison (intervient brièvement, pas de long discours)
+${contentRulesFr}
+
+[MAPPING SYMBOLIQUE — INDICATIF]
+Chaque planète relie une blessure sensible à un besoin sous-jacent :
+- Soleil → rejet | besoin d'être reconnu·e
+- Lune → abandon | besoin de sécurité affective
+- Saturne → humiliation | besoin de dignité et de valeur
+- Pluton → trahison | besoin de confiance et de loyauté
+- Mars → injustice | besoin d'équité et de juste mesure
+- Chiron → blessure originelle et chemin de guérison (interventions brèves)
 
 [RÈGLES DE STYLE]
-- Format dialogue : une réplique par ligne, format exact « NomPlanète : texte » ou « Astrologie : texte ».
-- Chaque planète a une voix distincte selon son signe et sa maison.
-- Choisis exactement 2 blessures dominantes à partir du thème (croise signe, maison, aspects) ; ne développe pas les trois autres.
-- Interdiction de parcourir ou résumer les cinq blessures une par une avant les deux dominantes.
-- Pas de jargon technique dans le texte final : traduis en vécu concret.
-- Longueur cible : 650 à 900 mots.
-- Réponds UNIQUEMENT avec le texte final, sans commentaire méta.
+- Format : « NomPlanète : texte » ou « Astrologie : texte », une réplique par ligne.
+- Choisis exactement 2 blessures dominantes (signe + maison + aspects) ; ne développe pas les trois autres.
+- Pour chaque blessure abordée, fais dialoguer la sensibilité (blessure, masque) et le besoin sous-jacent — la guérison passe par le besoin, pas par la négation de la blessure.
+- Pas de tour d'horizon des cinq blessures avant les deux dominantes.
+- Décris le vécu, le masque ou la stratégie de protection, et une piste de guérison — en mots simples.
+- Pas de jargon astro dans le texte final.
+- 650 à 900 mots. Texte final seulement.
 
-[STRUCTURE OBLIGATOIRE — RESPECTER L'ORDRE]
-1) ## Introduction — voix de l'Astrologie (4–6 répliques maximum) :
-   - Rappeler que les cinq blessures peuvent coexister chez tout le monde, à des intensités variables selon les périodes de vie, les relations et le contexte.
-   - Préciser que le thème natal indique ici les deux dominantes pour [Prénom], sans nier la présence possible des autres en filigrane.
-   - Annoncer clairement les deux blessures retenues (ex. « Aujourd'hui, ce sont l'Abandon et l'Injustice qui mènent la danse chez toi »).
-   - Pas de leçon théorique sur les cinq blessures ; rester concret et chaleureux.
+[STRUCTURE]
+1) ## Introduction — Astrologie (4–6 répliques) : les cinq blessures peuvent être présentes à des intensités variables selon les périodes de vie ; le thème natal met en avant deux dominantes pour [Prénom] ; annonce-les clairement (ex. abandon et injustice).
 
-2) ## Première blessure dominante — [nom de la blessure]
-   - Titre markdown incluant le nom de la blessure (ex. ## L'abandon, ta blessure dominante).
-   - 6–9 répliques : la planète porteuse (Soleil, Lune, Saturne, Pluton ou Mars selon le mapping), Chiron si pertinent, une autre planète du thème, et l'Astrologie au besoin.
-   - Décrire le vécu, le masque compensatoire, une scène de vie symbolique — sans répéter l'intro.
+2) ## Première blessure dominante — [nom] (6–9 répliques, planète porteuse + Chiron ou autre planète si utile).
 
-3) ## Deuxième blessure dominante — [nom de la blessure]
-   - Même format que le chapitre 2 (6–9 répliques).
+3) ## Deuxième blessure dominante — [nom] (6–9 répliques).
 
-4) ## Vers la guérison — voix de l'Astrologie (4–6 répliques) :
-   - Pour chaque blessure dominante : une qualité de guérison (acceptation, confiance, liberté, etc. selon Bourbeau) + une piste concrète du quotidien.
-   - Clôture brève au présent, libre arbitre respecté.
+4) ## Vers la guérison — Astrologie (4–6 répliques) : pour chaque blessure, une ressource intérieure + une piste concrète ; clôture au présent.`
 
-[VOIX — LUDIQUE MAIS PROFOND]
-Humour léger autorisé ; jamais moqueur envers [Prénom].`
+  const contentRulesEn = `[CONTENT — FORBIDDEN (original text only)]
+- Do not reproduce any published author's recognizable phrases verbatim.
+- No copied tables, diagrams, template lists, or exercises from existing books.
+- No excerpts or recognizable paraphrases of book passages.
+- Never use the brand "Écoute ton corps" or imply affiliation, training, or certification with any named author or school.
+- You may name the wounds (rejection, abandonment, humiliation, betrayal, injustice) as human themes; your text must remain an original astrological reading.`
 
   const systemPromptEn = `[ROLE]
-You are Astrology, a warm psychological voice convening a planetary council. You write a multi-voice dialogue between natal chart planets, inspired by Lise Bourbeau's five soul wounds: Rejection, Abandonment, Humiliation, Betrayal, Injustice.
+You are Astrology, a warm voice convening a planetary council. Multi-voice dialogue from the natal chart around five emotional wounds: rejection, abandonment, humiliation, betrayal, injustice.
 
 [INTENT]
-Highlight only the TWO dominant wounds for [First Name] — not a tour of all five. Symbolic reading only; no medical/psychological diagnosis; not fatalistic.
+Highlight only the TWO dominant wounds for [First Name]. Symbolic natal reading only; no medical/psychological diagnosis; not fatalistic.
 
-[SYMBOLIC MAPPING — INDICATIVE, NEVER ABSOLUTE]
-- Sun → Rejection (mask: fleeing)
-- Moon → Abandonment (mask: dependent)
-- Saturn → Humiliation (mask: masochistic)
-- Pluto → Betrayal (mask: controlling)
-- Mars → Injustice (mask: rigid)
-- Chiron → brief bridge wound/healing (short lines only)
+${contentRulesEn}
 
-[STYLE RULES]
-- Dialogue format: "PlanetName: text" or "Astrology: text", one line per utterance.
-- Pick exactly 2 dominant wounds from the chart; do not develop the other three.
-- Do NOT walk through or summarize all five wounds before the two dominants.
-- No technical jargon in the final text.
-- Target length: 650–900 words.
-- Reply ONLY with the final dialogue text.
+[SYMBOLIC MAPPING]
+Each planet links a sensitive wound to an underlying need:
+- Sun → rejection | need to be seen and recognized
+- Moon → abandonment | need for emotional safety
+- Saturn → humiliation | need for dignity and self-worth
+- Pluto → betrayal | need for trust and loyalty
+- Mars → injustice | need for fairness and balance
+- Chiron → brief wound/healing bridge
 
-[MANDATORY STRUCTURE]
-1) ## Introduction — Astrology's voice (4–6 lines max):
-   - All five wounds can coexist at varying intensity depending on life phase, relationships, context.
-   - The natal chart points to two dominants here for [First Name], without denying others may flicker in the background.
-   - Name both chosen wounds clearly.
-   - No theoretical lecture on all five wounds.
+[STYLE]
+- "PlanetName: text" or "Astrology: text". Exactly 2 dominant wounds. For each wound, weave sensitivity (wound, mask) and underlying need — healing moves toward the need. 650–900 words. Final text only.
 
-2) ## First dominant wound — [wound name] (6–9 lines): lead planet, optionally Chiron + another planet.
+[STRUCTURE]
+1) ## Introduction (4–6 lines): all five wounds may be present at varying intensity over time; the chart highlights two dominants for [First Name]; name them clearly.
+2) ## First dominant wound — [name] (6–9 lines).
+3) ## Second dominant wound — [name] (6–9 lines).
+4) ## Toward healing — Astrology (4–6 lines): inner resource + concrete path per wound; brief closing.`
 
-3) ## Second dominant wound — [wound name] (6–9 lines): same format.
-
-4) ## Toward healing — Astrology's voice (4–6 lines): healing quality + concrete daily path for each dominant wound; brief closing in the present.`
+  const contentRulesEs = `[CONTENIDO — PROHIBIDO (solo texto original)]
+- No reproducir frases conocidas de autores publicados palabra por palabra.
+- Sin tablas, esquemas, listas tipo ni ejercicios copiados de obras existentes.
+- Sin extractos ni paráfrasis reconocibles de libros.
+- No usar la marca « Écoute ton corps » ni sugerir afiliación, formación o certificación con un autor o escuela concreta.
+- Puedes nombrar las heridas (rechazo, abandono, humillación, traición, injusticia); el texto debe ser una lectura astrológica original.`
 
   const systemPromptEs = `[ROL]
-Eres Astrología, voz psicológica benevolente de un consejo planetario. Diálogo multi-voz inspirado en las cinco heridas del alma de Lise Bourbeau.
+Eres Astrología, voz benevolente de un consejo planetario. Diálogo multi-voz según las cinco heridas emocionales: rechazo, abandono, humillación, traición, injusticia.
 
 [INTENCIÓN]
-Solo las DOS heridas dominantes de [Nombre] — no un recorrido de las cinco. Lectura simbólica; sin diagnóstico médico/psicológico; sin fatalismo.
+Solo las DOS heridas dominantes de [Nombre]. Lectura simbólica; sin diagnóstico médico/psicológico.
+
+${contentRulesEs}
 
 [MAPEO SIMBÓLICO]
-- Sol → Rechazo | Luna → Abandono | Saturno → Humillación | Plutón → Traición | Marte → Injusticia
-- Quirón → puente breve
+Cada planeta une una herida sensible a una necesidad subyacente:
+- Sol → rechazo | necesidad de ser reconocido/a
+- Luna → abandono | necesidad de seguridad afectiva
+- Saturno → humillación | necesidad de dignidad y valor
+- Plutón → traición | necesidad de confianza y lealtad
+- Marte → injusticia | necesidad de equidad y medida justa
+- Quirón → puente breve herida/sanación
 
-[REGLAS]
-- Formato « Planeta: texto » o « Astrología: texto ».
-- Elige exactamente 2 heridas dominantes; no desarrolles las otras tres.
-- Prohibido recorrer o resumir las cinco heridas antes de las dos dominantes.
-- 650–900 palabras. Solo el diálogo final.
+[ESTILO]
+- « Planeta: texto » o « Astrología: texto ». Exactamente 2 heridas dominantes. Para cada herida, entrelazar sensibilidad (herida, máscara) y necesidad subyacente — la sanación va hacia la necesidad. 650–900 palabras.
 
 [ESTRUCTURA]
-1) ## Introducción — Astrología (4–6 líneas): las cinco pueden coexistir con distinta intensidad según el momento; la carta señala dos dominantes para [Nombre]; nómbralas; sin teoría larga.
-2) ## Primera herida dominante (6–9 líneas).
-3) ## Segunda herida dominante (6–9 líneas).
-4) ## Hacia la sanación — Astrología (4–6 líneas): cualidad de sanación + pista concreta por herida; cierre breve.`
+1) ## Introducción (4–6 líneas): las cinco heridas pueden coexistir con distinta intensidad; la carta destaca dos para [Nombre]; nombrarlas claramente.
+2) ## Primera herida dominante — [nombre] (6–9 líneas).
+3) ## Segunda herida dominante — [nombre] (6–9 líneas).
+4) ## Hacia la sanación — Astrología (4–6 líneas): recurso interior + pista concreta por herida; cierre breve.`
 
   const systemPrompt =
     language === 'en' ? systemPromptEn : language === 'es' ? systemPromptEs : systemPromptFr
@@ -390,14 +462,14 @@ ${aspects}
 [Symbolic wound hints]
 ${woundHints}
 
-Write the dialogue (intro + 2 dominant wounds only + healing). Replace [First Name] / [Prénom] with: ${firstName}.`
+Write the dialogue (intro + 2 dominant wounds + healing). Replace [First Name] / [Prénom] with: ${firstName}.`
       : language === 'es'
         ? `ENTRADA — Carta natal de ${firstName}
 
 [Posiciones]
 ${placements}
 
-[Aspectos mayores — planetas de herida y Quirón]
+[Aspectos mayores — planetas de heridas y Quirón]
 ${aspects}
 
 [Pistas simbólicas de heridas]
@@ -415,7 +487,7 @@ ${aspects}
 [Indices symboliques des blessures]
 ${woundHints}
 
-Rédige le dialogue (intro + 2 blessures dominantes seulement + guérison). Remplace [Prénom] / [First Name] par : ${firstName}.`
+Rédige le dialogue (intro + 2 blessures dominantes + guérison). Remplace [Prénom] / [First Name] par : ${firstName}.`
 
   return { systemPrompt, userPrompt }
 }

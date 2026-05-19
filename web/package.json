@@ -14,6 +14,7 @@
     "test": "vitest run",
     "test:regression": "vitest run",
     "test:cart": "vitest run lib/cart-rules.auth-regression.test.ts lib/cart-checkout-plan.auth-regression.test.ts lib/cart-checkout-normalize.auth-regression.test.ts lib/cart-stripe-metadata.auth-regression.test.ts app/api/stripe/checkout.auth-regression.test.ts",
+    "test:billing": "vitest run lib/cart-rules.auth-regression.test.ts lib/cart-checkout-plan.auth-regression.test.ts lib/cart-checkout-normalize.auth-regression.test.ts lib/cart-stripe-metadata.auth-regression.test.ts lib/billing-flow.auth-regression.test.ts lib/checkout-consent.auth-regression.test.ts app/api/stripe/checkout.auth-regression.test.ts app/api/stripe/verify-session.auth-regression.test.ts app/api/webhooks/stripe.auth-regression.test.ts",
     "test:journal": "vitest run lib/journal.auth-regression.test.ts",
     "test:watch": "vitest",
     "predeploy": "npm run test:regression",

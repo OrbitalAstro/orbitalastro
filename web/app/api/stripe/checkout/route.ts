@@ -64,6 +64,8 @@ export async function POST(request: NextRequest) {
     )
 
     const baseUrl = resolveBaseUrl(request)
+    const termsUrl = `${baseUrl}/terms`
+    const privacyUrl = `${baseUrl}/privacy`
     const stripe = getStripe()
 
     for (const item of lineItems) {
@@ -88,8 +90,7 @@ export async function POST(request: NextRequest) {
       },
       custom_text: {
         terms_of_service_acceptance: {
-          message:
-            'J’accepte les conditions générales d’OrbitalAstro (termes et politique de confidentialité).',
+          message: `J’accepte les [termes et conditions](${termsUrl}) et la [politique de confidentialité](${privacyUrl}) d’OrbitalAstro.`,
         },
         submit: {
           message: '⚠️ Paiement final. Vérifiez vos informations de carte avant de confirmer.',

@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic'
 
 import { useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Heart, Sparkles, Loader2 } from 'lucide-react'
+import { Users, Sparkles, Loader2 } from 'lucide-react'
 import { useSettingsStore } from '@/lib/store'
 import { apiClient } from '@/lib/api'
 import ReactMarkdown from 'react-markdown'
@@ -13,12 +13,15 @@ import BackButton from '@/components/BackButton'
 import Starfield from '@/components/Starfield'
 import { formatBirthDateInput } from '@/lib/sanitizeBirthDateYear'
 import { useTranslation } from '@/lib/useTranslation'
-import { generateSoulWoundsPrompt, getWoundNeedGrid } from './generateSoulWoundsPrompt'
+import {
+  generateFamilyLineagePrompt,
+  getFamilyLineageThemeGrid,
+} from './generateFamilyLineagePrompt'
 import { cleanText } from '@/lib/cleanText'
 import { isDevTestBypass } from '@/lib/devTestMode'
 import TextNarrationControls from '@/components/TextNarrationControls'
 
-export default function BlessuresAmePage() {
+export default function ConstellationFamilialePage() {
   const settings = useSettingsStore()
   const t = useTranslation()
   const lang = (settings.language || 'fr') as 'en' | 'fr' | 'es'
@@ -38,16 +41,16 @@ export default function BlessuresAmePage() {
 
   const copy = {
     fr: {
-      title: 'Les cinq blessures',
+      title: 'Constellation familiale',
       subtitle:
-        'Tes deux blessures dominantes, en dialogue planétaire — lecture astrologique originale du thème natal.',
+        'Tes deux fils transgénérationnels dominants, en dialogue planétaire — lecture astrologique symbolique du thème natal.',
       disclaimer:
-        'Exploration symbolique, pas un diagnostic ni une thérapie. Texte original Orbital Astro : pas d’affiliation à un auteur ou une marque tiers (ex. Écoute ton corps).',
+        'Exploration symbolique (filiation, loyautés, transmission), pas une constellation thérapeutique ni une psychogénéalogie clinique. Texte original Orbital Astro : pas d’affiliation à une école ou un auteur tiers.',
       gridIntro:
-        'Chaque planète éclaire une blessure sensible et le besoin qu’elle appelle. Le dialogue met en avant tes deux dominantes.',
+        'Chaque planète éclaire un thème de lignée et une ressource possible. Le dialogue met en avant tes deux fils dominants.',
       colPlanet: 'Planète',
-      colWound: 'Blessure',
-      colNeed: 'Besoin sous-jacent',
+      colTheme: 'Thème transgénérationnel',
+      colResource: 'Ressource',
       firstName: 'Prénom',
       birthDate: 'Date de naissance',
       birthTime: 'Heure de naissance',
@@ -61,16 +64,16 @@ export default function BlessuresAmePage() {
         'Mode développement : génération sans paiement sur localhost. API astro attendue sur http://127.0.0.1:8000',
     },
     en: {
-      title: 'The five wounds',
+      title: 'Family constellation',
       subtitle:
-        'Your two dominant wounds in a planetary dialogue — original astrological reading of your natal chart.',
+        'Your two dominant transgenerational threads in a planetary dialogue — symbolic natal chart reading.',
       disclaimer:
-        'Symbolic exploration, not diagnosis or therapy. Original Orbital Astro text — not affiliated with any third-party author or brand (e.g. Écoute ton corps).',
+        'Symbolic exploration (filiation, loyalties, transmission), not constellation therapy or clinical psychogenealogy. Original Orbital Astro text — not affiliated with any third-party school or author.',
       gridIntro:
-        'Each planet highlights a sensitive wound and the need it calls for. The dialogue focuses on your two dominants.',
+        'Each planet highlights a lineage theme and a possible resource. The dialogue focuses on your two dominant threads.',
       colPlanet: 'Planet',
-      colWound: 'Wound',
-      colNeed: 'Underlying need',
+      colTheme: 'Transgenerational theme',
+      colResource: 'Resource',
       firstName: 'First name',
       birthDate: 'Birth date',
       birthTime: 'Birth time',
@@ -84,16 +87,16 @@ export default function BlessuresAmePage() {
         'Development mode: no payment on localhost. Astro API expected at http://127.0.0.1:8000',
     },
     es: {
-      title: 'Las cinco heridas',
+      title: 'Constelación familiar',
       subtitle:
-        'Tus dos heridas dominantes en diálogo planetario — lectura astrológica original de tu carta natal.',
+        'Tus dos hilos transgeneracionales dominantes en diálogo planetario — lectura simbólica de la carta natal.',
       disclaimer:
-        'Exploración simbólica, no diagnóstico ni terapia. Texto original Orbital Astro: sin afiliación a autor o marca de terceros (p. ej. Écoute ton corps).',
+        'Exploración simbólica (filiación, lealtades, transmisión), no terapia de constelación ni psicogenealogía clínica. Texto original Orbital Astro: sin afiliación a escuela o autor de terceros.',
       gridIntro:
-        'Cada planeta ilumina una herida sensible y la necesidad que invoca. El diálogo destaca tus dos dominantes.',
+        'Cada planeta ilumina un tema de linaje y un recurso posible. El diálogo destaca tus dos hilos dominantes.',
       colPlanet: 'Planeta',
-      colWound: 'Herida',
-      colNeed: 'Necesidad subyacente',
+      colTheme: 'Tema transgeneracional',
+      colResource: 'Recurso',
       firstName: 'Nombre',
       birthDate: 'Fecha de nacimiento',
       birthTime: 'Hora de nacimiento',
@@ -107,7 +110,7 @@ export default function BlessuresAmePage() {
     },
   }[lang]
 
-  const woundGrid = useMemo(() => getWoundNeedGrid(lang), [lang])
+  const lineageGrid = useMemo(() => getFamilyLineageThemeGrid(lang), [lang])
 
   const handleGenerate = async () => {
     setLoading(true)
@@ -148,10 +151,10 @@ export default function BlessuresAmePage() {
       const chart = chartResponse.data
       if (!chart?.planets) throw new Error('Chart response is empty')
 
-      const { systemPrompt, userPrompt } = generateSoulWoundsPrompt({
+      const { systemPrompt, userPrompt } = generateFamilyLineagePrompt({
         language: lang,
         firstName: birthData.firstName || undefined,
-        chart: chart as Parameters<typeof generateSoulWoundsPrompt>[0]['chart'],
+        chart: chart as Parameters<typeof generateFamilyLineagePrompt>[0]['chart'],
       })
 
       const response = await apiClient.ai.interpret(userPrompt, systemPrompt)
@@ -163,7 +166,7 @@ export default function BlessuresAmePage() {
       setContent(cleanText(raw))
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err)
-      console.error('[BlessuresAme]', err)
+      console.error('[ConstellationFamiliale]', err)
       alert(copy.error.replace('{error}', msg))
     } finally {
       setLoading(false)
@@ -183,10 +186,10 @@ export default function BlessuresAmePage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-gradient-to-br from-cosmic-purple/60 to-magenta-purple/60 backdrop-blur-sm rounded-xl p-8 border border-cosmic-gold/20"
+          className="bg-gradient-to-br from-cosmic-purple/60 to-magenta-purple/60 backdrop-blur-sm rounded-xl p-8 border border-cosmic-gold/20 overflow-visible"
         >
           <div className="flex items-center justify-center gap-3 mb-4">
-            <Heart className="h-8 w-8 text-cosmic-gold" />
+            <Users className="h-8 w-8 text-cosmic-gold" />
             <h1 className="text-3xl font-bold text-cosmic-gold text-center">{copy.title}</h1>
           </div>
 
@@ -206,16 +209,16 @@ export default function BlessuresAmePage() {
                 <thead>
                   <tr className="border-b border-cosmic-gold/30 text-cosmic-gold">
                     <th className="py-2 pr-3 text-left font-medium">{copy.colPlanet}</th>
-                    <th className="py-2 pr-3 text-left font-medium">{copy.colWound}</th>
-                    <th className="py-2 text-left font-medium">{copy.colNeed}</th>
+                    <th className="py-2 pr-3 text-left font-medium">{copy.colTheme}</th>
+                    <th className="py-2 text-left font-medium">{copy.colResource}</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {woundGrid.map((row) => (
+                  {lineageGrid.map((row) => (
                     <tr key={row.planet} className="border-b border-white/10 last:border-0">
                       <td className="py-2 pr-3 font-medium text-cosmic-gold/95">{row.planet}</td>
-                      <td className="py-2 pr-3 capitalize">{row.wound}</td>
-                      <td className="py-2">{row.need}</td>
+                      <td className="py-2 pr-3">{row.theme}</td>
+                      <td className="py-2">{row.resource}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -257,7 +260,7 @@ export default function BlessuresAmePage() {
                 className="w-full px-4 py-2 bg-cosmic-purple/60 border border-cosmic-gold/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-cosmic-gold"
               />
             </div>
-            <div className="md:col-span-2">
+            <div className="md:col-span-2 relative z-30 overflow-visible">
               <LocationInput
                 label={copy.birthPlace}
                 value={birthData.birth_place}
@@ -311,15 +314,15 @@ export default function BlessuresAmePage() {
 
           {content && (
             <>
-              <motion.div className="mb-6 flex justify-center">
+              <div className="mb-6 flex justify-center">
                 <TextNarrationControls
                   text={content}
                   language={lang}
                   labels={t.narration}
                   className="items-center text-center"
                 />
-              </motion.div>
-              <motion.div className="pdf-scroll custom-scrollbar rounded-lg border border-cosmic-gold/25 bg-cosmic-purple/30 p-6">
+              </div>
+              <div className="pdf-scroll custom-scrollbar rounded-lg border border-cosmic-gold/25 bg-cosmic-purple/30 p-6">
                 <ReactMarkdown
                   className="dialogue-prose pdf-body text-cosmic-gold/90"
                   components={{
@@ -348,7 +351,7 @@ export default function BlessuresAmePage() {
                 >
                   {content}
                 </ReactMarkdown>
-              </motion.div>
+              </div>
             </>
           )}
         </motion.div>

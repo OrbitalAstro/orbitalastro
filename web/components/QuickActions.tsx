@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Search, Home, Settings, BookOpen, Command, TrendingUp, Zap, Wand2, MessageSquare, BookOpenText, Heart, Info } from 'lucide-react'
+import { Search, Home, Settings, BookOpen, Command, TrendingUp, Zap, Wand2, MessageSquare, BookOpenText, Heart, Users, Info } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useKeyboardShortcuts } from '@/lib/keyboard'
 import { useTranslation } from '@/lib/useTranslation'
@@ -76,13 +76,27 @@ export default function QuickActions() {
       id: 'blessures-ame',
       label:
         t.locale === 'fr'
-          ? 'Blessures de l\'âme'
+          ? 'Les cinq blessures'
           : t.locale === 'es'
-            ? 'Heridas del alma'
-            : 'Soul wounds',
+            ? 'Las cinco heridas'
+            : 'The five wounds',
       icon: Heart,
       action: () => {
         router.push('/blessures-ame')
+        setIsOpen(false)
+      },
+    },
+    {
+      id: 'constellation-familiale',
+      label:
+        t.locale === 'fr'
+          ? 'Constellation familiale'
+          : t.locale === 'es'
+            ? 'Constelación familiar'
+            : 'Family constellation',
+      icon: Users,
+      action: () => {
+        router.push('/constellation-familiale')
         setIsOpen(false)
       },
     },
